@@ -7,51 +7,50 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-:root{--verde:#5a8a1a;--verde-chiaro:#8dc63f;--giallo:#f5c400;--grigio-scuro:#1a1a1a;--grigio:#2e2e2e;--grigio-medio:#444;--grigio-chiaro:#b0b0b0;--bianco:#f4f1eb;--rosso:#c0392b}
+:root{--verde:#5a8a1a;--verde-chiaro:#8dc63f;--giallo:#f5c400;--gs:#1a1a1a;--g:#2e2e2e;--gm:#444;--gc:#b0b0b0;--b:#f4f1eb;--rosso:#c0392b}
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:"DM Sans",sans-serif;background:var(--grigio-scuro);color:var(--bianco);overflow-x:hidden}
+body{font-family:"DM Sans",sans-serif;background:var(--gs);color:var(--b);overflow-x:hidden}
 nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(26,26,26,.96);backdrop-filter:blur(12px);border-bottom:2px solid var(--verde);display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem;height:64px;gap:.5rem;flex-wrap:wrap}
 .nav-logo{cursor:pointer;display:flex;align-items:center}
 .nav-logo img{height:44px}
 .nav-links{display:flex;gap:.2rem;flex-wrap:wrap}
-.nav-links button{background:none;border:none;color:var(--grigio-chiaro);font-family:"DM Mono",monospace;font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;padding:.35rem .7rem;border-radius:3px;cursor:pointer;transition:all .2s}
-.nav-links button:hover,.nav-links button.active{background:var(--verde);color:var(--bianco)}
+.nav-links button{background:none;border:none;color:var(--gc);font-family:"DM Mono",monospace;font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;padding:.35rem .7rem;border-radius:3px;cursor:pointer;transition:all .2s}
+.nav-links button:hover,.nav-links button.active{background:var(--verde);color:var(--b)}
 .nav-links button.admin-btn{border:1px solid var(--giallo);color:var(--giallo)}
-.nav-links button.admin-btn:hover,.nav-links button.admin-btn.active{background:var(--giallo);color:var(--grigio-scuro)}
-.currency-sw{display:flex;align-items:center;gap:.25rem;border-left:1px solid var(--grigio-medio);padding-left:.6rem}
-.currency-sw button{padding:.28rem .55rem;font-size:.62rem;font-family:"DM Mono",monospace;background:none;border:1px solid var(--grigio-medio);color:var(--grigio-chiaro);border-radius:3px;cursor:pointer;transition:all .2s}
-.currency-sw button.active{background:var(--verde);color:var(--bianco);border-color:var(--verde)}
+.nav-links button.admin-btn:hover,.nav-links button.admin-btn.active{background:var(--giallo);color:var(--gs)}
+.csw{display:flex;align-items:center;gap:.25rem;border-left:1px solid var(--gm);padding-left:.6rem}
+.csw button{padding:.28rem .55rem;font-size:.62rem;font-family:"DM Mono",monospace;background:none;border:1px solid var(--gm);color:var(--gc);border-radius:3px;cursor:pointer;transition:all .2s}
+.csw button.active{background:var(--verde);color:var(--b);border-color:var(--verde)}
 .page{display:none;min-height:100vh;padding-top:64px}
-.page.active{display:block;animation:fadeIn .4s ease}
-@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.page.active{display:block;animation:fi .4s ease}
+@keyframes fi{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 .hero{min-height:calc(100vh - 64px);background:linear-gradient(135deg,#0d1a06 0%,#1a2e08 40%,#0f1a04 100%);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
 .hero-bg{position:absolute;inset:0;background-image:radial-gradient(circle at 20% 80%,rgba(90,138,26,.25) 0%,transparent 50%),radial-gradient(circle at 80% 20%,rgba(141,198,63,.15) 0%,transparent 45%)}
 .hero-content{text-align:center;position:relative;z-index:1;padding:2rem}
 .hero-badge{display:inline-block;font-family:"DM Mono",monospace;font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--verde-chiaro);border:1px solid var(--verde);padding:.4rem 1.2rem;border-radius:2px;margin-bottom:1.5rem}
-.hero-sub{font-size:1.05rem;font-weight:300;color:var(--grigio-chiaro);letter-spacing:.04em;margin:1.5rem auto 2.5rem;max-width:520px}
+.hero-sub{font-size:1.05rem;font-weight:300;color:var(--gc);letter-spacing:.04em;margin:1.5rem auto 2.5rem;max-width:520px}
 .hero-stats{display:flex;gap:3rem;justify-content:center;flex-wrap:wrap;margin-top:3rem}
 .stat-num{font-family:"Bebas Neue",sans-serif;font-size:3rem;color:var(--giallo);line-height:1}
-.stat-label{font-family:"DM Mono",monospace;font-size:.65rem;text-transform:uppercase;letter-spacing:.15em;color:var(--grigio-chiaro);margin-top:.3rem}
+.stat-label{font-family:"DM Mono",monospace;font-size:.65rem;text-transform:uppercase;letter-spacing:.15em;color:var(--gc);margin-top:.3rem}
 .news-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.5rem;padding:2rem}
-.news-card{background:var(--grigio);border:1px solid rgba(90,138,26,.3);border-radius:6px;overflow:hidden;transition:transform .2s,border-color .2s}
-.news-card:hover{transform:translateY(-4px);border-color:var(--verde-chiaro)}
-.news-card-img{height:160px;display:flex;align-items:center;justify-content:center;font-size:3.5rem;background:linear-gradient(135deg,#1a2e08,#0d1a06)}
-.news-card-body{padding:1.2rem}
-.news-tag{font-family:"DM Mono",monospace;font-size:.6rem;letter-spacing:.15em;text-transform:uppercase;color:var(--giallo);margin-bottom:.5rem}
-.news-card h3{font-size:1rem;font-weight:500;margin-bottom:.5rem;line-height:1.4}
-.news-card p{font-size:.85rem;color:var(--grigio-chiaro);line-height:1.6}
-.news-meta{font-family:"DM Mono",monospace;font-size:.65rem;color:var(--grigio-medio);margin-top:.8rem}
-.section-header{padding:2.5rem 2rem .5rem}
-.section-header h2{font-family:"Bebas Neue",sans-serif;font-size:2.8rem;letter-spacing:.04em;line-height:1}
-.section-header h2 span{color:var(--verde-chiaro)}
-.section-header p{color:var(--grigio-chiaro);font-size:.9rem;margin-top:.5rem}
-.soci-header{padding:1.5rem 2rem 0;display:flex;align-items:center;gap:.8rem;flex-wrap:wrap}
-.search-box{flex:1;min-width:180px;background:var(--grigio);border:1px solid var(--grigio-medio);border-radius:4px;padding:.6rem 1rem;color:var(--bianco);font-size:.9rem;outline:none;transition:border-color .2s}
-.search-box:focus{border-color:var(--verde-chiaro)}
-.table-wrap{padding:1.5rem 2rem;overflow-x:auto}
-.scrollable{max-height:420px;overflow-y:auto}
-.scrollable::-webkit-scrollbar{width:5px}
-.scrollable::-webkit-scrollbar-thumb{background:var(--verde);border-radius:10px}
+.nc{background:var(--g);border:1px solid rgba(90,138,26,.3);border-radius:6px;overflow:hidden;transition:transform .2s,border-color .2s}
+.nc:hover{transform:translateY(-4px);border-color:var(--verde-chiaro)}
+.nc-img{height:160px;display:flex;align-items:center;justify-content:center;font-size:3.5rem;background:linear-gradient(135deg,#1a2e08,#0d1a06)}
+.nc-body{padding:1.2rem}
+.nc-tag{font-family:"DM Mono",monospace;font-size:.6rem;letter-spacing:.15em;text-transform:uppercase;color:var(--giallo);margin-bottom:.5rem}
+.nc h3{font-size:1rem;font-weight:500;margin-bottom:.5rem;line-height:1.4}
+.nc p{font-size:.85rem;color:var(--gc);line-height:1.6}
+.nc-meta{font-family:"DM Mono",monospace;font-size:.65rem;color:var(--gm);margin-top:.8rem}
+.sh{padding:2.5rem 2rem .5rem}
+.sh h2{font-family:"Bebas Neue",sans-serif;font-size:2.8rem;letter-spacing:.04em;line-height:1}
+.sh h2 span{color:var(--verde-chiaro)}
+.sh p{color:var(--gc);font-size:.9rem;margin-top:.5rem}
+.sb{flex:1;min-width:180px;background:var(--g);border:1px solid var(--gm);border-radius:4px;padding:.6rem 1rem;color:var(--b);font-size:.9rem;outline:none;transition:border-color .2s}
+.sb:focus{border-color:var(--verde-chiaro)}
+.tw{padding:1.5rem 2rem;overflow-x:auto}
+.sc{max-height:420px;overflow-y:auto}
+.sc::-webkit-scrollbar{width:5px}
+.sc::-webkit-scrollbar-thumb{background:var(--verde);border-radius:10px}
 table{width:100%;border-collapse:collapse}
 thead th{font-family:"DM Mono",monospace;font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--verde-chiaro);padding:.8rem 1rem;border-bottom:2px solid var(--verde);text-align:left;background:rgba(90,138,26,.08);cursor:pointer}
 thead th:hover{color:var(--giallo)}
@@ -59,96 +58,101 @@ tbody tr{border-bottom:1px solid rgba(255,255,255,.05);transition:background .15
 tbody tr:hover{background:rgba(90,138,26,.1)}
 tbody td{padding:.85rem 1rem;font-size:.88rem}
 .badge{display:inline-block;padding:.2rem .6rem;border-radius:20px;font-family:"DM Mono",monospace;font-size:.6rem;letter-spacing:.1em;text-transform:uppercase}
-.badge-attivo{background:rgba(90,138,26,.25);color:#a8d85a;border:1px solid rgba(141,198,63,.35)}
-.badge-sosp{background:rgba(245,196,0,.15);color:var(--giallo);border:1px solid rgba(245,196,0,.3)}
-.badge-nuovo{background:rgba(52,152,219,.15);color:#5dade2;border:1px solid rgba(93,173,226,.3)}
-.badge-pagato{background:rgba(39,174,96,.15);color:#58d68d;border:1px solid rgba(88,214,141,.3)}
-.badge-npagato{background:rgba(192,57,43,.15);color:#ec7063;border:1px solid rgba(236,112,99,.3)}
-.avatar{width:32px;height:32px;border-radius:50%;background:var(--verde);color:var(--bianco);display:inline-flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:500;margin-right:.6rem;vertical-align:middle;flex-shrink:0}
-.uscite-grid{padding:2rem;display:grid;gap:1.2rem}
-.uscita-card{background:var(--grigio);border:1px solid rgba(90,138,26,.2);border-radius:6px;display:grid;grid-template-columns:100px 1fr auto;overflow:hidden;transition:all .2s;cursor:pointer}
-.uscita-card:hover{border-color:var(--verde-chiaro);transform:translateX(4px)}
-.uscita-data{background:var(--verde);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1rem}
-.uscita-giorno{font-family:"Bebas Neue",sans-serif;font-size:2.5rem;color:var(--bianco);line-height:1}
-.uscita-mese{font-family:"DM Mono",monospace;font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,.8)}
-.uscita-info{padding:1rem 1.5rem;display:flex;flex-direction:column;justify-content:center}
-.uscita-info h3{font-size:1rem;font-weight:500;margin-bottom:.4rem}
-.uscita-meta{font-size:.8rem;color:var(--grigio-chiaro);display:flex;gap:1.2rem;flex-wrap:wrap}
-.uscita-right{padding:1rem;display:flex;flex-direction:column;align-items:flex-end;justify-content:space-between}
-.diff-badge{padding:.3rem .8rem;border-radius:3px;font-family:"DM Mono",monospace;font-size:.62rem;letter-spacing:.1em;text-transform:uppercase}
-.diff-F{background:rgba(52,152,219,.2);color:#5dade2}
-.diff-M{background:rgba(245,196,0,.2);color:var(--giallo)}
-.diff-D{background:rgba(192,57,43,.2);color:#ec7063}
-.gallery-tab{padding:.5rem 1.2rem;font-family:"DM Mono",monospace;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;background:none;border:none;color:var(--grigio-chiaro);border-bottom:2px solid transparent;cursor:pointer;transition:all .2s}
-.gallery-tab.active{color:var(--giallo);border-bottom-color:var(--giallo)}
-.gallery-content{padding:1.5rem 2rem}
-.photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:1rem}
-.photo-item{aspect-ratio:4/3;border-radius:4px;overflow:hidden;background:linear-gradient(135deg,#1a2e08,#0d1a06);display:flex;align-items:center;justify-content:center;font-size:3rem;position:relative;transition:transform .2s}
-.photo-item:hover{transform:scale(1.03)}
-.photo-label{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.8));padding:1rem .8rem .6rem;font-size:.75rem;color:var(--bianco);z-index:2}
-.video-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem}
-.video-item{background:var(--grigio);border-radius:6px;overflow:hidden;border:1px solid rgba(90,138,26,.2);transition:border-color .2s;position:relative}
-.video-item:hover{border-color:var(--verde-chiaro)}
-.video-thumb{height:150px;background:#111;display:flex;align-items:center;justify-content:center;font-size:2.5rem;position:relative;overflow:hidden}
-.video-info{padding:.8rem 1rem}
-.video-info h4{font-size:.88rem;margin-bottom:.3rem}
-.video-info p{font-size:.75rem;color:var(--grigio-chiaro)}
-.admin-login{max-width:420px;margin:4rem auto;padding:2.5rem;background:var(--grigio);border:1px solid rgba(245,196,0,.3);border-radius:8px;text-align:center}
-.admin-login h2{font-family:"Bebas Neue",sans-serif;font-size:2rem;color:var(--giallo);margin-bottom:.5rem}
-.admin-panel{padding:1.5rem 2rem}
-.admin-panel>h2{font-family:"Bebas Neue",sans-serif;font-size:2rem;color:var(--giallo);letter-spacing:.05em;margin-bottom:1.5rem}
-.kpi-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:1rem;margin-bottom:2rem}
-.kpi-card{background:var(--grigio);border-radius:6px;padding:1.2rem 1.5rem;border-left:4px solid var(--verde)}
-.kpi-card.kpi-giallo{border-left-color:var(--giallo)}
-.kpi-card.kpi-rosso{border-left-color:var(--rosso)}
-.kpi-card.kpi-blu{border-left-color:#3498db}
-.kpi-num{font-family:"Bebas Neue",sans-serif;font-size:2.5rem;line-height:1;color:var(--bianco)}
-.kpi-label{font-family:"DM Mono",monospace;font-size:.65rem;text-transform:uppercase;letter-spacing:.12em;color:var(--grigio-chiaro);margin-top:.3rem}
-.admin-section{margin-bottom:2.5rem}
-.admin-section h3{font-family:"DM Mono",monospace;font-size:.75rem;text-transform:uppercase;letter-spacing:.15em;color:var(--verde-chiaro);margin-bottom:1rem;padding-bottom:.5rem;border-bottom:1px solid rgba(90,138,26,.3)}
-.bar-chart{display:flex;gap:.6rem;align-items:flex-end;height:120px;padding:.5rem 0}
-.bar-group{flex:1;display:flex;flex-direction:column;align-items:center;gap:.3rem}
-.bar{width:100%;border-radius:3px 3px 0 0;background:var(--verde)}
-.bar-val{font-family:"DM Mono",monospace;font-size:.55rem;color:var(--giallo);text-align:center}
+.ba{background:rgba(90,138,26,.25);color:#a8d85a;border:1px solid rgba(141,198,63,.35)}
+.bs{background:rgba(245,196,0,.15);color:var(--giallo);border:1px solid rgba(245,196,0,.3)}
+.bn{background:rgba(52,152,219,.15);color:#5dade2;border:1px solid rgba(93,173,226,.3)}
+.bp{background:rgba(39,174,96,.15);color:#58d68d;border:1px solid rgba(88,214,141,.3)}
+.bx{background:rgba(192,57,43,.15);color:#ec7063;border:1px solid rgba(236,112,99,.3)}
+.av{width:32px;height:32px;border-radius:50%;background:var(--verde);color:var(--b);display:inline-flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:500;margin-right:.6rem;vertical-align:middle;flex-shrink:0}
+.ug{padding:2rem;display:grid;gap:1.2rem}
+.uc{background:var(--g);border:1px solid rgba(90,138,26,.2);border-radius:6px;display:grid;grid-template-columns:100px 1fr auto;overflow:hidden;transition:all .2s;cursor:pointer}
+.uc:hover{border-color:var(--verde-chiaro);transform:translateX(4px)}
+.ud{background:var(--verde);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1rem}
+.ug-d{font-family:"Bebas Neue",sans-serif;font-size:2.5rem;color:var(--b);line-height:1}
+.um{font-family:"DM Mono",monospace;font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,.8)}
+.ui{padding:1rem 1.5rem;display:flex;flex-direction:column;justify-content:center}
+.ui h3{font-size:1rem;font-weight:500;margin-bottom:.4rem}
+.ui-meta{font-size:.8rem;color:var(--gc);display:flex;gap:1.2rem;flex-wrap:wrap}
+.ur{padding:1rem;display:flex;flex-direction:column;align-items:flex-end;justify-content:space-between}
+.db{padding:.3rem .8rem;border-radius:3px;font-family:"DM Mono",monospace;font-size:.62rem;letter-spacing:.1em;text-transform:uppercase}
+.dF{background:rgba(52,152,219,.2);color:#5dade2}.dM{background:rgba(245,196,0,.2);color:var(--giallo)}.dD{background:rgba(192,57,43,.2);color:#ec7063}
+.gtab{padding:.5rem 1.2rem;font-family:"DM Mono",monospace;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;background:none;border:none;color:var(--gc);border-bottom:2px solid transparent;cursor:pointer;transition:all .2s}
+.gtab.active{color:var(--giallo);border-bottom-color:var(--giallo)}
+.gc2{padding:1.5rem 2rem}
+.pg{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:1rem}
+.pi{aspect-ratio:4/3;border-radius:4px;overflow:hidden;background:linear-gradient(135deg,#1a2e08,#0d1a06);display:flex;align-items:center;justify-content:center;font-size:3rem;position:relative;transition:transform .2s}
+.pi:hover{transform:scale(1.03)}
+.pl{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.8));padding:1rem .8rem .6rem;font-size:.75rem;color:var(--b);z-index:2}
+.vg{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem}
+.vi{background:var(--g);border-radius:6px;overflow:hidden;border:1px solid rgba(90,138,26,.2);transition:border-color .2s;position:relative}
+.vi:hover{border-color:var(--verde-chiaro)}
+.vt{height:150px;background:#111;display:flex;align-items:center;justify-content:center;font-size:2.5rem;position:relative;overflow:hidden}
+.vif{padding:.8rem 1rem}
+.vif h4{font-size:.88rem;margin-bottom:.3rem}
+.vif p{font-size:.75rem;color:var(--gc)}
+/* ADMIN */
+.al{max-width:420px;margin:4rem auto;padding:2.5rem;background:var(--g);border:1px solid rgba(245,196,0,.3);border-radius:8px;text-align:center}
+.al h2{font-family:"Bebas Neue",sans-serif;font-size:2rem;color:var(--giallo);margin-bottom:.5rem}
+.ap{padding:1.5rem 2rem}
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:1rem;margin-bottom:2rem}
+.kc{background:var(--g);border-radius:6px;padding:1.2rem 1.5rem;border-left:4px solid var(--verde)}
+.kc.kg{border-left-color:var(--giallo)}.kc.kr{border-left-color:var(--rosso)}.kc.kb{border-left-color:#3498db}
+.kn{font-family:"Bebas Neue",sans-serif;font-size:2.5rem;line-height:1;color:var(--b)}
+.kl{font-family:"DM Mono",monospace;font-size:.65rem;text-transform:uppercase;letter-spacing:.12em;color:var(--gc);margin-top:.3rem}
+.as{margin-bottom:2.5rem}
+.as h3{font-family:"DM Mono",monospace;font-size:.75rem;text-transform:uppercase;letter-spacing:.15em;color:var(--verde-chiaro);margin-bottom:1rem;padding-bottom:.5rem;border-bottom:1px solid rgba(90,138,26,.3)}
+.bc{display:flex;gap:.6rem;align-items:flex-end;height:120px;padding:.5rem 0}
+.bg2{flex:1;display:flex;flex-direction:column;align-items:center;gap:.3rem}
+.bb{width:100%;border-radius:3px 3px 0 0;background:var(--verde)}
+.bv{font-family:"DM Mono",monospace;font-size:.55rem;color:var(--giallo);text-align:center}
+/* ANNO SELECTOR */
+.anno-bar{background:linear-gradient(135deg,rgba(90,138,26,.15),rgba(26,26,26,.8));border:1px solid var(--verde);border-radius:8px;padding:1.2rem 1.5rem;margin-bottom:2rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
+.anno-bar label{font-family:"DM Mono",monospace;font-size:.72rem;text-transform:uppercase;letter-spacing:.12em;color:var(--verde-chiaro)}
+.anno-select{background:var(--gs);border:2px solid var(--verde);border-radius:6px;padding:.5rem 1rem;color:var(--giallo);font-family:"Bebas Neue",sans-serif;font-size:1.6rem;letter-spacing:.05em;outline:none;cursor:pointer;min-width:100px}
+.anno-select:focus{border-color:var(--verde-chiaro)}
+.anno-new{font-family:"DM Mono",monospace;font-size:.68rem}
+/* TRASFERTA */
+.tc{background:linear-gradient(135deg,#0d2235,#0d1a06);border:1px solid rgba(74,158,74,.3);border-radius:8px;padding:1.4rem 1.6rem;margin-bottom:1.2rem}
+.tl{font-family:"DM Mono",monospace;font-size:.6rem;text-transform:uppercase;letter-spacing:.15em;color:var(--verde-chiaro);margin-bottom:.3rem}
+/* BTN */
 .btn{padding:.6rem 1.4rem;border:none;border-radius:4px;font-family:"DM Mono",monospace;font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:all .2s}
-.btn-verde{background:var(--verde);color:var(--bianco)}.btn-verde:hover{background:var(--verde-chiaro)}
-.btn-giallo{background:var(--giallo);color:var(--grigio-scuro)}.btn-giallo:hover{background:#e0b000}
-.btn-outline{background:none;border:1px solid var(--grigio-medio);color:var(--grigio-chiaro)}.btn-outline:hover{border-color:var(--verde-chiaro);color:var(--verde-chiaro)}
-.btn-rosso{background:var(--rosso);color:var(--bianco)}.btn-rosso:hover{background:#a93226}
-.btn-sm{padding:.25rem .55rem;font-size:.6rem}
-.modal-overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:1rem}
-.modal-overlay.open{display:flex}
-.modal{background:var(--grigio);border:1px solid var(--verde);border-radius:8px;padding:2rem;width:100%;max-width:560px;max-height:87vh;overflow-y:auto;animation:modalIn .25s ease}
-@keyframes modalIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
-.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem}
-.modal-header h3{font-family:"Bebas Neue",sans-serif;font-size:1.6rem;color:var(--giallo);letter-spacing:.05em}
-.modal-close{background:none;border:none;color:var(--grigio-chiaro);font-size:1.4rem;cursor:pointer}
-.modal-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
-.form-group{margin-bottom:1rem}
-.form-group label{display:block;font-family:"DM Mono",monospace;font-size:.68rem;text-transform:uppercase;letter-spacing:.12em;color:var(--verde-chiaro);margin-bottom:.4rem}
-.form-group input,.form-group select,.form-group textarea{width:100%;background:var(--grigio-scuro);border:1px solid var(--grigio-medio);border-radius:4px;padding:.7rem 1rem;color:var(--bianco);font-family:"DM Sans",sans-serif;font-size:.9rem;outline:none;transition:border-color .2s}
-.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--verde-chiaro)}
-.toast{position:fixed;bottom:2rem;right:2rem;z-index:999;background:var(--verde);color:var(--bianco);padding:.8rem 1.5rem;border-radius:4px;font-family:"DM Mono",monospace;font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;opacity:0;transform:translateY(20px);transition:all .3s;pointer-events:none}
+.bv2{background:var(--verde);color:var(--b)}.bv2:hover{background:var(--verde-chiaro)}
+.by{background:var(--giallo);color:var(--gs)}.by:hover{background:#e0b000}
+.bo{background:none;border:1px solid var(--gm);color:var(--gc)}.bo:hover{border-color:var(--verde-chiaro);color:var(--verde-chiaro)}
+.br2{background:var(--rosso);color:var(--b)}.br2:hover{background:#a93226}
+.bs2{padding:.25rem .55rem;font-size:.6rem}
+/* MODAL */
+.mo{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:1rem}
+.mo.open{display:flex}
+.md{background:var(--g);border:1px solid var(--verde);border-radius:8px;padding:2rem;width:100%;max-width:560px;max-height:87vh;overflow-y:auto;animation:mi .25s ease}
+@keyframes mi{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+.mh{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem}
+.mh h3{font-family:"Bebas Neue",sans-serif;font-size:1.6rem;color:var(--giallo);letter-spacing:.05em}
+.mc2{background:none;border:none;color:var(--gc);font-size:1.4rem;cursor:pointer}
+.mr{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.fg{margin-bottom:1rem}
+.fg label{display:block;font-family:"DM Mono",monospace;font-size:.68rem;text-transform:uppercase;letter-spacing:.12em;color:var(--verde-chiaro);margin-bottom:.4rem}
+.fg input,.fg select,.fg textarea{width:100%;background:var(--gs);border:1px solid var(--gm);border-radius:4px;padding:.7rem 1rem;color:var(--b);font-size:.9rem;outline:none;transition:border-color .2s}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--verde-chiaro)}
+.toast{position:fixed;bottom:2rem;right:2rem;z-index:999;background:var(--verde);color:var(--b);padding:.8rem 1.5rem;border-radius:4px;font-family:"DM Mono",monospace;font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;opacity:0;transform:translateY(20px);transition:all .3s;pointer-events:none}
 .toast.show{opacity:1;transform:translateY(0)}
-.loading{display:flex;align-items:center;justify-content:center;height:80px;color:var(--grigio-chiaro);font-family:"DM Mono",monospace;font-size:.75rem}
-.loading::after{content:"";display:inline-block;width:12px;height:12px;border:2px solid var(--verde);border-top-color:transparent;border-radius:50%;animation:spin .7s linear infinite;margin-left:.7rem}
-@keyframes spin{to{transform:rotate(360deg)}}
-.hint{font-size:.72rem;color:var(--grigio-medio);margin-top:1rem}
+.ld{display:flex;align-items:center;justify-content:center;height:80px;color:var(--gc);font-family:"DM Mono",monospace;font-size:.75rem}
+.ld::after{content:"";display:inline-block;width:12px;height:12px;border:2px solid var(--verde);border-top-color:transparent;border-radius:50%;animation:sp .7s linear infinite;margin-left:.7rem}
+@keyframes sp{to{transform:rotate(360deg)}}
+.empty{text-align:center;padding:3rem 1rem;color:var(--gc);font-family:"DM Mono",monospace;font-size:.8rem;letter-spacing:.08em}
 </style>
 </head>
 <body>
 
 <nav>
-  <div class="nav-logo" onclick="showPage('home')">
-    <img src="/logo.jpg" alt="CTR La Röda">
-  </div>
+  <div class="nav-logo" onclick="showPage('home')"><img src="/logo.jpg" alt="CTR La Röda"></div>
   <div class="nav-links">
     <button onclick="showPage('home')" id="nav-home" class="active">Home</button>
     <button onclick="showPage('news')" id="nav-news">News</button>
     <button onclick="showPage('soci')" id="nav-soci">Soci</button>
     <button onclick="showPage('uscite')" id="nav-uscite">Uscite</button>
     <button onclick="showPage('gallery')" id="nav-gallery">Gallery</button>
-    <div class="currency-sw">
+    <div class="csw">
       <button id="btn-chf" onclick="setCurrency('CHF')">CHF</button>
       <button id="btn-eur" onclick="setCurrency('EUR')" class="active">EUR</button>
     </div>
@@ -163,15 +167,15 @@ tbody td{padding:.85rem 1rem;font-size:.88rem}
     <div class="hero-content">
       <div class="hero-badge">📍 Club Ciclistico Amatoriale</div>
       <div style="margin-bottom:1rem"><img src="/logo.jpg" style="max-width:280px;width:70vw" alt="CTR La Röda"></div>
-      <div style="font-family:'DM Mono',monospace;font-size:clamp(.8rem,2vw,1rem);color:var(--bianco);font-weight:300;letter-spacing:.3em;text-transform:uppercase;margin-bottom:1rem">Club Ciclistico Amatoriale</div>
+      <div style="font-family:'DM Mono',monospace;font-size:clamp(.8rem,2vw,1rem);color:var(--b);font-weight:300;letter-spacing:.3em;text-transform:uppercase;margin-bottom:1rem">Club Ciclistico Amatoriale</div>
       <p class="hero-sub">Il Ciclo Team La Röda unisce passione, natura e comunità — ogni pedalata è un'avventura condivisa.</p>
       <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
-        <button class="btn btn-verde" onclick="showPage('uscite')">Prossime Uscite →</button>
-        <button class="btn btn-outline" onclick="showPage('soci')">Lista Soci</button>
+        <button class="btn bv2" onclick="showPage('uscite')">Prossime Uscite →</button>
+        <button class="btn bo" onclick="showPage('soci')">Lista Soci</button>
       </div>
       <div class="hero-stats">
-        <div class="stat"><div class="stat-num" id="cnt-soci">—</div><div class="stat-label">Soci Attivi</div></div>
-        <div class="stat"><div class="stat-num">14</div><div class="stat-label">Uscite 2025</div></div>
+        <div class="stat"><div class="stat-num" id="cnt-soci">—</div><div class="stat-label">Soci</div></div>
+        <div class="stat"><div class="stat-num" id="cnt-uscite">—</div><div class="stat-label">Uscite 2026</div></div>
         <div class="stat"><div class="stat-num">12k</div><div class="stat-label">Km percorsi</div></div>
         <div class="stat"><div class="stat-num">15</div><div class="stat-label">Anni di storia</div></div>
       </div>
@@ -180,74 +184,73 @@ tbody td{padding:.85rem 1rem;font-size:.88rem}
   <div style="padding:2rem">
     <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:.04em;margin-bottom:1rem">Ultime <span style="color:var(--verde-chiaro)">Notizie</span></div>
     <div class="news-grid" id="home-news"></div>
-    <div style="text-align:center;margin-top:1rem"><button class="btn btn-outline" onclick="showPage('news')">Tutte le news →</button></div>
+    <div style="text-align:center;margin-top:1rem"><button class="btn bo" onclick="showPage('news')">Tutte le news →</button></div>
   </div>
 </div>
 
 <!-- NEWS -->
 <div class="page" id="page-news">
-  <div class="section-header"><h2>News & <span>Comunicazioni</span></h2><p>Aggiornamenti, eventi e annunci del club</p></div>
+  <div class="sh"><h2>News & <span>Comunicazioni</span></h2></div>
   <div class="news-grid" id="all-news"></div>
 </div>
 
 <!-- SOCI -->
 <div class="page" id="page-soci">
-  <div class="section-header"><h2>Lista <span>Soci</span></h2></div>
-  <div class="soci-header">
-    <input class="search-box" type="text" id="search-soci" placeholder="🔍 Cerca socio..." oninput="filterSoci()">
+  <div class="sh"><h2>Lista <span>Soci</span></h2></div>
+  <div style="padding:1.5rem 2rem 0;display:flex;gap:.8rem;flex-wrap:wrap">
+    <input class="sb" type="text" id="search-soci" placeholder="🔍 Cerca socio..." oninput="filterSoci()">
   </div>
-  <div class="table-wrap scrollable">
+  <div class="tw sc">
     <table>
       <thead><tr>
         <th onclick="sortSoci('cognome')">Socio ↕</th><th>Tessera</th>
         <th onclick="sortSoci('email')">Email ↕</th><th>Telefono</th>
-        <th onclick="sortSoci('nascita')">Nascita ↕</th>
         <th onclick="sortSoci('citta')">Città ↕</th>
         <th onclick="sortSoci('stato')">Stato ↕</th>
       </tr></thead>
-      <tbody id="soci-tbody"><tr><td colspan="7"><div class="loading">Caricamento</div></td></tr></tbody>
+      <tbody id="soci-tbody"><tr><td colspan="6"><div class="ld">Caricamento</div></td></tr></tbody>
     </table>
   </div>
 </div>
 
 <!-- USCITE -->
 <div class="page" id="page-uscite">
-  <div class="section-header"><h2>Piano <span>Uscite 2025</span></h2></div>
+  <div class="sh"><h2>Uscite <span id="uscite-anno-title">2026</span></h2></div>
   <div style="padding:1.5rem 2rem 0;display:flex;gap:.5rem;flex-wrap:wrap">
-    <button class="btn btn-verde" onclick="filterUscite('tutti')" id="uf-tutti">Tutte</button>
-    <button class="btn btn-outline" onclick="filterUscite('F')" id="uf-F">🔵 Facile</button>
-    <button class="btn btn-outline" onclick="filterUscite('M')" id="uf-M">🟡 Media</button>
-    <button class="btn btn-outline" onclick="filterUscite('D')" id="uf-D">🔴 Difficile</button>
+    <button class="btn bv2" onclick="filterUscite('tutti')" id="uf-tutti">Tutte</button>
+    <button class="btn bo" onclick="filterUscite('F')" id="uf-F">🔵 Facile</button>
+    <button class="btn bo" onclick="filterUscite('M')" id="uf-M">🟡 Media</button>
+    <button class="btn bo" onclick="filterUscite('D')" id="uf-D">🔴 Difficile</button>
   </div>
-  <div class="uscite-grid" id="uscite-list"></div>
+  <div class="ug" id="uscite-list"><div class="ld">Caricamento</div></div>
 </div>
 
 <!-- GALLERY -->
 <div class="page" id="page-gallery">
-  <div class="section-header"><h2>Gallery <span>Foto & Video</span></h2></div>
+  <div class="sh"><h2>Gallery <span>Foto & Video</span></h2></div>
   <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.8rem;padding:0 2rem;margin-top:1rem">
     <div style="display:flex;gap:.5rem">
-      <button class="gallery-tab active" onclick="switchGallery('foto',this)">📷 Foto</button>
-      <button class="gallery-tab" onclick="switchGallery('video',this)">🎬 Video</button>
+      <button class="gtab active" onclick="switchGallery('foto',this)">📷 Foto</button>
+      <button class="gtab" onclick="switchGallery('video',this)">🎬 Video</button>
     </div>
-    <div style="display:flex;gap:.6rem;align-items:center">
+    <div style="display:flex;gap:.6rem;align-items:center;flex-wrap:wrap">
       <input type="file" id="gallery-file-input" accept="image/*" style="display:none" onchange="handleGalleryUpload(this,'foto')">
       <input type="file" id="gallery-video-input" accept="video/*" style="display:none" onchange="handleGalleryUpload(this,'video')">
-      <button class="btn btn-verde" id="btn-add-media" onclick="triggerGalleryUpload()" style="font-size:.72rem">+ Aggiungi Foto</button>
-      <span style="font-family:'DM Mono',monospace;font-size:.62rem;color:var(--grigio-chiaro)" id="gallery-count"></span>
+      <button class="btn bv2" id="btn-add-media" onclick="triggerGalleryUpload()" style="font-size:.72rem">+ Aggiungi Foto</button>
+      <span style="font-family:'DM Mono',monospace;font-size:.62rem;color:var(--gc)" id="gallery-count"></span>
     </div>
   </div>
-  <div class="gallery-content" id="gallery-content"></div>
+  <div class="gc2" id="gallery-content"></div>
 </div>
-<div class="modal-overlay" id="modal-gallery-add">
-  <div class="modal" style="max-width:460px">
-    <div class="modal-header"><h3 id="mga-title">Aggiungi Foto</h3><button class="modal-close" onclick="closeModal('modal-gallery-add')">✕</button></div>
-    <div id="mga-preview" style="min-height:120px;background:var(--grigio-scuro);border-radius:6px;margin-bottom:1rem;display:flex;align-items:center;justify-content:center;overflow:hidden"></div>
-    <div class="form-group"><label>Titolo</label><input id="mga-titolo" type="text" placeholder="Descrizione..."></div>
+<div class="mo" id="modal-gallery-add">
+  <div class="md" style="max-width:460px">
+    <div class="mh"><h3 id="mga-title">Aggiungi Foto</h3><button class="mc2" onclick="closeModal('modal-gallery-add')">✕</button></div>
+    <div id="mga-preview" style="min-height:120px;background:var(--gs);border-radius:6px;margin-bottom:1rem;display:flex;align-items:center;justify-content:center;overflow:hidden"></div>
+    <div class="fg"><label>Titolo</label><input id="mga-titolo" type="text" placeholder="Descrizione..."></div>
     <div id="mga-extra"></div>
     <div style="display:flex;gap:.8rem;justify-content:flex-end;margin-top:1.5rem">
-      <button class="btn btn-outline" onclick="closeModal('modal-gallery-add')">Annulla</button>
-      <button class="btn btn-verde" id="btn-save-gallery" onclick="saveGalleryItem()">Salva</button>
+      <button class="btn bo" onclick="closeModal('modal-gallery-add')">Annulla</button>
+      <button class="btn bv2" id="btn-save-gallery" onclick="saveGalleryItem()">Salva</button>
     </div>
   </div>
 </div>
@@ -255,194 +258,280 @@ tbody td{padding:.85rem 1rem;font-size:.88rem}
 <!-- ADMIN -->
 <div class="page" id="page-admin">
   <div id="admin-login-wrap">
-    <div class="admin-login">
+    <div class="al">
       <div style="font-size:2.5rem;margin-bottom:.5rem">🔐</div>
       <h2>Area Admin</h2>
-      <p>Accesso riservato ai dirigenti del club</p>
-      <div class="form-group"><label>Username</label><input type="text" id="admin-user" placeholder="ctr"></div>
-      <div class="form-group"><label>Password</label><input type="password" id="admin-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')adminLogin()"></div>
-      <button class="btn btn-giallo" style="width:100%;margin-top:.5rem" onclick="adminLogin()">Accedi →</button>
-      <p class="hint">Demo: ctr / laroda2025</p>
+      <p>Accesso riservato ai dirigenti</p>
+      <div class="fg" style="margin-top:1.5rem"><label>Username</label><input type="text" id="admin-user" placeholder="ctr"></div>
+      <div class="fg"><label>Password</label><input type="password" id="admin-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')adminLogin()"></div>
+      <button class="btn by" style="width:100%;margin-top:.5rem" onclick="adminLogin()">Accedi →</button>
+      <p style="font-size:.72rem;color:var(--gm);margin-top:1rem">Demo: ctr / laroda2025</p>
     </div>
   </div>
   <div id="admin-panel-wrap" style="display:none">
-    <div class="admin-panel">
+    <div class="ap">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem">
-        <h2 style="margin:0">⚙ Pannello Admin</h2>
-        <button class="btn btn-outline" onclick="adminLogout()">← Esci</button>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--giallo);letter-spacing:.05em">⚙ Pannello Admin</div>
+        <button class="btn bo" onclick="adminLogout()">← Esci</button>
       </div>
+
+      <!-- SELETTORE ANNO -->
+      <div class="anno-bar">
+        <label>📅 Anno di gestione</label>
+        <select class="anno-select" id="anno-select" onchange="changeAnno(this.value)"></select>
+        <button class="btn bv2 anno-new" onclick="addNewYear()">+ Nuovo Anno</button>
+        <span style="font-family:'DM Mono',monospace;font-size:.65rem;color:var(--gc)">Tutti i dati mostrati si riferiscono all'anno selezionato</span>
+      </div>
+
+      <!-- KPI -->
       <div class="kpi-row">
-        <div class="kpi-card"><div class="kpi-num" id="k-soci">—</div><div class="kpi-label">Soci totali</div></div>
-        <div class="kpi-card kpi-giallo"><div class="kpi-num" id="k-entrate">—</div><div class="kpi-label">Quote incassate</div></div>
-        <div class="kpi-card kpi-rosso"><div class="kpi-num" id="k-mancanti">—</div><div class="kpi-label">Da riscuotere</div></div>
-        <div class="kpi-card kpi-blu"><div class="kpi-num">14</div><div class="kpi-label">Uscite 2025</div></div>
+        <div class="kc"><div class="kn" id="k-soci">—</div><div class="kl">Soci totali</div></div>
+        <div class="kc kg"><div class="kn" id="k-quote-pag">—</div><div class="kl">Quote pagate</div></div>
+        <div class="kc kr"><div class="kn" id="k-quote-manca">—</div><div class="kl">Da incassare</div></div>
+        <div class="kc kb"><div class="kn" id="k-uscite">—</div><div class="kl">Uscite in programma</div></div>
       </div>
-      <div class="admin-section">
-        <h3>💰 Quote Sociali 2025</h3>
-        <div class="table-wrap scrollable" style="padding:0"><table>
-          <thead><tr><th>Socio</th><th>Tessera</th><th>Quota</th><th>Stato</th><th></th></tr></thead>
-          <tbody id="quote-tbody"></tbody>
-        </table></div>
+
+      <!-- QUOTE -->
+      <div class="as">
+        <h3>💰 Quote Sociali — Anno <span id="quote-anno-label">—</span></h3>
+        <div style="display:flex;gap:.8rem;align-items:center;margin-bottom:1rem;flex-wrap:wrap">
+          <div style="display:flex;align-items:center;gap:.5rem;background:var(--g);border-radius:6px;padding:.8rem 1.2rem;border-left:4px solid var(--verde)">
+            <span style="font-family:'DM Mono',monospace;font-size:.65rem;text-transform:uppercase;color:var(--verde-chiaro)">Importo</span>
+            <span id="q-sign" style="color:var(--gc)">€</span>
+            <input id="q-importo" type="number" value="20" style="width:70px;background:var(--gs);border:1px solid var(--gm);border-radius:4px;padding:.3rem .6rem;color:var(--giallo);font-family:'DM Mono',monospace;font-size:1rem;outline:none">
+          </div>
+          <input class="sb" type="text" id="admin-search-quote" placeholder="🔍 Cerca..." oninput="filterQuote()" style="max-width:220px">
+        </div>
+        <div class="tw sc" style="padding:0">
+          <table><thead><tr><th>Socio</th><th>Tessera</th><th>Importo</th><th>Data</th><th>Metodo</th><th>Note</th><th>Stato</th><th></th></tr></thead>
+          <tbody id="quote-tbody"><tr><td colspan="8"><div class="ld">Caricamento</div></td></tr></tbody></table>
+        </div>
       </div>
-      <div class="admin-section">
-        <h3>📊 Entrate Mensili 2025</h3>
-        <div class="bar-chart" id="bar-chart"></div>
+
+      <!-- USCITE ADMIN -->
+      <div class="as">
+        <h3>🚴 Uscite — Anno <span id="uscite-anno-label">—</span></h3>
+        <div style="display:flex;gap:.8rem;margin-bottom:1rem;flex-wrap:wrap">
+          <button class="btn bv2" onclick="openModalUscita()">+ Nuova Uscita</button>
+        </div>
+        <div class="tw sc" style="padding:0">
+          <table><thead><tr><th>Data</th><th>Titolo</th><th>Km</th><th>D+</th><th>Diff.</th><th>Ora</th><th>Iscritti</th><th></th></tr></thead>
+          <tbody id="uscite-admin-tbody"><tr><td colspan="8"><div class="ld">Caricamento</div></td></tr></tbody></table>
+        </div>
+      </div>
+
+      <!-- SPESE -->
+      <div class="as">
+        <h3>🧾 Spese — Anno <span id="spese-anno-label">—</span></h3>
+        <div style="display:flex;gap:.8rem;margin-bottom:1rem">
+          <button class="btn bv2" onclick="openModalSpesa()">+ Nuova Spesa</button>
+        </div>
+        <div class="tw sc" style="padding:0">
+          <table><thead><tr><th>Data</th><th>Descrizione</th><th>Categoria</th><th>Importo</th><th>Incassato</th><th>Note</th><th></th></tr></thead>
+          <tbody id="spese-tbody"><tr><td colspan="7"><div class="ld">Caricamento</div></td></tr></tbody></table>
+        </div>
+        <div style="display:flex;gap:1rem;margin-top:1rem;flex-wrap:wrap">
+          <div class="kc" style="flex:1;min-width:130px"><div class="kn" id="s-totale" style="font-size:2rem">—</div><div class="kl">Totale spese</div></div>
+          <div class="kc kg" style="flex:1;min-width:130px"><div class="kn" id="s-incassato" style="font-size:2rem">—</div><div class="kl">Incassato</div></div>
+          <div class="kc kr" style="flex:1;min-width:130px"><div class="kn" id="s-delta" style="font-size:2rem">—</div><div class="kl">Delta</div></div>
+        </div>
+      </div>
+
+      <!-- TRASFERTE -->
+      <div class="as">
+        <h3>🌊 Trasferte — Anno <span id="trasferte-anno-label">—</span></h3>
+        <button class="btn bv2" onclick="openModalTrasferta()" style="margin-bottom:1rem">+ Nuova Trasferta</button>
+        <div id="trasferte-list"><div class="ld">Caricamento</div></div>
+      </div>
+
+      <!-- GRAFICO QUOTE -->
+      <div class="as">
+        <h3>📊 Grafico Quote Pagate</h3>
+        <div class="bc" id="bar-chart"></div>
         <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.5rem" id="bar-labels"></div>
       </div>
-      <div class="admin-section">
-        <h3>🚌 Spese Uscite 2025</h3>
-        <div class="table-wrap scrollable" style="padding:0"><table>
-          <thead><tr><th>Data</th><th>Uscita</th><th>Part.</th><th>Costo</th><th>Quota/pers</th><th>Incassato</th><th>Stato</th></tr></thead>
-          <tbody id="spese-tbody"></tbody>
-        </table></div>
-      </div>
-      <div class="admin-section">
-        <h3>📝 Note Interne</h3>
-        <textarea id="admin-note" style="width:100%;min-height:100px;background:var(--grigio-scuro);border:1px solid var(--grigio-medio);border-radius:4px;padding:.8rem 1rem;color:var(--bianco);font-size:.88rem;outline:none;resize:vertical"></textarea>
-        <button class="btn btn-verde" style="margin-top:.8rem" onclick="saveAdminNote()">Salva Note</button>
-      </div>
-      <div class="admin-section">
+
+      <!-- SOCI ADMIN -->
+      <div class="as">
         <h3>👥 Gestione Soci</h3>
         <div style="display:flex;gap:.8rem;align-items:center;margin-bottom:1rem;flex-wrap:wrap">
-          <input class="search-box" type="text" id="admin-search-soci" placeholder="🔍 Cerca..." oninput="adminFilterSoci()" style="max-width:280px">
-          <button class="btn btn-verde" onclick="openModalSocio()">+ Nuovo Socio</button>
+          <input class="sb" type="text" id="admin-search-soci" placeholder="🔍 Cerca..." oninput="adminFilterSoci()" style="max-width:280px">
+          <button class="btn bv2" onclick="openModalSocio()">+ Nuovo Socio</button>
         </div>
-        <div class="table-wrap scrollable" style="padding:0"><table>
-          <thead><tr><th>Socio</th><th>Tessera</th><th>Nascita</th><th>Email</th><th>Tel</th><th>Città</th><th>Stato</th><th>Quota</th><th>Azioni</th></tr></thead>
-          <tbody id="admin-soci-tbody"></tbody>
-        </table></div>
+        <div class="tw sc" style="padding:0">
+          <table><thead><tr><th>Socio</th><th>Tessera</th><th>Email</th><th>Tel</th><th>Città</th><th>Stato</th><th>Azioni</th></tr></thead>
+          <tbody id="admin-soci-tbody"><tr><td colspan="7"><div class="ld">Caricamento</div></td></tr></tbody></table>
+        </div>
       </div>
-      <div class="admin-section">
-        <h3>💳 Quota Sociale 2026</h3>
-        <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1.2rem">
-          <div class="kpi-card" style="flex:1;min-width:120px"><div class="kpi-num" id="q26-paganti" style="font-size:2rem">—</div><div class="kpi-label">Paganti</div></div>
-          <div class="kpi-card kpi-giallo" style="flex:1;min-width:120px"><div class="kpi-num" id="q26-incassato" style="font-size:2rem">—</div><div class="kpi-label">Incassato</div></div>
-          <div class="kpi-card kpi-rosso" style="flex:1;min-width:120px"><div class="kpi-num" id="q26-mancante" style="font-size:2rem">—</div><div class="kpi-label">Da incassare</div></div>
-          <div style="flex:1;min-width:160px;background:var(--grigio);border-radius:6px;padding:1rem;border-left:4px solid var(--verde);display:flex;flex-direction:column;gap:.4rem;justify-content:center">
-            <div style="font-family:'DM Mono',monospace;font-size:.62rem;text-transform:uppercase;color:var(--verde-chiaro)">Importo quota</div>
-            <div style="display:flex;align-items:center;gap:.4rem">
-              <span id="q26-sign" style="color:var(--grigio-chiaro)">€</span>
-              <input id="q26-importo" type="number" value="75" style="width:80px;background:var(--grigio-scuro);border:1px solid var(--grigio-medio);border-radius:4px;padding:.4rem .6rem;color:var(--giallo);font-family:'DM Mono',monospace;font-size:1rem;outline:none" oninput="renderQuota2026()">
-            </div>
-          </div>
-        </div>
-        <div class="table-wrap scrollable" style="padding:0"><table>
-          <thead><tr><th>Socio</th><th>Tessera</th><th>Importo</th><th>Data</th><th>Metodo</th><th>Note</th><th>Stato</th><th>Azioni</th></tr></thead>
-          <tbody id="q26-tbody"></tbody>
-        </table></div>
-      </div>
-      <div class="admin-section">
-        <h3>🌊 Trasferta Diano Marina 2026</h3>
-        <div style="background:linear-gradient(135deg,#0d2235,#0d1a06);border:1px solid rgba(74,158,74,.3);border-radius:8px;padding:1.2rem;margin-bottom:1.2rem;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:1rem">
-          <div><div style="font-family:'DM Mono',monospace;font-size:.58rem;text-transform:uppercase;color:var(--verde-chiaro);margin-bottom:.3rem">📅 Data</div><div>Aprile/Maggio 2026</div></div>
-          <div><div style="font-family:'DM Mono',monospace;font-size:.58rem;text-transform:uppercase;color:var(--verde-chiaro);margin-bottom:.3rem">📍 Luogo</div><div>Diano Marina (IM)</div></div>
-          <div><div style="font-family:'DM Mono',monospace;font-size:.58rem;text-transform:uppercase;color:var(--verde-chiaro);margin-bottom:.3rem">🚴 Percorso</div><div>~85 km · 900m D+</div></div>
-          <div><div style="font-family:'DM Mono',monospace;font-size:.58rem;text-transform:uppercase;color:var(--verde-chiaro);margin-bottom:.3rem">💶 Quota</div>
-            <div style="color:var(--giallo)"><span id="diano-sign">€</span> <span id="diano-q-val">180</span></div></div>
-          <div><div style="font-family:'DM Mono',monospace;font-size:.58rem;text-transform:uppercase;color:var(--verde-chiaro);margin-bottom:.3rem">👥 Posti</div>
-            <div><span id="diano-posti-rimasti">—</span> / <input id="diano-max-posti" type="number" value="20" style="width:45px;background:var(--grigio-scuro);border:1px solid var(--grigio-medio);border-radius:3px;padding:.2rem .4rem;color:var(--bianco);font-family:'DM Mono',monospace;font-size:.85rem;outline:none" oninput="renderDiano2026()"></div></div>
-        </div>
-        <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1.2rem">
-          <div class="kpi-card" style="flex:1;min-width:110px"><div class="kpi-num" id="diano-iscritti" style="font-size:2rem">—</div><div class="kpi-label">Iscritti</div></div>
-          <div class="kpi-card kpi-giallo" style="flex:1;min-width:110px"><div class="kpi-num" id="diano-acconto-tot" style="font-size:2rem">—</div><div class="kpi-label">Acconti</div></div>
-          <div class="kpi-card" style="flex:1;min-width:110px;border-left-color:var(--verde-chiaro)"><div class="kpi-num" id="diano-saldo-tot" style="font-size:2rem">—</div><div class="kpi-label">Saldi</div></div>
-          <div class="kpi-card kpi-rosso" style="flex:1;min-width:110px"><div class="kpi-num" id="diano-da-incassare" style="font-size:2rem">—</div><div class="kpi-label">Da incassare</div></div>
-          <div style="flex:1;min-width:160px;background:var(--grigio);border-radius:6px;padding:1rem;border-left:4px solid #3498db;display:flex;flex-direction:column;gap:.4rem;justify-content:center">
-            <div style="font-family:'DM Mono',monospace;font-size:.62rem;text-transform:uppercase;color:#5dade2">Quota partecipazione</div>
-            <input id="diano-importo" type="number" value="180" style="background:var(--grigio-scuro);border:1px solid var(--grigio-medio);border-radius:4px;padding:.4rem .7rem;color:var(--giallo);font-family:'DM Mono',monospace;font-size:1.1rem;width:120px;outline:none" oninput="syncDianoQuota()">
-          </div>
-        </div>
-        <div class="table-wrap scrollable" style="padding:0"><table>
-          <thead><tr><th>Socio</th><th>Tessera</th><th>Data Iscr.</th><th>Acconto</th><th>Saldo</th><th>Totale</th><th>Note</th><th>Stato</th><th>Azioni</th></tr></thead>
-          <tbody id="diano-tbody"></tbody>
-        </table></div>
+
+      <!-- NOTE -->
+      <div class="as">
+        <h3>📝 Note Interne — Anno <span id="note-anno-label">—</span></h3>
+        <textarea id="admin-note" style="width:100%;min-height:100px;background:var(--gs);border:1px solid var(--gm);border-radius:4px;padding:.8rem 1rem;color:var(--b);font-size:.88rem;outline:none;resize:vertical" placeholder="Note per questo anno..."></textarea>
+        <button class="btn bv2" style="margin-top:.8rem" onclick="saveAdminNote()">Salva Note</button>
       </div>
     </div>
   </div>
 </div>
 
 <!-- MODAL SOCIO -->
-<div class="modal-overlay" id="modal-socio">
-  <div class="modal" style="max-width:640px">
-    <div class="modal-header"><h3 id="modal-socio-title">Nuovo Socio</h3><button class="modal-close" onclick="closeModal('modal-socio')">✕</button></div>
-    <div class="modal-row">
-      <div class="form-group"><label>Nome *</label><input id="m-nome" type="text"></div>
-      <div class="form-group"><label>Cognome *</label><input id="m-cognome" type="text"></div>
+<div class="mo" id="modal-socio">
+  <div class="md" style="max-width:640px">
+    <div class="mh"><h3 id="modal-socio-title">Nuovo Socio</h3><button class="mc2" onclick="closeModal('modal-socio')">✕</button></div>
+    <div class="mr">
+      <div class="fg"><label>Nome *</label><input id="m-nome" type="text"></div>
+      <div class="fg"><label>Cognome *</label><input id="m-cognome" type="text"></div>
     </div>
-    <div class="modal-row">
-      <div class="form-group"><label>Data di Nascita</label><input id="m-nascita" type="date"></div>
-      <div class="form-group"><label>Codice Fiscale</label><input id="m-cf" type="text" style="text-transform:uppercase"></div>
+    <div class="mr">
+      <div class="fg"><label>Email</label><input id="m-email" type="email"></div>
+      <div class="fg"><label>Telefono</label><input id="m-tel" type="text"></div>
     </div>
-    <div class="form-group"><label>Indirizzo</label><input id="m-indirizzo" type="text"></div>
-    <div class="modal-row">
-      <div class="form-group"><label>Città</label><input id="m-citta" type="text"></div>
-      <div class="form-group"><label>CAP</label><input id="m-cap" type="text"></div>
+    <div class="fg"><label>Indirizzo</label><input id="m-indirizzo" type="text"></div>
+    <div class="mr">
+      <div class="fg"><label>Città</label><input id="m-citta" type="text"></div>
+      <div class="fg"><label>CAP</label><input id="m-cap" type="text"></div>
     </div>
-    <div class="modal-row">
-      <div class="form-group"><label>Email</label><input id="m-email" type="email"></div>
-      <div class="form-group"><label>Telefono</label><input id="m-tel" type="text"></div>
+    <div class="mr">
+      <div class="fg"><label>Data di Nascita</label><input id="m-nascita" type="date"></div>
+      <div class="fg"><label>Codice Fiscale</label><input id="m-cf" type="text" style="text-transform:uppercase"></div>
     </div>
-    <div class="modal-row">
-      <div class="form-group"><label>Ruolo</label>
+    <div class="mr">
+      <div class="fg"><label>Ruolo</label>
         <select id="m-ruolo"><option>Socio</option><option>Presidente</option><option>Vicepresidente</option><option>Segretaria</option><option>Tesoriere</option><option>Dirigente</option></select>
       </div>
-      <div class="form-group"><label>Stato</label>
+      <div class="fg"><label>Stato</label>
         <select id="m-stato"><option>Nuovo</option><option>Attivo</option><option>Sospeso</option></select>
       </div>
     </div>
-    <div class="form-group"><label>Note</label><input id="m-note" type="text"></div>
+    <div class="fg"><label>Note</label><input id="m-note" type="text"></div>
     <div style="display:flex;gap:.8rem;justify-content:flex-end;margin-top:1.5rem">
-      <button class="btn btn-outline" onclick="closeModal('modal-socio')">Annulla</button>
-      <button class="btn btn-verde" onclick="saveSocio()">Salva Socio</button>
+      <button class="btn bo" onclick="closeModal('modal-socio')">Annulla</button>
+      <button class="btn bv2" onclick="saveSocio()">Salva Socio</button>
     </div>
   </div>
 </div>
 
 <!-- MODAL DETTAGLIO -->
-<div class="modal-overlay" id="modal-detail">
-  <div class="modal">
-    <div class="modal-header"><h3 id="md-title">Dettaglio</h3><button class="modal-close" onclick="closeModal('modal-detail')">✕</button></div>
-    <div id="md-body"></div>
+<div class="mo" id="modal-detail">
+  <div class="md"><div class="mh"><h3 id="md-title">Dettaglio</h3><button class="mc2" onclick="closeModal('modal-detail')">✕</button></div><div id="md-body"></div></div>
+</div>
+
+<!-- MODAL QUOTA -->
+<div class="mo" id="modal-quota">
+  <div class="md" style="max-width:460px">
+    <div class="mh"><h3 id="mq-title">Quota</h3><button class="mc2" onclick="closeModal('modal-quota')">✕</button></div>
+    <input type="hidden" id="mq-socio-id">
+    <div class="fg"><label>Importo</label><input id="mq-importo" type="number"></div>
+    <div class="mr">
+      <div class="fg"><label>Data Pagamento</label><input id="mq-data" type="date"></div>
+      <div class="fg"><label>Metodo</label><select id="mq-metodo"><option>Contanti</option><option>Bonifico</option><option>TWINT</option><option>PayPal</option></select></div>
+    </div>
+    <div class="fg"><label>Note</label><input id="mq-note" type="text"></div>
+    <div style="display:flex;gap:.8rem;justify-content:flex-end;margin-top:1.5rem">
+      <button class="btn bo" onclick="closeModal('modal-quota')">Annulla</button>
+      <button class="btn bv2" onclick="saveQuota()">Salva</button>
+    </div>
   </div>
 </div>
 
-<!-- MODAL QUOTA 2026 -->
-<div class="modal-overlay" id="modal-q26">
-  <div class="modal" style="max-width:460px">
-    <div class="modal-header"><h3 id="mq26-title">Quota 2026</h3><button class="modal-close" onclick="closeModal('modal-q26')">✕</button></div>
-    <input type="hidden" id="mq26-socioId">
-    <div class="form-group"><label>Importo</label><input id="mq26-importo" type="number"></div>
-    <div class="modal-row">
-      <div class="form-group"><label>Data Pagamento</label><input id="mq26-data" type="date"></div>
-      <div class="form-group"><label>Metodo</label><select id="mq26-metodo"><option>Contanti</option><option>Bonifico</option><option>PayPal</option><option>Satispay</option></select></div>
+<!-- MODAL USCITA -->
+<div class="mo" id="modal-uscita">
+  <div class="md" style="max-width:580px">
+    <div class="mh"><h3 id="mu-title">Nuova Uscita</h3><button class="mc2" onclick="closeModal('modal-uscita')">✕</button></div>
+    <input type="hidden" id="mu-id">
+    <div class="fg"><label>Titolo *</label><input id="mu-titolo" type="text" placeholder="es. Lago di Varese Ring"></div>
+    <div class="mr">
+      <div class="fg"><label>Data</label><input id="mu-data" type="date"></div>
+      <div class="fg"><label>Ora partenza</label><input id="mu-ora" type="text" placeholder="08:00"></div>
     </div>
-    <div class="form-group"><label>Note</label><input id="mq26-note" type="text"></div>
+    <div class="mr">
+      <div class="fg"><label>Km</label><input id="mu-km" type="number" placeholder="0"></div>
+      <div class="fg"><label>Dislivello (m)</label><input id="mu-dislivello" type="number" placeholder="0"></div>
+    </div>
+    <div class="mr">
+      <div class="fg"><label>Difficoltà</label>
+        <select id="mu-diff"><option value="F">🔵 Facile</option><option value="M" selected>🟡 Media</option><option value="D">🔴 Difficile</option></select>
+      </div>
+      <div class="fg"><label>Max posti</label><input id="mu-max" type="number" placeholder="30"></div>
+    </div>
+    <div class="fg"><label>Note</label><textarea id="mu-note" style="min-height:70px"></textarea></div>
     <div style="display:flex;gap:.8rem;justify-content:flex-end;margin-top:1.5rem">
-      <button class="btn btn-outline" onclick="closeModal('modal-q26')">Annulla</button>
-      <button class="btn btn-verde" onclick="saveQuota2026()">Salva</button>
+      <button class="btn bo" onclick="closeModal('modal-uscita')">Annulla</button>
+      <button class="btn bv2" onclick="saveUscita()">Salva</button>
     </div>
   </div>
 </div>
 
-<!-- MODAL DIANO -->
-<div class="modal-overlay" id="modal-diano">
-  <div class="modal" style="max-width:500px">
-    <div class="modal-header"><h3 id="mdiano-title">Diano Marina 2026</h3><button class="modal-close" onclick="closeModal('modal-diano')">✕</button></div>
-    <input type="hidden" id="mdiano-socioId">
-    <div style="background:var(--grigio-scuro);border-radius:4px;padding:.8rem 1rem;margin-bottom:1rem;font-size:.82rem;color:var(--grigio-chiaro)">Quota: <strong style="color:var(--giallo)"><span id="mdiano-quota-ref">180</span> <span id="mdiano-sign">€</span></strong></div>
-    <div class="modal-row">
-      <div class="form-group"><label>Acconto versato</label><input id="mdiano-acconto" type="number" placeholder="0" min="0"></div>
-      <div class="form-group"><label>Saldo versato</label><input id="mdiano-saldo" type="number" placeholder="0" min="0"></div>
+<!-- MODAL SPESA -->
+<div class="mo" id="modal-spesa">
+  <div class="md" style="max-width:500px">
+    <div class="mh"><h3 id="ms-title">Nuova Spesa</h3><button class="mc2" onclick="closeModal('modal-spesa')">✕</button></div>
+    <input type="hidden" id="ms-id">
+    <div class="fg"><label>Descrizione *</label><input id="ms-desc" type="text" placeholder="es. Iscrizione gara..."></div>
+    <div class="mr">
+      <div class="fg"><label>Data</label><input id="ms-data" type="date"></div>
+      <div class="fg"><label>Categoria</label>
+        <select id="ms-cat"><option>Uscita</option><option>Trasferta</option><option>Materiale</option><option>Quota</option><option>Altro</option></select>
+      </div>
     </div>
-    <div class="modal-row">
-      <div class="form-group"><label>Data iscrizione</label><input id="mdiano-data" type="date"></div>
-      <div class="form-group"><label>Metodo</label><select id="mdiano-metodo"><option>Contanti</option><option>Bonifico</option><option>PayPal</option><option>Satispay</option></select></div>
+    <div class="mr">
+      <div class="fg"><label>Importo speso</label><input id="ms-importo" type="number" placeholder="0"></div>
+      <div class="fg"><label>Incassato</label><input id="ms-incassato" type="number" placeholder="0"></div>
     </div>
-    <div class="form-group"><label>Camera</label><input id="mdiano-camera" type="text" placeholder="es. doppia con Rossi"></div>
-    <div class="form-group"><label>Note</label><input id="mdiano-note" type="text"></div>
+    <div class="fg"><label>Note</label><input id="ms-note" type="text"></div>
     <div style="display:flex;gap:.8rem;justify-content:flex-end;margin-top:1.5rem">
-      <button class="btn btn-outline" onclick="closeModal('modal-diano')">Annulla</button>
-      <button class="btn btn-verde" onclick="saveDiano2026()">Salva</button>
+      <button class="btn bo" onclick="closeModal('modal-spesa')">Annulla</button>
+      <button class="btn bv2" onclick="saveSpesa()">Salva</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL TRASFERTA -->
+<div class="mo" id="modal-trasferta">
+  <div class="md" style="max-width:580px">
+    <div class="mh"><h3 id="mt-title">Nuova Trasferta</h3><button class="mc2" onclick="closeModal('modal-trasferta')">✕</button></div>
+    <input type="hidden" id="mt-id">
+    <div class="fg"><label>Nome Trasferta *</label><input id="mt-nome" type="text" placeholder="es. Diano Marina 2026"></div>
+    <div class="mr">
+      <div class="fg"><label>Data inizio</label><input id="mt-inizio" type="date"></div>
+      <div class="fg"><label>Data fine</label><input id="mt-fine" type="date"></div>
+    </div>
+    <div class="mr">
+      <div class="fg"><label>Luogo</label><input id="mt-luogo" type="text" placeholder="es. Diano Marina (IM)"></div>
+      <div class="fg"><label>Quota (CHF/€)</label><input id="mt-quota" type="number" placeholder="0"></div>
+    </div>
+    <div class="mr">
+      <div class="fg"><label>Km percorso</label><input id="mt-km" type="number" placeholder="0"></div>
+      <div class="fg"><label>Max posti</label><input id="mt-max" type="number" placeholder="20"></div>
+    </div>
+    <div class="fg"><label>Note</label><textarea id="mt-note" style="min-height:70px"></textarea></div>
+    <div style="display:flex;gap:.8rem;justify-content:flex-end;margin-top:1.5rem">
+      <button class="btn bo" onclick="closeModal('modal-trasferta')">Annulla</button>
+      <button class="btn bv2" onclick="saveTrasferta()">Salva</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ISCRIZIONE TRASFERTA -->
+<div class="mo" id="modal-iscr-trasferta">
+  <div class="md" style="max-width:480px">
+    <div class="mh"><h3 id="mit-title">Iscrizione Trasferta</h3><button class="mc2" onclick="closeModal('modal-iscr-trasferta')">✕</button></div>
+    <input type="hidden" id="mit-trasferta-id">
+    <input type="hidden" id="mit-socio-id">
+    <div style="background:var(--gs);border-radius:4px;padding:.8rem 1rem;margin-bottom:1rem;font-size:.82rem;color:var(--gc)">Quota: <strong style="color:var(--giallo)" id="mit-quota-ref">—</strong></div>
+    <div class="mr">
+      <div class="fg"><label>Acconto versato</label><input id="mit-acconto" type="number" placeholder="0" min="0"></div>
+      <div class="fg"><label>Saldo versato</label><input id="mit-saldo" type="number" placeholder="0" min="0"></div>
+    </div>
+    <div class="mr">
+      <div class="fg"><label>Data iscrizione</label><input id="mit-data" type="date"></div>
+      <div class="fg"><label>Metodo</label><select id="mit-metodo"><option>Contanti</option><option>Bonifico</option><option>TWINT</option><option>PayPal</option></select></div>
+    </div>
+    <div class="fg"><label>Camera / sistemazione</label><input id="mit-camera" type="text" placeholder="es. doppia con Rossi"></div>
+    <div class="fg"><label>Note</label><input id="mit-note" type="text"></div>
+    <div style="display:flex;gap:.8rem;justify-content:flex-end;margin-top:1.5rem">
+      <button class="btn bo" onclick="closeModal('modal-iscr-trasferta')">Annulla</button>
+      <button class="btn bv2" onclick="saveIscrizioneTrasferta()">Salva</button>
     </div>
   </div>
 </div>
@@ -450,353 +539,513 @@ tbody td{padding:.85rem 1rem;font-size:.88rem}
 <div class="toast" id="toast"></div>
 
 <script>
-const NEWS=[{id:1,titolo:"Gara Sociale di Fine Stagione",testo:"Domenica 26 ottobre si terrà la tradizionale gara sociale con premiazione e cena conviviale.",data:"15 Ott 2025",tag:"Evento",emoji:"🏆"},{id:2,titolo:"Rinnovo Tessere 2025",testo:"Dal 1° gennaio è aperto il rinnovo. Quota invariata a €70.",data:"02 Gen 2025",tag:"Comunicazione",emoji:"📋"},{id:3,titolo:"Nuova App Komoot Premium",testo:"Il club ha sottoscritto un abbonamento a Komoot Premium per i percorsi.",data:"10 Mar 2025",tag:"Tecnologia",emoji:"📱"},{id:4,titolo:"Trasferta Stelvio — Reportage",testo:"Grande successo al Passo dello Stelvio. 12 soci hanno completato la salita!",data:"28 Ago 2025",tag:"Reportage",emoji:"⛰️"},{id:5,titolo:"Convenzione Bikelab Varese",testo:"Accordo con Bikelab Varese per sconti esclusivi ai soci.",data:"15 Mag 2025",tag:"Convenzione",emoji:"🔧"},{id:6,titolo:"Assemblea Annuale dei Soci",testo:"L'assemblea annuale si terrà il 15 novembre alle 20:30.",data:"01 Nov 2025",tag:"Assemblea",emoji:"📣"}];
-const USCITE=[{id:1,giorno:"18",mese:"Gen",titolo:"Inaugurazione Stagione — Lago di Varese",km:42,dislivello:380,diff:"F",ora:"08:00",iscr:18,max:30,note:"Percorso pianeggiante ideale per riscaldamento stagionale."},{id:2,giorno:"15",mese:"Feb",titolo:"Colline del Sacro Monte",km:58,dislivello:720,diff:"M",ora:"08:30",iscr:22,max:30,note:"Salita al Sacro Monte di Varese."},{id:3,giorno:"22",mese:"Mar",titolo:"Granfondo Primavera — Val d'Ossola",km:95,dislivello:1400,diff:"D",ora:"07:00",iscr:14,max:25,note:"Percorso impegnativo con due passi alpini."},{id:4,giorno:"12",mese:"Apr",titolo:"Lago Maggiore Ring",km:78,dislivello:650,diff:"M",ora:"08:00",iscr:26,max:35,note:"Giro completo del Lago Maggiore."},{id:5,giorno:"17",mese:"Mag",titolo:"Escursione Valli Luinesi",km:65,dislivello:900,diff:"M",ora:"08:00",iscr:20,max:28,note:"Percorso nei borghi storici."},{id:6,giorno:"07",mese:"Giu",titolo:"Passo del Moncenisio",km:120,dislivello:2100,diff:"D",ora:"06:30",iscr:10,max:20,note:"Trasferta con pullman."},{id:7,giorno:"06",mese:"Lug",titolo:"Giro dei Laghi Prealpini",km:55,dislivello:480,diff:"F",ora:"08:00",iscr:28,max:40,note:"Percorso adatto anche ai principianti."},{id:8,giorno:"24",mese:"Ago",titolo:"Passo dello Stelvio — Trasferta",km:80,dislivello:2800,diff:"D",ora:"06:00",iscr:12,max:20,note:"Salita alla cima più alta d'Italia!"},{id:9,giorno:"14",mese:"Set",titolo:"Cicloturistica d'Autunno",km:70,dislivello:750,diff:"M",ora:"08:30",iscr:24,max:35,note:"Percorso tra i vigneti della provincia."},{id:10,giorno:"26",mese:"Ott",titolo:"Gara Sociale — Chiusura Stagione",km:45,dislivello:400,diff:"F",ora:"09:00",iscr:28,max:40,note:"Gara a cronometro con premiazione."}];
-const SPESE=[{data:"18 Gen",uscita:"Lago di Varese",part:18,costo:0,quota:0,incassato:0,stato:"✅ Gratuita"},{data:"22 Mar",uscita:"Val d'Ossola",part:14,costo:280,quota:20,incassato:280,stato:"✅ Saldato"},{data:"07 Giu",uscita:"Moncenisio",part:10,costo:450,quota:45,incassato:450,stato:"✅ Saldato"},{data:"24 Ago",uscita:"Stelvio",part:12,costo:600,quota:50,incassato:550,stato:"⚠️ Parziale"},{data:"26 Ott",uscita:"Gara Sociale",part:28,costo:840,quota:30,incassato:0,stato:"🕐 In corso"}];
-const ENTRATE={mesi:["Gen","Feb","Mar","Apr","Mag","Giu","Lug","Ago","Set","Ott","Nov","Dic"],val:[140,210,350,70,140,70,70,140,70,140,0,0]};
-const FOTO_SEED=[{emoji:"🌄",label:"Alba sul Lago Maggiore"},{emoji:"⛰️",label:"Passo Stelvio 2758m"},{emoji:"🚴",label:"Peloton sul Sacro Monte"},{emoji:"🏆",label:"Premiazione Gara Sociale"},{emoji:"🌿",label:"Valli Luinesi in fiore"},{emoji:"🌊",label:"Lungolago di Luino"}];
-const VIDEO_SEED=[{emoji:"📹",titolo:"Highlights Stelvio 2025",desc:"12 soci in vetta!",durata:"3:42"},{emoji:"🎥",titolo:"Gara Sociale 2024",desc:"Classifica finale.",durata:"8:15"},{emoji:"📽️",titolo:"Presentazione Club 2025",desc:"Per i nuovi soci.",durata:"2:05"}];
+// ── COSTANTI ──────────────────────────────────────────
+const NEWS=[
+  {titolo:"Gara Sociale di Fine Stagione",testo:"Domenica 26 ottobre si terrà la tradizionale gara sociale con premiazione e cena.",data:"15 Ott 2025",tag:"Evento",emoji:"🏆"},
+  {titolo:"Rinnovo Tessere 2026",testo:"Il rinnovo tessere 2026 è aperto. Contattare la segreteria per la quota annuale.",data:"02 Gen 2026",tag:"Comunicazione",emoji:"📋"},
+  {titolo:"Nuova App Komoot Premium",testo:"Il club ha sottoscritto un abbonamento a Komoot Premium per i percorsi.",data:"10 Mar 2025",tag:"Tecnologia",emoji:"📱"},
+  {titolo:"Trasferta Stelvio — Reportage",testo:"Grande successo al Passo dello Stelvio. 12 soci hanno completato la salita!",data:"28 Ago 2025",tag:"Reportage",emoji:"⛰️"},
+  {titolo:"Convenzione Bikelab",testo:"Accordo con Bikelab per sconti esclusivi ai soci su materiale e officina.",data:"15 Mag 2025",tag:"Convenzione",emoji:"🔧"},
+  {titolo:"Assemblea Annuale",testo:"L'assemblea annuale si terrà il 15 novembre alle 20:30 presso la sede.",data:"01 Nov 2025",tag:"Assemblea",emoji:"📣"},
+];
+const FOTO_SEED=[{emoji:"🌄",label:"Alba sul Lago Maggiore"},{emoji:"⛰️",label:"Passo Stelvio 2758m"},{emoji:"🚴",label:"Peloton sul Sacro Monte"},{emoji:"🏆",label:"Premiazione Gara Sociale"},{emoji:"🌿",label:"Valli in fiore"},{emoji:"🌊",label:"Lungolago"}];
+const VIDEO_SEED=[{emoji:"📹",titolo:"Highlights Stelvio 2025",desc:"12 soci in vetta!",durata:"3:42"},{emoji:"🎥",titolo:"Gara Sociale 2024",desc:"Classifica finale.",durata:"8:15"},{emoji:"📽️",titolo:"Presentazione Club",desc:"Per i nuovi soci.",durata:"2:05"}];
 
-let SOCI=[],SOCI_F=[],adminLogged=false,editId=null,sortCol="cognome",sortDir=1,filtroU="tutti",curr="€",gallType="foto",pendFile=null,pendType=null;
+// ── STATE ─────────────────────────────────────────────
+let SOCI=[],SOCI_F=[],adminLogged=false,editId=null,sortCol="cognome",sortDir=1;
+let filtroU="tutti",curr="€",gallType="foto",pendFile=null,pendType=null;
+let ANNO=new Date().getFullYear(),ANNI=[];
+let USCITE_DB=[],USCITE_F=[],TRASFERTE_DB=[],SPESE_DB=[],QUOTE_DB=[];
+let editUscitaId=null,editSpesaId=null,editTrasfertaId=null;
 
+// ── API ───────────────────────────────────────────────
 async function api(method,path,body){
   const opts={method,headers:{}};
   if(body instanceof FormData){opts.body=body;}
   else if(body){opts.headers["Content-Type"]="application/json";opts.body=JSON.stringify(body);}
   const res=await fetch("/api"+path,opts);
-  if(!res.ok)throw new Error((await res.text()).slice(0,100));
+  if(!res.ok)throw new Error((await res.text()).slice(0,120));
   const t=await res.text();return t?JSON.parse(t):{};
 }
 
-async function init(){await loadSoci();renderNews();filterUscite("tutti");}
+// ── INIT ──────────────────────────────────────────────
+async function init(){
+  await loadSoci();
+  renderNews();
+  // Carica anni disponibili
+  try{
+    ANNI=await api("GET","/anni");
+    if(!ANNI.includes(ANNO))ANNI.unshift(ANNO);
+  }catch(e){ANNI=[ANNO];}
+  renderNews();
+}
 
+// ── NAV ───────────────────────────────────────────────
 function showPage(p){
   document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
   document.querySelectorAll(".nav-links button[id^='nav-']").forEach(x=>x.classList.remove("active"));
   document.getElementById("page-"+p).classList.add("active");
   document.getElementById("nav-"+p).classList.add("active");
   if(p==="home"||p==="news")renderNews();
-  if(p==="soci")loadSoci();
-  if(p==="uscite")renderUscite();
+  if(p==="soci")renderSociPub();
+  if(p==="uscite")loadUscitePub();
   if(p==="gallery")renderGallery("foto");
   if(p==="admin"&&adminLogged)renderAdmin();
 }
 
+// ── CURRENCY ──────────────────────────────────────────
 function setCurrency(c){
   curr=c==="CHF"?"CHF":"€";
   document.getElementById("btn-chf").className=c==="CHF"?"active":"";
   document.getElementById("btn-eur").className=c==="EUR"?"active":"";
-  document.querySelectorAll("[id$='-sign']").forEach(el=>{if(el)el.textContent=curr;});
+  document.querySelectorAll("[id$='-sign'],[id='q-sign']").forEach(el=>{if(el)el.textContent=curr;});
   if(adminLogged)renderAdmin();
   toast("Valuta: "+curr);
 }
-const fv=n=>curr+" "+Number(n).toLocaleString("it-IT");
+const fv=n=>curr+" "+Number(n||0).toLocaleString("it-IT",{minimumFractionDigits:0,maximumFractionDigits:2});
 const fmtD=d=>{if(!d)return"—";const p=d.split("T")[0].split("-");return p[2]+"/"+p[1]+"/"+p[0];};
-const eta=d=>{if(!d)return"";const o=new Date(),n=new Date(d);let e=o.getFullYear()-n.getFullYear();if(o.getMonth()-n.getMonth()<0)e--;return e+" anni";};
 const ini=s=>((s.nome||"?")[0]+(s.cognome||"?")[0]).toUpperCase();
-const sc=s=>s.stato==="Attivo"?"badge-attivo":s.stato==="Sospeso"?"badge-sosp":"badge-nuovo";
+const sc2=s=>s.stato==="Attivo"?"ba":s.stato==="Sospeso"?"bs":"bn";
 
-async function loadSoci(){
-  try{SOCI=await api("GET","/soci");}catch(e){SOCI=[];}
-  SOCI_F=[...SOCI];renderSociPub();
-  const c=document.getElementById("cnt-soci");
-  if(c)c.textContent=SOCI.filter(s=>s.stato==="Attivo"||s.stato==="Nuovo").length;
+// ── ANNO ─────────────────────────────────────────────
+function populateAnnoSelect(){
+  const sel=document.getElementById("anno-select");
+  if(!sel)return;
+  sel.innerHTML=ANNI.map(a=>`<option value="${a}" ${a===ANNO?"selected":""}>${a}</option>`).join("");
+}
+async function changeAnno(v){
+  ANNO=parseInt(v);
+  renderAdmin();
+}
+function addNewYear(){
+  const y=parseInt(prompt("Inserisci anno (es. 2027):",ANNO+1));
+  if(!y||isNaN(y)||y<2000||y>2100){toast("⚠️ Anno non valido");return;}
+  if(!ANNI.includes(y))ANNI.unshift(y);
+  ANNI.sort((a,b)=>b-a);
+  ANNO=y;
+  populateAnnoSelect();
+  document.getElementById("anno-select").value=y;
+  renderAdmin();
+  toast("✅ Anno "+y+" aggiunto");
 }
 
+// ── SOCI ──────────────────────────────────────────────
+async function loadSoci(){
+  try{SOCI=await api("GET","/soci");}catch(e){SOCI=[];}
+  SOCI_F=[...SOCI];
+  const c=document.getElementById("cnt-soci");
+  if(c)c.textContent=SOCI.length;
+}
 function renderSociPub(list){
   const data=list!==undefined?list:SOCI_F;
   const tb=document.getElementById("soci-tbody");if(!tb)return;
-  if(!data.length){tb.innerHTML="<tr><td colspan='7' style='text-align:center;padding:2rem;color:var(--grigio-chiaro)'>Nessun socio trovato</td></tr>";return;}
+  if(!data.length){tb.innerHTML="<tr><td colspan='6'><div class='empty'>Nessun socio trovato</div></td></tr>";return;}
   tb.innerHTML=data.map(s=>`
     <tr onclick="showSocioDetail(${s.id})" style="cursor:pointer">
-      <td><span class="avatar">${ini(s)}</span><strong>${s.nome} ${s.cognome}</strong><br><small style="color:var(--grigio-chiaro);font-size:.72rem">${s.ruolo}</small></td>
+      <td><span class="av">${ini(s)}</span><strong>${s.nome} ${s.cognome}</strong><br><small style="color:var(--gc);font-size:.72rem">${s.ruolo||"Socio"}</small></td>
       <td style="font-family:'DM Mono',monospace;font-size:.82rem;color:var(--giallo)">${s.tessera||"—"}</td>
       <td style="font-size:.82rem">${s.email||"—"}</td>
       <td style="font-size:.82rem">${s.tel||"—"}</td>
-      <td style="font-size:.8rem">${fmtD(s.nascita)}<br><small style="color:var(--grigio-chiaro)">${eta(s.nascita)}</small></td>
-      <td style="font-size:.8rem">${[s.indirizzo,s.citta].filter(Boolean).join(", ")||"—"}</td>
-      <td><span class="badge ${sc(s)}">${s.stato}</span></td>
+      <td style="font-size:.8rem">${[s.citta,s.cap].filter(Boolean).join(" ")||"—"}</td>
+      <td><span class="badge ${sc2(s)}">${s.stato||"Attivo"}</span></td>
     </tr>`).join("");
 }
-
 function filterSoci(){const q=document.getElementById("search-soci").value.toLowerCase();SOCI_F=SOCI.filter(s=>(s.nome+" "+s.cognome+(s.tessera||"")+(s.email||"")+(s.citta||"")).toLowerCase().includes(q));renderSociPub();}
 function sortSoci(col){if(sortCol===col)sortDir*=-1;else{sortCol=col;sortDir=1;}SOCI_F.sort((a,b)=>{const va=(a[col]||"").toString().toLowerCase(),vb=(b[col]||"").toString().toLowerCase();return va<vb?-sortDir:va>vb?sortDir:0;});renderSociPub();}
 
 function showSocioDetail(id){
   const s=SOCI.find(x=>x.id===id);if(!s)return;
-  const qb=s.quota?"<span class='badge badge-pagato'>Pagata ✓</span>":"<span class='badge badge-npagato'>Da pagare</span>";
   document.getElementById("md-title").textContent=s.nome+" "+s.cognome;
   document.getElementById("md-body").innerHTML=`
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-bottom:1.2rem">
-      <div style="background:var(--grigio-scuro);border-radius:4px;padding:.8rem"><div style="font-family:'DM Mono',monospace;font-size:.6rem;text-transform:uppercase;color:var(--verde-chiaro);margin-bottom:.3rem">Tessera</div><div style="font-family:'DM Mono',monospace;color:var(--giallo)">${s.tessera||"—"}</div></div>
-      <div style="background:var(--grigio-scuro);border-radius:4px;padding:.8rem"><div style="font-family:'DM Mono',monospace;font-size:.6rem;text-transform:uppercase;color:var(--verde-chiaro);margin-bottom:.3rem">Stato</div><span class="badge ${sc(s)}">${s.stato}</span></div>
-      <div style="background:var(--grigio-scuro);border-radius:4px;padding:.8rem"><div style="font-family:'DM Mono',monospace;font-size:.6rem;text-transform:uppercase;color:var(--verde-chiaro);margin-bottom:.3rem">Nato/a il</div>${fmtD(s.nascita)} — ${eta(s.nascita)}</div>
-      <div style="background:var(--grigio-scuro);border-radius:4px;padding:.8rem"><div style="font-family:'DM Mono',monospace;font-size:.6rem;text-transform:uppercase;color:var(--verde-chiaro);margin-bottom:.3rem">Quota 2025</div>${qb}</div>
+      <div style="background:var(--gs);border-radius:4px;padding:.8rem"><div style="font-family:'DM Mono',monospace;font-size:.6rem;text-transform:uppercase;color:var(--verde-chiaro);margin-bottom:.3rem">Tessera</div><div style="font-family:'DM Mono',monospace;color:var(--giallo)">${s.tessera||"—"}</div></div>
+      <div style="background:var(--gs);border-radius:4px;padding:.8rem"><div style="font-family:'DM Mono',monospace;font-size:.6rem;text-transform:uppercase;color:var(--verde-chiaro);margin-bottom:.3rem">Stato</div><span class="badge ${sc2(s)}">${s.stato||"Attivo"}</span></div>
     </div>
     <div style="display:flex;flex-direction:column;gap:.5rem;font-size:.88rem">
       <div>📧 ${s.email||"—"}</div><div>📱 ${s.tel||"—"}</div>
       <div>🏠 ${[s.indirizzo,s.citta,s.cap].filter(Boolean).join(", ")||"—"}</div>
-      ${s.cf?`<div style="font-family:'DM Mono',monospace;font-size:.78rem;color:var(--grigio-chiaro)">CF: ${s.cf}</div>`:""}
-      ${s.note?`<div style="margin-top:.5rem;padding:.6rem;background:var(--grigio-scuro);border-radius:3px;color:var(--grigio-chiaro);font-size:.82rem">📝 ${s.note}</div>`:""}
+      ${s.note?`<div style="margin-top:.5rem;padding:.6rem;background:var(--gs);border-radius:3px;color:var(--gc);font-size:.82rem">📝 ${s.note}</div>`:""}
     </div>
     <div style="display:flex;gap:.8rem;justify-content:flex-end;margin-top:1.5rem">
-      <button class="btn btn-outline" onclick="closeModal('modal-detail')">Chiudi</button>
+      <button class="btn bo" onclick="closeModal('modal-detail')">Chiudi</button>
     </div>`;
   document.getElementById("modal-detail").classList.add("open");
 }
 
-function openModalSocio(){editId=null;document.getElementById("modal-socio-title").textContent="Nuovo Socio";["nome","cognome","email","tel","nascita","cf","indirizzo","citta","cap","note"].forEach(f=>{const e=document.getElementById("m-"+f);if(e)e.value="";});document.getElementById("m-ruolo").value="Socio";document.getElementById("m-stato").value="Nuovo";document.getElementById("modal-socio").classList.add("open");}
+// MODAL SOCIO
+function openModalSocio(){editId=null;document.getElementById("modal-socio-title").textContent="Nuovo Socio";["nome","cognome","email","tel","nascita","cf","indirizzo","citta","cap","note"].forEach(f=>{const e=document.getElementById("m-"+f);if(e)e.value="";});document.getElementById("m-ruolo").value="Socio";document.getElementById("m-stato").value="Attivo";document.getElementById("modal-socio").classList.add("open");}
 function editSocio(id){const s=SOCI.find(x=>x.id===id);if(!s)return;editId=id;document.getElementById("modal-socio-title").textContent="Modifica — "+s.nome+" "+s.cognome;["nome","cognome","email","tel","cf","indirizzo","citta","cap","note"].forEach(f=>{const e=document.getElementById("m-"+f);if(e)e.value=s[f]||"";});document.getElementById("m-nascita").value=s.nascita?s.nascita.split("T")[0]:"";document.getElementById("m-ruolo").value=s.ruolo||"Socio";document.getElementById("m-stato").value=s.stato||"Attivo";document.getElementById("modal-socio").classList.add("open");}
-
 async function saveSocio(){
   const nome=document.getElementById("m-nome").value.trim(),cognome=document.getElementById("m-cognome").value.trim();
   if(!nome||!cognome){toast("⚠️ Nome e cognome obbligatori");return;}
   const obj={nome,cognome,email:document.getElementById("m-email").value.trim(),tel:document.getElementById("m-tel").value.trim(),nascita:document.getElementById("m-nascita").value||null,cf:document.getElementById("m-cf").value.trim().toUpperCase(),indirizzo:document.getElementById("m-indirizzo").value.trim(),citta:document.getElementById("m-citta").value.trim(),cap:document.getElementById("m-cap").value.trim(),ruolo:document.getElementById("m-ruolo").value,stato:document.getElementById("m-stato").value,note:document.getElementById("m-note").value.trim()};
-  try{if(editId){await api("PATCH","/soci/"+editId,obj);toast("✅ Socio aggiornato!");}else{await api("POST","/soci",obj);toast("✅ Socio aggiunto!");}closeModal("modal-socio");await loadSoci();if(adminLogged)adminRenderSoci();}
+  try{if(editId){await api("PATCH","/soci/"+editId,obj);toast("✅ Socio aggiornato!");}else{await api("POST","/soci",obj);toast("✅ Socio aggiunto!");}closeModal("modal-socio");await loadSoci();adminRenderSoci();}
   catch(e){toast("❌ "+e.message);}
 }
-
 async function deleteSocio(id){if(!confirm("Eliminare questo socio?"))return;try{await api("DELETE","/soci/"+id);await loadSoci();adminRenderSoci();toast("🗑️ Eliminato");}catch(e){toast("❌ "+e.message);}}
-async function markPagato(id){try{await api("PATCH","/soci/"+id+"/quota",{quota:true});await loadSoci();adminRenderSoci();renderAdmin();toast("✅ Quota pagata!");}catch(e){toast("❌ "+e.message);}}
 async function toggleSospeso(id){const s=SOCI.find(x=>x.id===id);if(!s)return;const ns=s.stato==="Sospeso"?"Attivo":"Sospeso";try{await api("PATCH","/soci/"+id+"/stato",{stato:ns});await loadSoci();adminRenderSoci();toast("Stato: "+ns);}catch(e){toast("❌ "+e.message);}}
 
+// ── NEWS ──────────────────────────────────────────────
 function renderNews(){
-  const t=n=>`<div class="news-card"><div class="news-card-img">${n.emoji}</div><div class="news-card-body"><div class="news-tag">${n.tag}</div><h3>${n.titolo}</h3><p>${n.testo}</p><div class="news-meta">${n.data}</div></div></div>`;
+  const t=n=>`<div class="nc"><div class="nc-img">${n.emoji}</div><div class="nc-body"><div class="nc-tag">${n.tag}</div><h3>${n.titolo}</h3><p>${n.testo}</p><div class="nc-meta">${n.data}</div></div></div>`;
   const h=document.getElementById("home-news"),a=document.getElementById("all-news");
   if(h)h.innerHTML=NEWS.slice(0,3).map(t).join("");
   if(a)a.innerHTML=NEWS.map(t).join("");
 }
 
-function renderUscite(){
+// ── USCITE PUBBLICHE ──────────────────────────────────
+async function loadUscitePub(){
+  const annoEl=document.getElementById("uscite-anno-title");
+  if(annoEl)annoEl.textContent=ANNO;
+  const el=document.getElementById("uscite-list");
+  try{
+    USCITE_DB=await api("GET","/uscite/"+ANNO);
+  }catch(e){USCITE_DB=[];}
+  USCITE_F=[...USCITE_DB];
+  const c=document.getElementById("cnt-uscite");
+  if(c)c.textContent=USCITE_DB.length;
+  renderUscitePub();
+}
+function renderUscitePub(){
+  const el=document.getElementById("uscite-list");if(!el)return;
+  const list=filtroU==="tutti"?USCITE_F:USCITE_F.filter(u=>u.difficolta===filtroU);
   const dm={F:"Facile",M:"Media",D:"Difficile"};
-  const list=filtroU==="tutti"?USCITE:USCITE.filter(u=>u.diff===filtroU);
-  document.getElementById("uscite-list").innerHTML=list.map(u=>`
-    <div class="uscita-card" onclick="showUscitaDetail(${u.id})">
-      <div class="uscita-data"><div class="uscita-giorno">${u.giorno}</div><div class="uscita-mese">${u.mese}</div></div>
-      <div class="uscita-info"><h3>${u.titolo}</h3><div class="uscita-meta"><span>🕐 ${u.ora}</span><span>📏 ${u.km} km</span><span>⬆️ ${u.dislivello}m</span><span>👥 ${u.iscr}/${u.max}</span></div></div>
-      <div class="uscita-right"><span class="diff-badge diff-${u.diff}">${dm[u.diff]}</span></div>
+  if(!list.length){el.innerHTML=`<div class="empty">Nessuna uscita trovata per ${ANNO}</div>`;return;}
+  el.innerHTML=list.map(u=>`
+    <div class="uc" onclick="showUscitaDetail(${u.id})">
+      <div class="ud"><div class="ug-d">${u.giorno||"—"}</div><div class="um">${u.mese||"—"}</div></div>
+      <div class="ui"><h3>${u.titolo}</h3><div class="ui-meta"><span>🕐 ${u.ora||"—"}</span><span>📏 ${u.km||0} km</span><span>⬆️ ${u.dislivello||0}m</span><span>👥 ${u.iscritti||0}/${u.max_posti||30}</span></div></div>
+      <div class="ur"><span class="db d${u.difficolta||"M"}">${dm[u.difficolta||"M"]}</span></div>
     </div>`).join("");
 }
-function filterUscite(f){filtroU=f;document.querySelectorAll("[id^='uf-']").forEach(b=>b.className="btn btn-outline");document.getElementById("uf-"+f).className="btn btn-verde";renderUscite();}
+function filterUscite(f){filtroU=f;document.querySelectorAll("[id^='uf-']").forEach(b=>b.className="btn bo");document.getElementById("uf-"+f).className="btn bv2";renderUscitePub();}
 function showUscitaDetail(id){
-  const u=USCITE.find(x=>x.id===id);if(!u)return;
+  const u=USCITE_DB.find(x=>x.id===id);if(!u)return;
   const dm={F:"🔵 Facile",M:"🟡 Media",D:"🔴 Difficile"};
   document.getElementById("md-title").textContent=u.titolo;
   document.getElementById("md-body").innerHTML=`
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem">
-      <div style="background:var(--grigio-scuro);border-radius:4px;padding:1rem;text-align:center"><div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--giallo)">${u.giorno} ${u.mese}</div><small style="color:var(--grigio-chiaro)">Ore ${u.ora}</small></div>
-      <div style="background:var(--grigio-scuro);border-radius:4px;padding:1rem;text-align:center"><div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--verde-chiaro)">${u.km} km</div><small style="color:var(--grigio-chiaro)">D+ ${u.dislivello}m</small></div>
+      <div style="background:var(--gs);border-radius:4px;padding:1rem;text-align:center"><div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--giallo)">${u.giorno||"—"} ${u.mese||""}</div><small style="color:var(--gc)">Ore ${u.ora||"—"}</small></div>
+      <div style="background:var(--gs);border-radius:4px;padding:1rem;text-align:center"><div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--verde-chiaro)">${u.km||0} km</div><small style="color:var(--gc)">D+ ${u.dislivello||0}m</small></div>
     </div>
-    <div style="margin-bottom:1rem"><span class="diff-badge diff-${u.diff}" style="margin-right:.5rem">${dm[u.diff]}</span><span style="font-size:.82rem;color:var(--grigio-chiaro)">👥 ${u.iscr}/${u.max} iscritti</span></div>
-    <p style="font-size:.88rem;color:var(--grigio-chiaro);line-height:1.6">${u.note}</p>
+    <div style="margin-bottom:1rem"><span class="db d${u.difficolta||"M"}" style="margin-right:.5rem">${dm[u.difficolta||"M"]}</span><span style="font-size:.82rem;color:var(--gc)">👥 ${u.iscritti||0}/${u.max_posti||30} iscritti</span></div>
+    ${u.note?`<p style="font-size:.88rem;color:var(--gc);line-height:1.6">${u.note}</p>`:""}
     <div style="display:flex;gap:.8rem;justify-content:flex-end;margin-top:1.5rem">
-      <button class="btn btn-outline" onclick="closeModal('modal-detail')">Chiudi</button>
-      <button class="btn btn-verde" onclick="toast('✅ Iscrizione inviata!');closeModal('modal-detail')">✓ Iscriviti</button>
+      <button class="btn bo" onclick="closeModal('modal-detail')">Chiudi</button>
+      <button class="btn bv2" onclick="toast('✅ Iscrizione inviata!');closeModal('modal-detail')">✓ Iscriviti</button>
     </div>`;
   document.getElementById("modal-detail").classList.add("open");
 }
 
-function switchGallery(type,btn){document.querySelectorAll(".gallery-tab").forEach(t=>t.classList.remove("active"));btn.classList.add("active");gallType=type;const ab=document.getElementById("btn-add-media");if(ab)ab.textContent=type==="foto"?"+ Aggiungi Foto":"+ Aggiungi Video";renderGallery(type);}
+// ── GALLERY ───────────────────────────────────────────
+function switchGallery(type,btn){document.querySelectorAll(".gtab").forEach(t=>t.classList.remove("active"));btn.classList.add("active");gallType=type;const ab=document.getElementById("btn-add-media");if(ab)ab.textContent=type==="foto"?"+ Aggiungi Foto":"+ Aggiungi Video";renderGallery(type);}
 function triggerGalleryUpload(){document.getElementById(gallType==="foto"?"gallery-file-input":"gallery-video-input").click();}
-function handleGalleryUpload(input,type){const file=input.files[0];if(!file)return;pendFile=file;pendType=type;const url=URL.createObjectURL(file);document.getElementById("mga-title").textContent=type==="foto"?"📷 Aggiungi Foto":"🎬 Aggiungi Video";document.getElementById("mga-titolo").value=file.name.replace(/\.[^.]+$/,"").replace(/[-_]/g," ");const prev=document.getElementById("mga-preview");prev.innerHTML=type==="foto"?`<img src="${url}" style="width:100%;max-height:220px;border-radius:6px;object-fit:cover">`:`<video src="${url}" style="width:100%;max-height:220px;border-radius:6px" controls></video>`;document.getElementById("mga-extra").innerHTML=type==="video"?"<div class='form-group'><label>Durata (es. 3:42)</label><input id='mga-durata' type='text' placeholder='0:00'></div>":"";document.getElementById("modal-gallery-add").classList.add("open");input.value="";}
-
-async function saveGalleryItem(){
-  if(!pendFile){toast("⚠️ Nessun file");return;}
-  const btn=document.getElementById("btn-save-gallery");btn.disabled=true;btn.textContent="Caricamento...";
-  try{const fd=new FormData();fd.append("file",pendFile);fd.append("titolo",document.getElementById("mga-titolo").value||"Senza titolo");if(pendType==="video"){const d=document.getElementById("mga-durata");fd.append("durata",d?d.value:"—");}await api("POST","/gallery/"+pendType,fd);pendFile=null;pendType=null;closeModal("modal-gallery-add");renderGallery(gallType);toast("✅ Aggiunto!");}
-  catch(e){toast("❌ "+e.message);}
-  finally{btn.disabled=false;btn.textContent="Salva";}
-}
+function handleGalleryUpload(input,type){const file=input.files[0];if(!file)return;pendFile=file;pendType=type;const url=URL.createObjectURL(file);document.getElementById("mga-title").textContent=type==="foto"?"📷 Aggiungi Foto":"🎬 Aggiungi Video";document.getElementById("mga-titolo").value=file.name.replace(/\.[^.]+$/,"").replace(/[-_]/g," ");const prev=document.getElementById("mga-preview");prev.innerHTML=type==="foto"?`<img src="${url}" style="width:100%;max-height:220px;border-radius:6px;object-fit:cover">`:`<video src="${url}" style="width:100%;max-height:220px;border-radius:6px" controls></video>`;document.getElementById("mga-extra").innerHTML=type==="video"?"<div class='fg'><label>Durata (es. 3:42)</label><input id='mga-durata' type='text' placeholder='0:00'></div>":"";document.getElementById("modal-gallery-add").classList.add("open");input.value="";}
+async function saveGalleryItem(){if(!pendFile){toast("⚠️ Nessun file");return;}const btn=document.getElementById("btn-save-gallery");btn.disabled=true;btn.textContent="Caricamento...";try{const fd=new FormData();fd.append("file",pendFile);fd.append("titolo",document.getElementById("mga-titolo").value||"Senza titolo");fd.append("anno",ANNO);if(pendType==="video"){const d=document.getElementById("mga-durata");fd.append("durata",d?d.value:"—");}await api("POST","/gallery/"+pendType,fd);pendFile=null;pendType=null;closeModal("modal-gallery-add");renderGallery(gallType);toast("✅ Aggiunto!");}catch(e){toast("❌ "+e.message);}finally{btn.disabled=false;btn.textContent="Salva";}}
 async function deleteGalleryItem(type,id){if(!confirm("Eliminare?"))return;try{await api("DELETE","/gallery/"+type+"/"+id);renderGallery(gallType);toast("🗑️ Rimosso");}catch(e){toast("❌ "+e.message);}}
-
 async function renderGallery(type){
   const el=document.getElementById("gallery-content");if(!el)return;
   const cnt=document.getElementById("gallery-count");
   if(type==="foto"){
-    let db=[];try{db=await api("GET","/gallery/foto");}catch(e){}
+    let db=[];try{db=await api("GET","/gallery/foto?anno="+ANNO);}catch(e){}
     const all=[...FOTO_SEED.map((f,i)=>({...f,_seed:true,_k:i})),...db];
     if(cnt)cnt.textContent=all.length+" foto";
-    el.innerHTML=`<div class="photo-grid">${all.map(f=>`
-      <div class="photo-item" style="position:relative;overflow:hidden">
+    el.innerHTML=`<div class="pg">${all.map(f=>`
+      <div class="pi" style="position:relative;overflow:hidden">
         ${f.file_path?`<img src="${f.file_path}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">`:`<span style="font-size:4rem;z-index:1">${f.emoji||"🖼️"}</span>`}
-        <div class="photo-label" style="z-index:2">${f.titolo||f.label}</div>
+        <div class="pl" style="z-index:2">${f.titolo||f.label}</div>
         ${!f._seed?`<button onclick="deleteGalleryItem('foto',${f.id})" style="position:absolute;top:7px;right:7px;z-index:3;background:rgba(192,57,43,.9);border:none;border-radius:4px;color:#fff;font-size:.7rem;padding:.25rem .5rem;cursor:pointer">🗑</button>`:""}
       </div>`).join("")}</div>`;
   }else{
-    let db=[];try{db=await api("GET","/gallery/video");}catch(e){}
+    let db=[];try{db=await api("GET","/gallery/video?anno="+ANNO);}catch(e){}
     const all=[...VIDEO_SEED.map((v,i)=>({...v,_seed:true,_k:i})),...db];
     if(cnt)cnt.textContent=all.length+" video";
-    el.innerHTML=`<div class="video-grid">${all.map(v=>`
-      <div class="video-item" style="position:relative">
-        <div class="video-thumb">${v.file_path?`<video src="${v.file_path}" style="width:100%;height:100%;object-fit:cover" controls></video>`:`<span style="font-size:3rem">${v.emoji||"🎬"}</span>`}</div>
-        <div class="video-info"><h4>${v.titolo}</h4>${v.desc?`<p>${v.desc}</p>`:""}<div style="font-family:'DM Mono',monospace;font-size:.65rem;color:var(--giallo);margin-top:.4rem">⏱ ${v.durata||"—"}</div></div>
+    el.innerHTML=`<div class="vg">${all.map(v=>`
+      <div class="vi" style="position:relative">
+        <div class="vt">${v.file_path?`<video src="${v.file_path}" style="width:100%;height:100%;object-fit:cover" controls></video>`:`<span style="font-size:3rem">${v.emoji||"🎬"}</span>`}</div>
+        <div class="vif"><h4>${v.titolo}</h4>${v.desc?`<p>${v.desc}</p>`:""}<div style="font-family:'DM Mono',monospace;font-size:.65rem;color:var(--giallo);margin-top:.4rem">⏱ ${v.durata||"—"}</div></div>
         ${!v._seed?`<button onclick="deleteGalleryItem('video',${v.id})" style="position:absolute;top:7px;right:7px;z-index:3;background:rgba(192,57,43,.9);border:none;border-radius:4px;color:#fff;font-size:.7rem;padding:.25rem .5rem;cursor:pointer">🗑</button>`:""}
       </div>`).join("")}</div>`;
   }
 }
 
+// ── ADMIN ─────────────────────────────────────────────
 function adminLogin(){const u=document.getElementById("admin-user").value,p=document.getElementById("admin-pass").value;if(u==="ctr"&&p==="laroda2025"){adminLogged=true;document.getElementById("admin-login-wrap").style.display="none";document.getElementById("admin-panel-wrap").style.display="block";renderAdmin();toast("✅ Accesso effettuato!");}else{toast("❌ Credenziali errate!");document.getElementById("admin-pass").value="";}}
 function adminLogout(){adminLogged=false;document.getElementById("admin-login-wrap").style.display="block";document.getElementById("admin-panel-wrap").style.display="none";}
 
 async function renderAdmin(){
   await loadSoci();
-  const pag=SOCI.filter(s=>s.quota).length;
+  populateAnnoSelect();
+  ["quote","uscite","spese","trasferte","note"].forEach(s=>{const el=document.getElementById(s+"-anno-label");if(el)el.textContent=ANNO;});
   document.getElementById("k-soci").textContent=SOCI.length;
-  document.getElementById("k-entrate").textContent=fv(pag*70);
-  document.getElementById("k-mancanti").textContent=fv(SOCI.filter(s=>!s.quota).length*70);
-  document.getElementById("quote-tbody").innerHTML=SOCI.map(s=>`<tr>
-    <td><span class="avatar">${ini(s)}</span>${s.nome} ${s.cognome}</td>
-    <td style="font-family:'DM Mono',monospace;font-size:.78rem;color:var(--giallo)">${s.tessera||"—"}</td>
-    <td style="font-family:'DM Mono',monospace">${fv(70)}</td>
-    <td>${s.quota?"<span class='badge badge-pagato'>Pagata</span>":"<span class='badge badge-npagato'>Non pagata</span>"}</td>
-    <td>${!s.quota?`<button class="btn btn-verde btn-sm" onclick="markPagato(${s.id})">✓</button>`:""}</td>
-  </tr>`).join("");
-  const mv=Math.max(...ENTRATE.val);
-  document.getElementById("bar-chart").innerHTML=ENTRATE.val.map(v=>`<div class="bar-group"><div class="bar-val">${v>0?curr+v:""}</div><div class="bar" style="height:${mv>0?(v/mv*90)+10:10}px;background:${v>0?"var(--verde)":"var(--grigio-medio)"}"></div></div>`).join("");
-  document.getElementById("bar-labels").innerHTML=ENTRATE.mesi.map(m=>`<span style="font-family:'DM Mono',monospace;font-size:.6rem;color:var(--grigio-chiaro);flex:1;text-align:center">${m}</span>`).join("");
-  document.getElementById("spese-tbody").innerHTML=SPESE.map(s=>`<tr>
-    <td style="font-size:.82rem">${s.data}</td><td>${s.uscita}</td><td>${s.part}</td>
-    <td style="color:var(--rosso)">${fv(s.costo)}</td><td>${s.quota>0?fv(s.quota):"—"}</td>
-    <td style="color:var(--verde-chiaro)">${fv(s.incassato)}</td><td>${s.stato}</td>
-  </tr>`).join("");
-  adminRenderSoci();await renderQuota2026();await renderDiano2026();
-  try{const r=await api("GET","/admin/note");document.getElementById("admin-note").value=r.testo||"";}catch(e){}
+  // Carica dati anno
+  await Promise.all([loadQuote(),loadUsciteAdmin(),loadSpese(),loadTrasferte()]);
+  // Note
+  try{const r=await api("GET","/admin/note/"+ANNO);document.getElementById("admin-note").value=r.testo||"";}catch(e){}
+  adminRenderSoci();
 }
+async function saveAdminNote(){try{await api("POST","/admin/note",{anno:ANNO,testo:document.getElementById("admin-note").value});toast("✅ Note salvate!");}catch(e){toast("❌ "+e.message);}}
 
-async function saveAdminNote(){try{await api("POST","/admin/note",{testo:document.getElementById("admin-note").value});toast("✅ Note salvate!");}catch(e){toast("❌ "+e.message);}}
+// ── QUOTE ─────────────────────────────────────────────
+async function loadQuote(){
+  try{QUOTE_DB=await api("GET","/quote/"+ANNO);}catch(e){QUOTE_DB=[];}
+  renderQuote();
+}
+function filterQuote(){
+  const q=document.getElementById("admin-search-quote")?.value.toLowerCase()||"";
+  const filtered=SOCI.filter(s=>(s.nome+" "+s.cognome+(s.tessera||"")).toLowerCase().includes(q));
+  renderQuote(filtered);
+}
+function renderQuote(sociList){
+  const importo=parseFloat(document.getElementById("q-importo")?.value)||20;
+  const qs=document.getElementById("q-sign");if(qs)qs.textContent=curr;
+  const list=sociList||SOCI;
+  const rm={};QUOTE_DB.forEach(r=>rm[r.socio_id]=r);
+  const paganti=QUOTE_DB.filter(r=>r.pagato).length;
+  const inc=QUOTE_DB.filter(r=>r.pagato).reduce((a,r)=>a+(r.importo||importo),0);
+  const doc=id=>document.getElementById(id);
+  if(doc("k-quote-pag"))doc("k-quote-pag").textContent=fv(inc);
+  if(doc("k-quote-manca"))doc("k-quote-manca").textContent=fv(Math.max(0,SOCI.length*importo-inc));
+  // Bar chart
+  const bc=doc("bar-chart"),bl=doc("bar-labels");
+  if(bc&&bl){
+    const byM=Array(12).fill(0);
+    QUOTE_DB.filter(r=>r.pagato&&r.data_pag).forEach(r=>{const m=parseInt((r.data_pag||"").split("-")[1]||0)-1;if(m>=0)byM[m]+=(r.importo||importo);});
+    const mv=Math.max(...byM,1);
+    const mesi=["Gen","Feb","Mar","Apr","Mag","Giu","Lug","Ago","Set","Ott","Nov","Dic"];
+    bc.innerHTML=byM.map(v=>`<div class="bg2"><div class="bv">${v>0?curr+v:""}</div><div class="bb" style="height:${(v/mv*90)+10}px;background:${v>0?"var(--verde)":"var(--gm)"}"></div></div>`).join("");
+    bl.innerHTML=mesi.map(m=>`<span style="font-family:'DM Mono',monospace;font-size:.6rem;color:var(--gc);flex:1;text-align:center">${m}</span>`).join("");
+  }
+  const tb=doc("quote-tbody");if(!tb)return;
+  tb.innerHTML=list.map(s=>{
+    const r=rm[s.id]||{},pagato=r.pagato||false,imp=r.importo||importo;
+    const badge=pagato?"<span class='badge bp'>Pagata ✓</span>":s.stato==="Sospeso"?"<span class='badge bs'>Sospeso</span>":"<span class='badge bx'>Da pagare</span>";
+    return `<tr>
+      <td><span class="av">${ini(s)}</span><strong>${s.nome} ${s.cognome}</strong></td>
+      <td style="font-family:'DM Mono',monospace;font-size:.8rem;color:var(--giallo)">${s.tessera||"—"}</td>
+      <td style="font-family:'DM Mono',monospace">${pagato?fv(imp):"—"}</td>
+      <td style="font-size:.82rem">${fmtD(r.data_pag)}</td>
+      <td style="font-size:.82rem">${r.metodo||"—"}</td>
+      <td style="font-size:.78rem;color:var(--gc)">${r.note||"—"}</td>
+      <td>${badge}</td>
+      <td><button class="btn ${pagato?"bo":"bv2"} bs2" onclick="openModalQuota(${s.id},'${s.nome} ${s.cognome}')">${pagato?"✏️":"+ Registra"}</button>${pagato?`<button class="btn br2 bs2" style="margin-left:.3rem" onclick="deleteQuota(${s.id})">🗑</button>`:""}</td>
+    </tr>`;
+  }).join("");
+}
+function openModalQuota(id,nome){document.getElementById("mq-socio-id").value=id;document.getElementById("mq-title").textContent="💳 Quota "+ANNO+" — "+nome;document.getElementById("mq-importo").value=document.getElementById("q-importo")?.value||20;document.getElementById("mq-data").value=new Date().toISOString().split("T")[0];document.getElementById("mq-metodo").value="Contanti";document.getElementById("mq-note").value="";document.getElementById("modal-quota").classList.add("open");}
+async function saveQuota(){const sid=parseInt(document.getElementById("mq-socio-id").value),imp=parseFloat(document.getElementById("mq-importo").value)||20,dp=document.getElementById("mq-data").value;if(!dp){toast("⚠️ Inserisci data");return;}try{await api("POST","/quote",{socio_id:sid,anno:ANNO,importo:imp,data_pag:dp,metodo:document.getElementById("mq-metodo").value,note:document.getElementById("mq-note").value});closeModal("modal-quota");await loadQuote();toast("✅ Quota "+ANNO+" registrata!");}catch(e){toast("❌ "+e.message);}}
+async function deleteQuota(sid){if(!confirm("Rimuovere pagamento quota?"))return;try{await api("DELETE","/quote/"+ANNO+"/"+sid);await loadQuote();toast("🗑️ Rimosso");}catch(e){toast("❌ "+e.message);}}
 
+// ── USCITE ADMIN ──────────────────────────────────────
+async function loadUsciteAdmin(){
+  try{USCITE_DB=await api("GET","/uscite/"+ANNO);}catch(e){USCITE_DB=[];}
+  renderUsciteAdmin();
+  const c=document.getElementById("k-uscite");if(c)c.textContent=USCITE_DB.length;
+  const c2=document.getElementById("cnt-uscite");if(c2)c2.textContent=USCITE_DB.length;
+}
+function renderUsciteAdmin(){
+  const tb=document.getElementById("uscite-admin-tbody");if(!tb)return;
+  const dm={F:"🔵 F",M:"🟡 M",D:"🔴 D"};
+  if(!USCITE_DB.length){tb.innerHTML=`<tr><td colspan="8"><div class="empty">Nessuna uscita per ${ANNO} — aggiungine una!</div></td></tr>`;return;}
+  tb.innerHTML=USCITE_DB.map(u=>`<tr>
+    <td style="font-family:'DM Mono',monospace;font-size:.8rem">${fmtD(u.data_uscita)}</td>
+    <td><strong>${u.titolo}</strong></td>
+    <td style="font-family:'DM Mono',monospace">${u.km||0}</td>
+    <td style="font-family:'DM Mono',monospace">${u.dislivello||0}m</td>
+    <td><span class="db d${u.difficolta||"M"}">${dm[u.difficolta||"M"]}</span></td>
+    <td style="font-family:'DM Mono',monospace">${u.ora||"—"}</td>
+    <td style="font-family:'DM Mono',monospace">${u.iscritti||0}/${u.max_posti||30}</td>
+    <td style="display:flex;gap:.3rem">
+      <button class="btn bo bs2" onclick="editUscita(${u.id})">✏️</button>
+      <button class="btn br2 bs2" onclick="deleteUscita(${u.id})">🗑</button>
+    </td>
+  </tr>`).join("");
+}
+function openModalUscita(){editUscitaId=null;document.getElementById("mu-title").textContent="Nuova Uscita "+ANNO;["titolo","km","dislivello","max","note"].forEach(f=>{const e=document.getElementById("mu-"+f);if(e)e.value="";});document.getElementById("mu-data").value="";document.getElementById("mu-ora").value="08:00";document.getElementById("mu-diff").value="M";document.getElementById("modal-uscita").classList.add("open");}
+function editUscita(id){const u=USCITE_DB.find(x=>x.id===id);if(!u)return;editUscitaId=id;document.getElementById("mu-title").textContent="Modifica Uscita";document.getElementById("mu-titolo").value=u.titolo||"";document.getElementById("mu-data").value=u.data_uscita?u.data_uscita.split("T")[0]:"";document.getElementById("mu-ora").value=u.ora||"08:00";document.getElementById("mu-km").value=u.km||0;document.getElementById("mu-dislivello").value=u.dislivello||0;document.getElementById("mu-diff").value=u.difficolta||"M";document.getElementById("mu-max").value=u.max_posti||30;document.getElementById("mu-note").value=u.note||"";document.getElementById("modal-uscita").classList.add("open");}
+async function saveUscita(){
+  const titolo=document.getElementById("mu-titolo").value.trim();if(!titolo){toast("⚠️ Titolo obbligatorio");return;}
+  const dataVal=document.getElementById("mu-data").value;
+  let giorno="",mese="";
+  if(dataVal){const d=new Date(dataVal);giorno=String(d.getDate()).padStart(2,"0");mese=["Gen","Feb","Mar","Apr","Mag","Giu","Lug","Ago","Set","Ott","Nov","Dic"][d.getMonth()];}
+  const obj={anno:ANNO,titolo,data_uscita:dataVal||null,giorno,mese,ora:document.getElementById("mu-ora").value,km:parseFloat(document.getElementById("mu-km").value)||0,dislivello:parseInt(document.getElementById("mu-dislivello").value)||0,difficolta:document.getElementById("mu-diff").value,max_posti:parseInt(document.getElementById("mu-max").value)||30,note:document.getElementById("mu-note").value.trim()};
+  try{if(editUscitaId){await api("PATCH","/uscite/"+editUscitaId,obj);toast("✅ Uscita aggiornata!");}else{await api("POST","/uscite",obj);toast("✅ Uscita aggiunta!");}closeModal("modal-uscita");await loadUsciteAdmin();}
+  catch(e){toast("❌ "+e.message);}
+}
+async function deleteUscita(id){if(!confirm("Eliminare questa uscita?"))return;try{await api("DELETE","/uscite/"+id);await loadUsciteAdmin();toast("🗑️ Uscita eliminata");}catch(e){toast("❌ "+e.message);}}
+
+// ── SPESE ─────────────────────────────────────────────
+async function loadSpese(){
+  try{SPESE_DB=await api("GET","/spese/"+ANNO);}catch(e){SPESE_DB=[];}
+  renderSpese();
+}
+function renderSpese(){
+  const tb=document.getElementById("spese-tbody");if(!tb)return;
+  if(!SPESE_DB.length){tb.innerHTML=`<tr><td colspan="7"><div class="empty">Nessuna spesa per ${ANNO}</div></td></tr>`;}
+  else{tb.innerHTML=SPESE_DB.map(s=>`<tr>
+    <td style="font-family:'DM Mono',monospace;font-size:.8rem">${fmtD(s.data_spesa)}</td>
+    <td><strong>${s.descrizione}</strong></td>
+    <td><span class="badge bn">${s.categoria||"Altro"}</span></td>
+    <td style="font-family:'DM Mono',monospace;color:var(--rosso)">${fv(s.importo)}</td>
+    <td style="font-family:'DM Mono',monospace;color:var(--verde-chiaro)">${fv(s.incassato)}</td>
+    <td style="font-size:.78rem;color:var(--gc)">${s.note||"—"}</td>
+    <td style="display:flex;gap:.3rem">
+      <button class="btn bo bs2" onclick="editSpesa(${s.id})">✏️</button>
+      <button class="btn br2 bs2" onclick="deleteSpesa(${s.id})">🗑</button>
+    </td>
+  </tr>`).join("");}
+  const tot=SPESE_DB.reduce((a,s)=>a+(s.importo||0),0);
+  const inc=SPESE_DB.reduce((a,s)=>a+(s.incassato||0),0);
+  const el=id=>document.getElementById(id);
+  if(el("s-totale"))el("s-totale").textContent=fv(tot);
+  if(el("s-incassato"))el("s-incassato").textContent=fv(inc);
+  if(el("s-delta"))el("s-delta").textContent=fv(inc-tot);
+}
+function openModalSpesa(){editSpesaId=null;document.getElementById("ms-title").textContent="Nuova Spesa "+ANNO;["desc","note"].forEach(f=>{const e=document.getElementById("ms-"+f);if(e)e.value="";});document.getElementById("ms-data").value=new Date().toISOString().split("T")[0];document.getElementById("ms-cat").value="Uscita";document.getElementById("ms-importo").value="";document.getElementById("ms-incassato").value="";document.getElementById("modal-spesa").classList.add("open");}
+function editSpesa(id){const s=SPESE_DB.find(x=>x.id===id);if(!s)return;editSpesaId=id;document.getElementById("ms-title").textContent="Modifica Spesa";document.getElementById("ms-desc").value=s.descrizione||"";document.getElementById("ms-data").value=s.data_spesa?s.data_spesa.split("T")[0]:new Date().toISOString().split("T")[0];document.getElementById("ms-cat").value=s.categoria||"Uscita";document.getElementById("ms-importo").value=s.importo||0;document.getElementById("ms-incassato").value=s.incassato||0;document.getElementById("ms-note").value=s.note||"";document.getElementById("modal-spesa").classList.add("open");}
+async function saveSpesa(){const desc=document.getElementById("ms-desc").value.trim();if(!desc){toast("⚠️ Descrizione obbligatoria");return;}const obj={anno:ANNO,descrizione:desc,data_spesa:document.getElementById("ms-data").value||null,categoria:document.getElementById("ms-cat").value,importo:parseFloat(document.getElementById("ms-importo").value)||0,incassato:parseFloat(document.getElementById("ms-incassato").value)||0,note:document.getElementById("ms-note").value.trim()};try{if(editSpesaId){await api("PATCH","/spese/"+editSpesaId,obj);toast("✅ Spesa aggiornata!");}else{await api("POST","/spese",obj);toast("✅ Spesa aggiunta!");}closeModal("modal-spesa");await loadSpese();}catch(e){toast("❌ "+e.message);}}
+async function deleteSpesa(id){if(!confirm("Eliminare questa spesa?"))return;try{await api("DELETE","/spese/"+id);await loadSpese();toast("🗑️ Eliminata");}catch(e){toast("❌ "+e.message);}}
+
+// ── TRASFERTE ─────────────────────────────────────────
+async function loadTrasferte(){
+  try{TRASFERTE_DB=await api("GET","/trasferte/"+ANNO);}catch(e){TRASFERTE_DB=[];}
+  renderTrasferte();
+}
+function renderTrasferte(){
+  const el=document.getElementById("trasferte-list");if(!el)return;
+  if(!TRASFERTE_DB.length){el.innerHTML=`<div class="empty">Nessuna trasferta per ${ANNO} — aggiungine una!</div>`;return;}
+  el.innerHTML=TRASFERTE_DB.map(t=>{
+    const iscritti=t.iscrizioni||[];
+    const aT=iscritti.reduce((a,r)=>a+(parseFloat(r.acconto)||0),0);
+    const sT=iscritti.reduce((a,r)=>a+(parseFloat(r.saldo)||0),0);
+    const da=Math.max(0,iscritti.length*(t.quota||0)-aT-sT);
+    return `<div class="tc" style="margin-bottom:1rem">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem">
+        <div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:var(--giallo);letter-spacing:.04em">${t.nome}</div>
+          <div style="font-size:.8rem;color:var(--gc)">${t.luogo||"—"} · ${fmtD(t.data_inizio)} → ${fmtD(t.data_fine)}</div>
+        </div>
+        <div style="display:flex;gap:.4rem">
+          <button class="btn bo bs2" onclick="editTrasferta(${t.id})">✏️</button>
+          <button class="btn br2 bs2" onclick="deleteTrasferta(${t.id})">🗑</button>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:.8rem;margin-bottom:1rem">
+        <div><div class="tl">Iscritti</div><div style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:var(--b)">${iscritti.length}/${t.max_posti||20}</div></div>
+        <div><div class="tl">Quota</div><div style="color:var(--giallo);font-family:'DM Mono',monospace">${fv(t.quota)}</div></div>
+        <div><div class="tl">Acconti</div><div style="color:var(--giallo);font-family:'DM Mono',monospace">${fv(aT)}</div></div>
+        <div><div class="tl">Saldi</div><div style="color:var(--verde-chiaro);font-family:'DM Mono',monospace">${fv(sT)}</div></div>
+        <div><div class="tl">Da incassare</div><div style="color:var(--rosso);font-family:'DM Mono',monospace">${fv(da)}</div></div>
+        <div><div class="tl">Km</div><div style="color:var(--gc);font-family:'DM Mono',monospace">${t.km||0} km</div></div>
+      </div>
+      <div style="overflow-x:auto">
+        <table style="margin-bottom:.8rem">
+          <thead><tr><th>Socio</th><th>Tessera</th><th>Data</th><th>Acconto</th><th>Saldo</th><th>Totale</th><th>Camera</th><th>Stato</th><th></th></tr></thead>
+          <tbody>${renderIscrizioniTrasferta(t)}</tbody>
+        </table>
+      </div>
+      <button class="btn bv2 bs2" onclick="openModalIscrizioneTrasferta(${t.id},${t.quota||0})">+ Iscrivi socio</button>
+    </div>`;
+  }).join("");
+}
+function renderIscrizioniTrasferta(t){
+  const iscritti=t.iscrizioni||[];
+  const iscr_ids=iscritti.map(r=>r.socio_id);
+  const rows=[];
+  iscritti.forEach(r=>{
+    const s=SOCI.find(x=>x.id===r.socio_id);if(!s)return;
+    const acc=parseFloat(r.acconto)||0,sal=parseFloat(r.saldo)||0,tot=acc+sal;
+    const pct=t.quota>0?Math.min(100,Math.round(tot/t.quota*100)):0;
+    const stato=tot>=(t.quota||0)&&t.quota>0?"<span class='badge bp'>Saldato ✓</span>":tot>0?`<span class='badge bs'>Parziale (${pct}%)</span>`:"<span class='badge bx'>Da pagare</span>";
+    rows.push(`<tr style="border-left:3px solid var(--verde-chiaro)">
+      <td><span class="av" style="background:var(--verde-chiaro)">${ini(s)}</span><strong>${s.nome} ${s.cognome}</strong></td>
+      <td style="font-family:'DM Mono',monospace;font-size:.78rem;color:var(--giallo)">${s.tessera||"—"}</td>
+      <td style="font-size:.78rem">${fmtD(r.data_iscr)}</td>
+      <td style="font-family:'DM Mono',monospace;color:${acc>0?"var(--giallo)":"var(--gc)"}">${acc>0?fv(acc):"—"}</td>
+      <td style="font-family:'DM Mono',monospace;color:${sal>0?"var(--verde-chiaro)":"var(--gc)"}">${sal>0?fv(sal):"—"}</td>
+      <td style="font-family:'DM Mono',monospace">${fv(tot)}</td>
+      <td style="font-size:.75rem;color:var(--gc)">${r.camera||"—"}</td>
+      <td>${stato}</td>
+      <td style="display:flex;gap:.3rem">
+        <button class="btn bo bs2" onclick="openModalIscrizioneTrasferta(${t.id},${t.quota||0},${s.id})">✏️</button>
+        <button class="btn br2 bs2" onclick="deleteIscrizioneTrasferta(${t.id},${s.id})">🗑</button>
+      </td>
+    </tr>`);
+  });
+  // Non iscritti
+  SOCI.filter(s=>!iscr_ids.includes(s.id)&&s.stato!=="Sospeso").forEach(s=>{
+    rows.push(`<tr style="opacity:.5">
+      <td><span class="av">${ini(s)}</span>${s.nome} ${s.cognome}</td>
+      <td style="font-family:'DM Mono',monospace;font-size:.78rem;color:var(--gc)">${s.tessera||"—"}</td>
+      <td colspan="5" style="color:var(--gc);font-size:.8rem">— non iscritto —</td>
+      <td><span class="badge" style="background:rgba(100,100,100,.15);color:var(--gc);border:1px solid var(--gm)">—</span></td>
+      <td><button class="btn bv2 bs2" onclick="openModalIscrizioneTrasferta(${t.id},${t.quota||0},${s.id})">+ Iscr.</button></td>
+    </tr>`);
+  });
+  return rows.join("");
+}
+function openModalTrasferta(){editTrasfertaId=null;document.getElementById("mt-title").textContent="Nuova Trasferta "+ANNO;["nome","luogo","note"].forEach(f=>{const e=document.getElementById("mt-"+f);if(e)e.value="";});["inizio","fine"].forEach(f=>{const e=document.getElementById("mt-"+f);if(e)e.value="";});document.getElementById("mt-quota").value=0;document.getElementById("mt-km").value=0;document.getElementById("mt-max").value=20;document.getElementById("modal-trasferta").classList.add("open");}
+function editTrasferta(id){const t=TRASFERTE_DB.find(x=>x.id===id);if(!t)return;editTrasfertaId=id;document.getElementById("mt-title").textContent="Modifica Trasferta";document.getElementById("mt-nome").value=t.nome||"";document.getElementById("mt-inizio").value=t.data_inizio?t.data_inizio.split("T")[0]:"";document.getElementById("mt-fine").value=t.data_fine?t.data_fine.split("T")[0]:"";document.getElementById("mt-luogo").value=t.luogo||"";document.getElementById("mt-quota").value=t.quota||0;document.getElementById("mt-km").value=t.km||0;document.getElementById("mt-max").value=t.max_posti||20;document.getElementById("mt-note").value=t.note||"";document.getElementById("modal-trasferta").classList.add("open");}
+async function saveTrasferta(){const nome=document.getElementById("mt-nome").value.trim();if(!nome){toast("⚠️ Nome obbligatorio");return;}const obj={anno:ANNO,nome,data_inizio:document.getElementById("mt-inizio").value||null,data_fine:document.getElementById("mt-fine").value||null,luogo:document.getElementById("mt-luogo").value.trim(),quota:parseFloat(document.getElementById("mt-quota").value)||0,km:parseFloat(document.getElementById("mt-km").value)||0,max_posti:parseInt(document.getElementById("mt-max").value)||20,note:document.getElementById("mt-note").value.trim()};try{if(editTrasfertaId){await api("PATCH","/trasferte/"+editTrasfertaId,obj);toast("✅ Trasferta aggiornata!");}else{await api("POST","/trasferte",obj);toast("✅ Trasferta aggiunta!");}closeModal("modal-trasferta");await loadTrasferte();}catch(e){toast("❌ "+e.message);}}
+async function deleteTrasferta(id){if(!confirm("Eliminare questa trasferta e tutte le iscrizioni?"))return;try{await api("DELETE","/trasferte/"+id);await loadTrasferte();toast("🗑️ Trasferta eliminata");}catch(e){toast("❌ "+e.message);}}
+
+function openModalIscrizioneTrasferta(trasfertaId,quota,socioId){
+  document.getElementById("mit-trasferta-id").value=trasfertaId;
+  document.getElementById("mit-socio-id").value=socioId||"";
+  document.getElementById("mit-quota-ref").textContent=fv(quota);
+  ["acconto","saldo","camera","note"].forEach(f=>{const e=document.getElementById("mit-"+f);if(e)e.value="";});
+  document.getElementById("mit-data").value=new Date().toISOString().split("T")[0];
+  document.getElementById("mit-metodo").value="Contanti";
+  if(socioId){
+    const t=TRASFERTE_DB.find(x=>x.id===trasfertaId);
+    if(t){const r=(t.iscrizioni||[]).find(x=>x.socio_id===socioId);if(r){document.getElementById("mit-acconto").value=r.acconto||0;document.getElementById("mit-saldo").value=r.saldo||0;document.getElementById("mit-data").value=r.data_iscr?r.data_iscr.split("T")[0]:new Date().toISOString().split("T")[0];document.getElementById("mit-metodo").value=r.metodo||"Contanti";document.getElementById("mit-camera").value=r.camera||"";document.getElementById("mit-note").value=r.note||"";}}
+    const s=SOCI.find(x=>x.id===socioId);
+    document.getElementById("mit-title").textContent="🌊 Iscrizione — "+(s?s.nome+" "+s.cognome:"Socio");
+  } else {
+    // Selezione socio
+    document.getElementById("mit-title").textContent="🌊 Nuova Iscrizione";
+    const t=TRASFERTE_DB.find(x=>x.id===trasfertaId);
+    const iscr_ids=(t?.iscrizioni||[]).map(r=>r.socio_id);
+    const liberi=SOCI.filter(s=>!iscr_ids.includes(s.id)&&s.stato!=="Sospeso");
+    document.getElementById("mit-camera").insertAdjacentHTML("beforebegin",`<div class="fg" id="mit-socio-wrap"><label>Socio</label><select id="mit-socio-sel" style="width:100%;background:var(--gs);border:1px solid var(--gm);border-radius:4px;padding:.7rem 1rem;color:var(--b);font-size:.9rem;outline:none"><option value="">— Seleziona —</option>${liberi.map(s=>`<option value="${s.id}">${s.cognome} ${s.nome} (${s.tessera||"—"})</option>`).join("")}</select></div>`);
+  }
+  document.getElementById("modal-iscr-trasferta").classList.add("open");
+}
+async function saveIscrizioneTrasferta(){
+  const tid=parseInt(document.getElementById("mit-trasferta-id").value);
+  let sid=parseInt(document.getElementById("mit-socio-id").value);
+  if(!sid){const sel=document.getElementById("mit-socio-sel");if(sel&&sel.value)sid=parseInt(sel.value);}
+  if(!sid){toast("⚠️ Seleziona un socio");return;}
+  const obj={socio_id:sid,acconto:parseFloat(document.getElementById("mit-acconto").value)||0,saldo:parseFloat(document.getElementById("mit-saldo").value)||0,data_iscr:document.getElementById("mit-data").value||null,metodo:document.getElementById("mit-metodo").value,camera:document.getElementById("mit-camera").value.trim(),note:document.getElementById("mit-note").value.trim()};
+  try{await api("POST","/trasferte/"+tid+"/iscrizioni",obj);const wrap=document.getElementById("mit-socio-wrap");if(wrap)wrap.remove();closeModal("modal-iscr-trasferta");await loadTrasferte();toast("✅ Iscrizione salvata!");}
+  catch(e){toast("❌ "+e.message);}
+}
+async function deleteIscrizioneTrasferta(tid,sid){if(!confirm("Rimuovere iscrizione?"))return;try{await api("DELETE","/trasferte/"+tid+"/iscrizioni/"+sid);await loadTrasferte();toast("🗑️ Rimosso");}catch(e){toast("❌ "+e.message);}}
+
+// ── ADMIN SOCI ────────────────────────────────────────
 function adminRenderSoci(list){
   const data=list!==undefined?list:SOCI;
   const tb=document.getElementById("admin-soci-tbody");if(!tb)return;
-  if(!data.length){tb.innerHTML="<tr><td colspan='9' style='text-align:center;padding:2rem;color:var(--grigio-chiaro)'>Nessun socio</td></tr>";return;}
+  if(!data.length){tb.innerHTML="<tr><td colspan='7'><div class='empty'>Nessun socio</div></td></tr>";return;}
   tb.innerHTML=data.map(s=>`<tr>
-    <td><span class="avatar">${ini(s)}</span><strong>${s.nome} ${s.cognome}</strong><br><small style="color:var(--grigio-chiaro);font-size:.72rem">${s.ruolo}</small></td>
+    <td><span class="av">${ini(s)}</span><strong>${s.nome} ${s.cognome}</strong><br><small style="color:var(--gc);font-size:.72rem">${s.ruolo||"Socio"}</small></td>
     <td style="font-family:'DM Mono',monospace;font-size:.8rem;color:var(--giallo)">${s.tessera||"—"}</td>
-    <td style="font-size:.8rem">${fmtD(s.nascita)}</td>
     <td style="font-size:.8rem">${s.email||"—"}</td>
     <td style="font-size:.8rem">${s.tel||"—"}</td>
     <td style="font-size:.78rem">${[s.citta,s.cap].filter(Boolean).join(" ")||"—"}</td>
-    <td><span class="badge ${sc(s)}">${s.stato}</span></td>
-    <td>${s.quota?"<span class='badge badge-pagato'>Pagata</span>":"<span class='badge badge-npagato'>Non pagata</span>"}</td>
+    <td><span class="badge ${sc2(s)}">${s.stato||"Attivo"}</span></td>
     <td style="display:flex;gap:.3rem;flex-wrap:wrap">
-      <button class="btn btn-outline btn-sm" onclick="editSocio(${s.id})">✏️</button>
-      ${!s.quota?`<button class="btn btn-verde btn-sm" onclick="markPagato(${s.id})">€</button>`:""}
-      <button class="btn btn-outline btn-sm" style="border-color:var(--giallo);color:var(--giallo)" onclick="toggleSospeso(${s.id})">${s.stato==="Sospeso"?"▶":"⏸"}</button>
-      <button class="btn btn-rosso btn-sm" onclick="deleteSocio(${s.id})">🗑</button>
+      <button class="btn bo bs2" onclick="editSocio(${s.id})">✏️</button>
+      <button class="btn bo bs2" style="border-color:var(--giallo);color:var(--giallo)" onclick="toggleSospeso(${s.id})">${s.stato==="Sospeso"?"▶":"⏸"}</button>
+      <button class="btn br2 bs2" onclick="deleteSocio(${s.id})">🗑</button>
     </td>
   </tr>`).join("");
 }
 function adminFilterSoci(){const q=document.getElementById("admin-search-soci").value.toLowerCase();adminRenderSoci(SOCI.filter(s=>(s.nome+" "+s.cognome+(s.tessera||"")+(s.email||"")+(s.citta||"")).toLowerCase().includes(q)));}
 
-async function renderQuota2026(){
-  const importo=parseFloat(document.getElementById("q26-importo")?.value)||75;
-  const qs=document.getElementById("q26-sign");if(qs)qs.textContent=curr;
-  let rec=[];try{rec=await api("GET","/quota2026");}catch(e){}
-  const rm={};rec.forEach(r=>rm[r.socio_id]=r);
-  const pag=rec.filter(r=>r.pagato).length;
-  const inc=rec.filter(r=>r.pagato).reduce((a,r)=>a+(r.importo||importo),0);
-  const att=SOCI.filter(s=>s.stato!=="Sospeso").length;
-  const el=id=>document.getElementById(id);
-  if(el("q26-paganti"))el("q26-paganti").textContent=pag+"/"+att;
-  if(el("q26-incassato"))el("q26-incassato").textContent=fv(inc);
-  if(el("q26-mancante"))el("q26-mancante").textContent=fv(Math.max(0,att*importo-inc));
-  const tb=el("q26-tbody");if(!tb)return;
-  tb.innerHTML=SOCI.map(s=>{
-    const r=rm[s.id]||{},pagato=r.pagato||false,imp=r.importo||importo;
-    const badge=pagato?"<span class='badge badge-pagato'>Pagata ✓</span>":s.stato==="Sospeso"?"<span class='badge badge-sosp'>Sospeso</span>":"<span class='badge badge-npagato'>Da pagare</span>";
-    return `<tr>
-      <td><span class="avatar">${ini(s)}</span><strong>${s.nome} ${s.cognome}</strong></td>
-      <td style="font-family:'DM Mono',monospace;font-size:.8rem;color:var(--giallo)">${s.tessera||"—"}</td>
-      <td style="font-family:'DM Mono',monospace">${pagato?fv(imp):"—"}</td>
-      <td style="font-size:.82rem">${r.data_pag||"—"}</td>
-      <td style="font-size:.82rem">${r.metodo||"—"}</td>
-      <td style="font-size:.78rem;color:var(--grigio-chiaro)">${r.note||"—"}</td>
-      <td>${badge}</td>
-      <td>
-        <button class="btn ${pagato?"btn-outline":"btn-verde"} btn-sm" onclick="openModalQ26(${s.id},'${s.nome} ${s.cognome}')">${pagato?"✏️":"+ Registra"}</button>
-        ${pagato?`<button class="btn btn-rosso btn-sm" style="margin-left:.3rem" onclick="deleteQ26(${s.id})">🗑</button>`:""}
-      </td>
-    </tr>`;
-  }).join("");
-}
-
-function openModalQ26(id,nome){document.getElementById("mq26-socioId").value=id;document.getElementById("mq26-title").textContent="💳 Quota 2026 — "+nome;document.getElementById("mq26-importo").value=document.getElementById("q26-importo")?.value||75;document.getElementById("mq26-data").value=new Date().toISOString().split("T")[0];document.getElementById("mq26-metodo").value="Contanti";document.getElementById("mq26-note").value="";document.getElementById("modal-q26").classList.add("open");}
-async function saveQuota2026(){const socio_id=parseInt(document.getElementById("mq26-socioId").value),importo=parseFloat(document.getElementById("mq26-importo").value)||75,data_pag=document.getElementById("mq26-data").value;if(!data_pag){toast("⚠️ Inserisci data");return;}try{await api("POST","/quota2026",{socio_id,importo,data_pag,metodo:document.getElementById("mq26-metodo").value,note:document.getElementById("mq26-note").value});closeModal("modal-q26");renderQuota2026();toast("✅ Quota 2026 registrata!");}catch(e){toast("❌ "+e.message);}}
-async function deleteQ26(id){if(!confirm("Rimuovere pagamento?"))return;try{await api("DELETE","/quota2026/"+id);renderQuota2026();toast("🗑️ Rimosso");}catch(e){toast("❌ "+e.message);}}
-
-function syncDianoQuota(){const v=document.getElementById("diano-importo").value;const sp=document.getElementById("diano-q-val");if(sp)sp.textContent=v;const ref=document.getElementById("mdiano-quota-ref");if(ref)ref.textContent=v;renderDiano2026();}
-
-async function renderDiano2026(){
-  const qt=parseInt(document.getElementById("diano-importo")?.value)||180;
-  const mp=parseInt(document.getElementById("diano-max-posti")?.value)||20;
-  const ds=document.getElementById("diano-sign");if(ds)ds.textContent=curr;
-  const qv=document.getElementById("diano-q-val");if(qv)qv.textContent=qt;
-  let rec=[];try{rec=await api("GET","/diano2026");}catch(e){}
-  const rm={};rec.forEach(r=>rm[r.socio_id]=r);
-  const aT=rec.reduce((a,r)=>a+(parseFloat(r.acconto)||0),0);
-  const sT=rec.reduce((a,r)=>a+(parseFloat(r.saldo)||0),0);
-  const el=id=>document.getElementById(id);
-  if(el("diano-iscritti"))el("diano-iscritti").textContent=rec.length+"/"+mp;
-  if(el("diano-acconto-tot"))el("diano-acconto-tot").textContent=fv(aT);
-  if(el("diano-saldo-tot"))el("diano-saldo-tot").textContent=fv(sT);
-  if(el("diano-da-incassare"))el("diano-da-incassare").textContent=fv(Math.max(0,rec.length*qt-aT-sT));
-  if(el("diano-posti-rimasti"))el("diano-posti-rimasti").textContent=mp-rec.length;
-  const tb=el("diano-tbody");if(!tb)return;
-  const rows=[];
-  rec.forEach(r=>{
-    const s=SOCI.find(x=>x.id===r.socio_id);if(!s)return;
-    const acc=parseFloat(r.acconto)||0,sal=parseFloat(r.saldo)||0,tot=acc+sal;
-    const pct=Math.min(100,Math.round(tot/qt*100));
-    const stato=tot>=qt?"<span class='badge badge-pagato'>Saldato ✓</span>":tot>0?`<span class='badge badge-sosp'>Parziale (${pct}%)</span>`:"<span class='badge badge-npagato'>Da pagare</span>";
-    rows.push(`<tr style="border-left:3px solid var(--verde-chiaro)">
-      <td><span class="avatar" style="background:var(--verde-chiaro)">${ini(s)}</span><strong>${s.nome} ${s.cognome}</strong></td>
-      <td style="font-family:'DM Mono',monospace;font-size:.8rem;color:var(--giallo)">${s.tessera||"—"}</td>
-      <td style="font-size:.78rem">${r.data_iscr||"—"}</td>
-      <td style="font-family:'DM Mono',monospace;color:${acc>0?"var(--giallo)":"var(--grigio-chiaro)"}">${acc>0?fv(acc):"—"}</td>
-      <td style="font-family:'DM Mono',monospace;color:${sal>0?"var(--verde-chiaro)":"var(--grigio-chiaro)"}">${sal>0?fv(sal):"—"}</td>
-      <td style="font-family:'DM Mono',monospace">${fv(tot)}</td>
-      <td style="font-size:.75rem;color:var(--grigio-chiaro)">${[r.camera,r.note].filter(Boolean).join(" · ")||"—"}</td>
-      <td>${stato}</td>
-      <td>
-        <button class="btn btn-outline btn-sm" onclick="openModalDiano(${s.id},'${s.nome} ${s.cognome}')">✏️</button>
-        <button class="btn btn-rosso btn-sm" style="margin-left:.2rem" onclick="deleteDiano(${s.id})">🗑</button>
-      </td>
-    </tr>`);
-  });
-  SOCI.filter(s=>!rm[s.id]&&s.stato!=="Sospeso").forEach(s=>{
-    rows.push(`<tr style="opacity:.55">
-      <td><span class="avatar">${ini(s)}</span>${s.nome} ${s.cognome}</td>
-      <td style="font-family:'DM Mono',monospace;font-size:.8rem;color:var(--grigio-chiaro)">${s.tessera||"—"}</td>
-      <td colspan="5" style="color:var(--grigio-chiaro);font-size:.8rem">— non iscritto —</td>
-      <td><span class="badge" style="background:rgba(100,100,100,.15);color:var(--grigio-chiaro);border:1px solid var(--grigio-medio)">—</span></td>
-      <td><button class="btn btn-verde btn-sm" onclick="openModalDiano(${s.id},'${s.nome} ${s.cognome}')">+ Iscr.</button></td>
-    </tr>`);
-  });
-  tb.innerHTML=rows.join("");
-}
-
-function openModalDiano(id,nome){
-  const qt=parseInt(document.getElementById("diano-importo")?.value)||180;
-  document.getElementById("mdiano-socioId").value=id;
-  document.getElementById("mdiano-title").textContent="🌊 Diano Marina — "+nome;
-  document.getElementById("mdiano-quota-ref").textContent=qt;
-  const ms=document.getElementById("mdiano-sign");if(ms)ms.textContent=curr;
-  ["acconto","saldo","camera","note"].forEach(f=>{const e=document.getElementById("mdiano-"+f);if(e)e.value="";});
-  document.getElementById("mdiano-data").value=new Date().toISOString().split("T")[0];
-  document.getElementById("mdiano-metodo").value="Contanti";
-  api("GET","/diano2026").then(all=>{const r=all.find(x=>x.socio_id==id);if(r){document.getElementById("mdiano-acconto").value=r.acconto||"";document.getElementById("mdiano-saldo").value=r.saldo||"";document.getElementById("mdiano-data").value=r.data_iscr||"";document.getElementById("mdiano-metodo").value=r.metodo||"Contanti";document.getElementById("mdiano-camera").value=r.camera||"";document.getElementById("mdiano-note").value=r.note||"";}}).catch(()=>{});
-  document.getElementById("modal-diano").classList.add("open");
-}
-async function saveDiano2026(){
-  const socio_id=parseInt(document.getElementById("mdiano-socioId").value),data_iscr=document.getElementById("mdiano-data").value;
-  if(!data_iscr){toast("⚠️ Inserisci data");return;}
-  try{await api("POST","/diano2026",{socio_id,acconto:parseFloat(document.getElementById("mdiano-acconto").value)||0,saldo:parseFloat(document.getElementById("mdiano-saldo").value)||0,data_iscr,metodo:document.getElementById("mdiano-metodo").value,camera:document.getElementById("mdiano-camera").value,note:document.getElementById("mdiano-note").value});closeModal("modal-diano");renderDiano2026();toast("✅ Iscrizione Diano salvata!");}
-  catch(e){toast("❌ "+e.message);}
-}
-async function deleteDiano(id){if(!confirm("Rimuovere iscrizione?"))return;try{await api("DELETE","/diano2026/"+id);renderDiano2026();toast("🗑️ Rimosso");}catch(e){toast("❌ "+e.message);}}
-
-function closeModal(id){document.getElementById(id).classList.remove("open");}
-document.querySelectorAll(".modal-overlay").forEach(m=>m.addEventListener("click",e=>{if(e.target===m)m.classList.remove("open");}));
+// ── UTILITY ───────────────────────────────────────────
+function closeModal(id){const m=document.getElementById(id);if(m)m.classList.remove("open");const wrap=document.getElementById("mit-socio-wrap");if(wrap)wrap.remove();}
+document.querySelectorAll(".mo").forEach(m=>m.addEventListener("click",e=>{if(e.target===m)closeModal(m.id);}));
 function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2800);}
 
 init();
