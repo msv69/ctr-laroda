@@ -8,23 +8,16 @@ const fs = require('fs');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ── PATH RISOLUZIONE ─────────────────────────────────────────────────
-// Railway monta i volumi in percorsi variabili — usa sempre path assoluti
+// ── PATHS ────────────────────────────────────────────────────────────
 const DATA_DIR = process.env.DATA_DIR
   || (fs.existsSync('/data') ? '/data' : path.join(__dirname, 'data'));
+const DB_PATH = process.env.DB_PATH || path.join(DATA_DIR, 'ctr.db');
+const UPLOAD_DIR = process.env.UPLOAD_DIR || path.join(DATA_DIR, 'uploads');
 
-const DB_PATH = process.env.DB_PATH
-  || path.join(DATA_DIR, 'ctr.db');
+[DATA_DIR, UPLOAD_DIR, path.join(UPLOAD_DIR,'foto'), path.join(UPLOAD_DIR,'video')]
+  .forEach(d => { try { fs.mkdirSync(d, {recursive:true}); } catch(e){} });
 
-const UPLOAD_DIR = process.env.UPLOAD_DIR
-  || path.join(DATA_DIR, 'uploads');
-
-// Crea cartelle se non esistono
-[DATA_DIR, UPLOAD_DIR, path.join(UPLOAD_DIR, 'foto'), path.join(UPLOAD_DIR, 'video')]
-  .forEach(d => { try { fs.mkdirSync(d, { recursive: true }); } catch(e) {} });
-
-console.log('DB_PATH:', DB_PATH);
-console.log('UPLOAD_DIR:', UPLOAD_DIR);
+console.log('DB:', DB_PATH);
 
 // ── DATABASE ─────────────────────────────────────────────────────────
 let db;
@@ -32,85 +25,141 @@ try {
   db = new Database(DB_PATH);
   db.pragma('journal_mode = WAL');
   db.pragma('foreign_keys = ON');
-  console.log('SQLite connesso:', DB_PATH);
-} catch(e) {
-  console.error('ERRORE DB:', e.message);
-  process.exit(1);
-}
+} catch(e) { console.error('ERRORE DB:', e.message); process.exit(1); }
 
 // ── SCHEMA ───────────────────────────────────────────────────────────
 db.exec(`
 CREATE TABLE IF NOT EXISTS soci (
-  id        INTEGER PRIMARY KEY AUTOINCREMENT,
-  nome      TEXT NOT NULL,
-  cognome   TEXT NOT NULL,
-  tessera   TEXT UNIQUE,
-  email     TEXT,
-  tel       TEXT,
-  nascita   TEXT,
-  cf        TEXT,
-  indirizzo TEXT,
-  citta     TEXT,
-  cap       TEXT,
-  ruolo     TEXT DEFAULT 'Socio',
-  stato     TEXT DEFAULT 'Nuovo',
-  quota     INTEGER DEFAULT 0,
-  iscritto  TEXT DEFAULT (date('now')),
-  note      TEXT,
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  nome       TEXT NOT NULL,
+  cognome    TEXT NOT NULL,
+  tessera    TEXT UNIQUE,
+  email      TEXT,
+  tel        TEXT,
+  nascita    TEXT,
+  cf         TEXT,
+  indirizzo  TEXT,
+  citta      TEXT,
+  cap        TEXT,
+  ruolo      TEXT DEFAULT 'Socio',
+  stato      TEXT DEFAULT 'Attivo',
+  note       TEXT,
   created_at TEXT DEFAULT (datetime('now'))
 );
-CREATE TABLE IF NOT EXISTS quota2026 (
-  socio_id  INTEGER PRIMARY KEY REFERENCES soci(id) ON DELETE CASCADE,
-  importo   REAL,
-  data_pag  TEXT,
-  metodo    TEXT,
-  note      TEXT,
-  pagato    INTEGER DEFAULT 1,
-  created_at TEXT DEFAULT (datetime('now'))
+
+-- Quote sociali per anno (PRIMARY KEY composta: socio + anno)
+CREATE TABLE IF NOT EXISTS quote (
+  socio_id   INTEGER REFERENCES soci(id) ON DELETE CASCADE,
+  anno       INTEGER NOT NULL,
+  importo    REAL DEFAULT 0,
+  data_pag   TEXT,
+  metodo     TEXT,
+  note       TEXT,
+  pagato     INTEGER DEFAULT 0,
+  created_at TEXT DEFAULT (datetime('now')),
+  PRIMARY KEY (socio_id, anno)
 );
-CREATE TABLE IF NOT EXISTS diano2026 (
-  socio_id  INTEGER PRIMARY KEY REFERENCES soci(id) ON DELETE CASCADE,
-  acconto   REAL DEFAULT 0,
-  saldo     REAL DEFAULT 0,
-  data_iscr TEXT,
-  metodo    TEXT,
-  camera    TEXT,
-  note      TEXT,
-  created_at TEXT DEFAULT (datetime('now'))
+
+-- Uscite per anno
+CREATE TABLE IF NOT EXISTS uscite (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  anno        INTEGER NOT NULL,
+  giorno      TEXT,
+  mese        TEXT,
+  data_uscita TEXT,
+  titolo      TEXT NOT NULL,
+  km          REAL DEFAULT 0,
+  dislivello  INTEGER DEFAULT 0,
+  difficolta  TEXT DEFAULT 'M',
+  ora         TEXT DEFAULT '08:00',
+  max_posti   INTEGER DEFAULT 30,
+  note        TEXT,
+  created_at  TEXT DEFAULT (datetime('now'))
 );
+
+-- Iscrizioni uscite
+CREATE TABLE IF NOT EXISTS iscrizioni_uscita (
+  uscita_id  INTEGER REFERENCES uscite(id) ON DELETE CASCADE,
+  socio_id   INTEGER REFERENCES soci(id) ON DELETE CASCADE,
+  created_at TEXT DEFAULT (datetime('now')),
+  PRIMARY KEY (uscita_id, socio_id)
+);
+
+-- Spese per anno
+CREATE TABLE IF NOT EXISTS spese (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  anno        INTEGER NOT NULL,
+  data_spesa  TEXT,
+  descrizione TEXT NOT NULL,
+  categoria   TEXT DEFAULT 'Uscita',
+  importo     REAL DEFAULT 0,
+  incassato   REAL DEFAULT 0,
+  note        TEXT,
+  created_at  TEXT DEFAULT (datetime('now'))
+);
+
+-- Trasferte per anno
+CREATE TABLE IF NOT EXISTS trasferte (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  anno        INTEGER NOT NULL,
+  nome        TEXT NOT NULL,
+  data_inizio TEXT,
+  data_fine   TEXT,
+  luogo       TEXT,
+  km          REAL DEFAULT 0,
+  dislivello  INTEGER DEFAULT 0,
+  quota       REAL DEFAULT 0,
+  max_posti   INTEGER DEFAULT 20,
+  note        TEXT,
+  created_at  TEXT DEFAULT (datetime('now'))
+);
+
+-- Iscrizioni trasferte
+CREATE TABLE IF NOT EXISTS iscrizioni_trasferta (
+  trasferta_id INTEGER REFERENCES trasferte(id) ON DELETE CASCADE,
+  socio_id     INTEGER REFERENCES soci(id) ON DELETE CASCADE,
+  acconto      REAL DEFAULT 0,
+  saldo        REAL DEFAULT 0,
+  data_iscr    TEXT,
+  metodo       TEXT,
+  camera       TEXT,
+  note         TEXT,
+  created_at   TEXT DEFAULT (datetime('now')),
+  PRIMARY KEY (trasferta_id, socio_id)
+);
+
+-- Gallery
 CREATE TABLE IF NOT EXISTS gallery_foto (
   id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  anno       INTEGER,
   titolo     TEXT NOT NULL,
   mime_type  TEXT,
   file_path  TEXT,
-  data_ins   TEXT DEFAULT (date('now')),
   created_at TEXT DEFAULT (datetime('now'))
 );
 CREATE TABLE IF NOT EXISTS gallery_video (
   id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  anno       INTEGER,
   titolo     TEXT NOT NULL,
   mime_type  TEXT,
   file_path  TEXT,
   durata     TEXT,
-  data_ins   TEXT DEFAULT (date('now')),
   created_at TEXT DEFAULT (datetime('now'))
 );
+
+-- Note admin per anno
 CREATE TABLE IF NOT EXISTS admin_note (
-  id    INTEGER PRIMARY KEY DEFAULT 1,
+  anno  INTEGER PRIMARY KEY,
   testo TEXT DEFAULT ''
 );
 `);
 
-// Seed admin note
-if (!db.prepare('SELECT id FROM admin_note WHERE id=1').get()) {
-  db.prepare("INSERT INTO admin_note(id,testo) VALUES(1,?)").run(
-    '- Soci 2026 caricati da lista ufficiale\n- Verificare quote mancanti\n- Organizzare prossima uscita'
-  );
-}
+// Migrate vecchie tabelle se esistono ancora
+try { db.exec(`ALTER TABLE gallery_foto ADD COLUMN anno INTEGER`); } catch(e){}
+try { db.exec(`ALTER TABLE gallery_video ADD COLUMN anno INTEGER`); } catch(e){}
 
-// ── SOCI REALI 2026 ──────────────────────────────────────────────────
+// ── SOCI 2026 ────────────────────────────────────────────────────────
 const SOCI_2026 = [
-  // [nome, cognome, tessera, email, tel, indirizzo, citta, cap]
   ['Stefano','Angelella','CTR-001','stefano.angelella@gmail.com','079 824 15 53','Residenza al Noce','Quartino','6572'],
   ['Hans-Rudolf','Bluntschli','CTR-002','hadu55@bluewin.ch','076 429 29 33','Via San Gottardo 59b','Bellinzona','6500'],
   ['Roberto','Borner','CTR-003','rborner@cce.ch','079 421 81 76','Via degli orti 2','Losone','6616'],
@@ -168,229 +217,292 @@ const SOCI_2026 = [
   ['Giovanni','Cividini','CTR-055','','','','',''],
 ];
 
-// Se RESET_DB=true cancella e reinserisce tutti i soci
 if (process.env.RESET_DB === 'true') {
-  console.log('RESET_DB: cancello soci esistenti e reinserisco lista 2026...');
-  db.prepare('DELETE FROM diano2026').run();
-  db.prepare('DELETE FROM quota2026').run();
-  db.prepare('DELETE FROM soci').run();
-  db.prepare("DELETE FROM sqlite_sequence WHERE name='soci'").run();
-  console.log('Tabelle svuotate');
+  console.log('RESET_DB: svuoto tabelle...');
+  ['iscrizioni_trasferta','iscrizioni_uscita','trasferte','uscite','spese','quote','soci']
+    .forEach(t => db.prepare(`DELETE FROM ${t}`).run());
+  db.prepare("DELETE FROM sqlite_sequence WHERE name IN ('soci','uscite','spese','trasferte')").run();
 }
 
-// Inserisce soci solo se la tabella è vuota
 if (db.prepare('SELECT COUNT(*) as n FROM soci').get().n === 0) {
-  const ins = db.prepare(`INSERT INTO soci
-    (nome,cognome,tessera,email,tel,indirizzo,citta,cap,ruolo,stato,quota)
-    VALUES (?,?,?,?,?,?,?,?,?,?,?)`);
-  const insertMany = db.transaction((rows) => {
-    for (const r of rows) ins.run(...r, 'Socio', 'Attivo', 0);
-  });
-  insertMany(SOCI_2026.map(r => r.slice(0, 8)));
-  console.log(`Inseriti ${SOCI_2026.length} soci 2026`);
+  const ins = db.prepare(`INSERT INTO soci (nome,cognome,tessera,email,tel,indirizzo,citta,cap,ruolo,stato)
+    VALUES (?,?,?,?,?,?,?,?,'Socio','Attivo')`);
+  db.transaction(rows => rows.forEach(r => ins.run(...r)))(SOCI_2026.map(r => r.slice(0,8)));
+  console.log(`Inseriti ${SOCI_2026.length} soci`);
 }
 
 // ── MIDDLEWARE ───────────────────────────────────────────────────────
 app.use(cors());
 app.use(express.json());
-
-// Serve uploads dinamicamente dal DATA_DIR
 app.use('/uploads', express.static(UPLOAD_DIR));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ── UPLOAD ───────────────────────────────────────────────────────────
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const type = req.params.type === 'video' ? 'video' : 'foto';
-    const dest = path.join(UPLOAD_DIR, type);
-    fs.mkdirSync(dest, { recursive: true });
-    cb(null, dest);
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname));
-  }
-});
-const upload = multer({ storage, limits: { fileSize: 100 * 1024 * 1024 } });
-
-// ── HEALTH CHECK ─────────────────────────────────────────────────────
-app.get('/api/health', (req, res) => {
-  res.json({ ok: true, db: DB_PATH, upload: UPLOAD_DIR });
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: (req,file,cb) => {
+      const d = path.join(UPLOAD_DIR, req.params.type==='video'?'video':'foto');
+      fs.mkdirSync(d,{recursive:true}); cb(null,d);
+    },
+    filename: (req,file,cb) => cb(null, Date.now()+path.extname(file.originalname))
+  }),
+  limits: {fileSize: 100*1024*1024}
 });
 
-// ── API SOCI ─────────────────────────────────────────────────────────
-app.get('/api/soci', (req, res) => {
+// ── HEALTH ───────────────────────────────────────────────────────────
+app.get('/api/health', (req,res) => res.json({ok:true, db:DB_PATH}));
+
+// ── ANNI disponibili ─────────────────────────────────────────────────
+app.get('/api/anni', (req,res) => {
+  try {
+    const anni = new Set();
+    ['quote','uscite','spese','trasferte','gallery_foto','gallery_video'].forEach(t => {
+      try { db.prepare(`SELECT DISTINCT anno FROM ${t} WHERE anno IS NOT NULL`).all().forEach(r=>anni.add(r.anno)); } catch(e){}
+    });
+    const current = new Date().getFullYear();
+    anni.add(current);
+    res.json([...anni].sort((a,b)=>b-a));
+  } catch(e) { res.status(500).json({error:e.message}); }
+});
+
+// ── SOCI ─────────────────────────────────────────────────────────────
+app.get('/api/soci', (req,res) => {
   try { res.json(db.prepare('SELECT * FROM soci ORDER BY cognome').all()); }
-  catch(e) { res.status(500).json({ error: e.message }); }
+  catch(e) { res.status(500).json({error:e.message}); }
 });
 
-app.post('/api/soci', (req, res) => {
+app.post('/api/soci', (req,res) => {
   const b = req.body;
   try {
     const maxRow = db.prepare("SELECT tessera FROM soci WHERE tessera LIKE 'CTR-%' ORDER BY tessera DESC").get();
-    const maxNum = maxRow ? parseInt(maxRow.tessera.replace('CTR-', '')) || 0 : 0;
-    const tessera = 'CTR-' + String(maxNum + 1).padStart(3, '0');
-    const r = db.prepare(`INSERT INTO soci
-      (nome,cognome,tessera,email,tel,nascita,cf,indirizzo,citta,cap,ruolo,stato,quota,note)
-      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,0,?)`).run(
-      b.nome, b.cognome, tessera,
-      b.email||'', b.tel||'', b.nascita||null, b.cf||'',
-      b.indirizzo||'', b.citta||'', b.cap||'',
-      b.ruolo||'Socio', b.stato||'Nuovo', b.note||''
+    const maxNum = maxRow ? parseInt(maxRow.tessera.replace('CTR-',''))||0 : 0;
+    const tessera = 'CTR-'+String(maxNum+1).padStart(3,'0');
+    const r = db.prepare(`INSERT INTO soci (nome,cognome,tessera,email,tel,nascita,cf,indirizzo,citta,cap,ruolo,stato,note)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`).run(
+      b.nome,b.cognome,tessera,b.email||'',b.tel||'',b.nascita||null,b.cf||'',
+      b.indirizzo||'',b.citta||'',b.cap||'',b.ruolo||'Socio',b.stato||'Attivo',b.note||''
     );
     res.json(db.prepare('SELECT * FROM soci WHERE id=?').get(r.lastInsertRowid));
-  } catch(e) { res.status(400).json({ error: e.message }); }
+  } catch(e) { res.status(400).json({error:e.message}); }
 });
 
-app.patch('/api/soci/:id', (req, res) => {
+app.patch('/api/soci/:id', (req,res) => {
   const b = req.body;
   try {
-    db.prepare(`UPDATE soci SET
-      nome=?,cognome=?,email=?,tel=?,nascita=?,cf=?,
-      indirizzo=?,citta=?,cap=?,ruolo=?,stato=?,note=?
-      WHERE id=?`).run(
-      b.nome, b.cognome, b.email||'', b.tel||'',
-      b.nascita||null, b.cf||'', b.indirizzo||'', b.citta||'', b.cap||'',
-      b.ruolo||'Socio', b.stato||'Attivo', b.note||'', req.params.id
+    db.prepare(`UPDATE soci SET nome=?,cognome=?,email=?,tel=?,nascita=?,cf=?,indirizzo=?,citta=?,cap=?,ruolo=?,stato=?,note=? WHERE id=?`).run(
+      b.nome,b.cognome,b.email||'',b.tel||'',b.nascita||null,b.cf||'',
+      b.indirizzo||'',b.citta||'',b.cap||'',b.ruolo||'Socio',b.stato||'Attivo',b.note||'',req.params.id
     );
     res.json(db.prepare('SELECT * FROM soci WHERE id=?').get(req.params.id));
-  } catch(e) { res.status(400).json({ error: e.message }); }
+  } catch(e) { res.status(400).json({error:e.message}); }
 });
 
-app.patch('/api/soci/:id/quota', (req, res) => {
-  try {
-    db.prepare('UPDATE soci SET quota=? WHERE id=?').run(req.body.quota ? 1 : 0, req.params.id);
-    res.json({ ok: true });
-  } catch(e) { res.status(400).json({ error: e.message }); }
+app.patch('/api/soci/:id/stato', (req,res) => {
+  try { db.prepare('UPDATE soci SET stato=? WHERE id=?').run(req.body.stato,req.params.id); res.json({ok:true}); }
+  catch(e) { res.status(400).json({error:e.message}); }
 });
 
-app.patch('/api/soci/:id/stato', (req, res) => {
-  try {
-    db.prepare('UPDATE soci SET stato=? WHERE id=?').run(req.body.stato, req.params.id);
-    res.json({ ok: true });
-  } catch(e) { res.status(400).json({ error: e.message }); }
+app.delete('/api/soci/:id', (req,res) => {
+  try { db.prepare('DELETE FROM soci WHERE id=?').run(req.params.id); res.json({ok:true}); }
+  catch(e) { res.status(400).json({error:e.message}); }
 });
 
-app.delete('/api/soci/:id', (req, res) => {
-  try {
-    db.prepare('DELETE FROM soci WHERE id=?').run(req.params.id);
-    res.json({ ok: true });
-  } catch(e) { res.status(400).json({ error: e.message }); }
+// ── QUOTE ────────────────────────────────────────────────────────────
+app.get('/api/quote/:anno', (req,res) => {
+  try { res.json(db.prepare('SELECT * FROM quote WHERE anno=?').all(req.params.anno)); }
+  catch(e) { res.status(500).json({error:e.message}); }
 });
 
-// ── API QUOTA 2026 ───────────────────────────────────────────────────
-app.get('/api/quota2026', (req, res) => {
-  try { res.json(db.prepare('SELECT * FROM quota2026').all()); }
-  catch(e) { res.status(500).json({ error: e.message }); }
-});
-
-app.post('/api/quota2026', (req, res) => {
+app.post('/api/quote', (req,res) => {
   const b = req.body;
   try {
-    db.prepare(`INSERT INTO quota2026(socio_id,importo,data_pag,metodo,note,pagato)
-      VALUES(?,?,?,?,?,1)
-      ON CONFLICT(socio_id) DO UPDATE SET
-      importo=excluded.importo, data_pag=excluded.data_pag,
-      metodo=excluded.metodo, note=excluded.note, pagato=1`).run(
-      b.socio_id, b.importo, b.data_pag, b.metodo, b.note||''
-    );
-    res.json({ ok: true });
-  } catch(e) { res.status(400).json({ error: e.message }); }
+    db.prepare(`INSERT INTO quote(socio_id,anno,importo,data_pag,metodo,note,pagato) VALUES(?,?,?,?,?,?,1)
+      ON CONFLICT(socio_id,anno) DO UPDATE SET importo=excluded.importo,data_pag=excluded.data_pag,
+      metodo=excluded.metodo,note=excluded.note,pagato=1`).run(b.socio_id,b.anno,b.importo,b.data_pag,b.metodo,b.note||'');
+    res.json({ok:true});
+  } catch(e) { res.status(400).json({error:e.message}); }
 });
 
-app.delete('/api/quota2026/:socio_id', (req, res) => {
+app.delete('/api/quote/:anno/:socio_id', (req,res) => {
+  try { db.prepare('DELETE FROM quote WHERE anno=? AND socio_id=?').run(req.params.anno,req.params.socio_id); res.json({ok:true}); }
+  catch(e) { res.status(400).json({error:e.message}); }
+});
+
+// ── USCITE ───────────────────────────────────────────────────────────
+app.get('/api/uscite/:anno', (req,res) => {
   try {
-    db.prepare('DELETE FROM quota2026 WHERE socio_id=?').run(req.params.socio_id);
-    res.json({ ok: true });
-  } catch(e) { res.status(400).json({ error: e.message }); }
+    const uscite = db.prepare('SELECT * FROM uscite WHERE anno=? ORDER BY data_uscita').all(req.params.anno);
+    uscite.forEach(u => {
+      u.iscritti = db.prepare('SELECT COUNT(*) as n FROM iscrizioni_uscita WHERE uscita_id=?').get(u.id).n;
+    });
+    res.json(uscite);
+  } catch(e) { res.status(500).json({error:e.message}); }
 });
 
-// ── API DIANO 2026 ───────────────────────────────────────────────────
-app.get('/api/diano2026', (req, res) => {
-  try { res.json(db.prepare('SELECT * FROM diano2026').all()); }
-  catch(e) { res.status(500).json({ error: e.message }); }
-});
-
-app.post('/api/diano2026', (req, res) => {
+app.post('/api/uscite', (req,res) => {
   const b = req.body;
   try {
-    db.prepare(`INSERT INTO diano2026(socio_id,acconto,saldo,data_iscr,metodo,camera,note)
-      VALUES(?,?,?,?,?,?,?)
-      ON CONFLICT(socio_id) DO UPDATE SET
-      acconto=excluded.acconto, saldo=excluded.saldo,
-      data_iscr=excluded.data_iscr, metodo=excluded.metodo,
-      camera=excluded.camera, note=excluded.note`).run(
-      b.socio_id, b.acconto||0, b.saldo||0,
-      b.data_iscr, b.metodo, b.camera||'', b.note||''
+    const r = db.prepare(`INSERT INTO uscite(anno,giorno,mese,data_uscita,titolo,km,dislivello,difficolta,ora,max_posti,note)
+      VALUES(?,?,?,?,?,?,?,?,?,?,?)`).run(b.anno,b.giorno||'',b.mese||'',b.data_uscita||null,b.titolo,
+      b.km||0,b.dislivello||0,b.difficolta||'M',b.ora||'08:00',b.max_posti||30,b.note||'');
+    res.json(db.prepare('SELECT * FROM uscite WHERE id=?').get(r.lastInsertRowid));
+  } catch(e) { res.status(400).json({error:e.message}); }
+});
+
+app.patch('/api/uscite/:id', (req,res) => {
+  const b = req.body;
+  try {
+    db.prepare(`UPDATE uscite SET titolo=?,data_uscita=?,giorno=?,mese=?,km=?,dislivello=?,difficolta=?,ora=?,max_posti=?,note=? WHERE id=?`).run(
+      b.titolo,b.data_uscita||null,b.giorno||'',b.mese||'',b.km||0,b.dislivello||0,
+      b.difficolta||'M',b.ora||'08:00',b.max_posti||30,b.note||'',req.params.id
     );
-    res.json({ ok: true });
-  } catch(e) { res.status(400).json({ error: e.message }); }
+    res.json({ok:true});
+  } catch(e) { res.status(400).json({error:e.message}); }
 });
 
-app.delete('/api/diano2026/:socio_id', (req, res) => {
+app.delete('/api/uscite/:id', (req,res) => {
+  try { db.prepare('DELETE FROM uscite WHERE id=?').run(req.params.id); res.json({ok:true}); }
+  catch(e) { res.status(400).json({error:e.message}); }
+});
+
+// ── SPESE ────────────────────────────────────────────────────────────
+app.get('/api/spese/:anno', (req,res) => {
+  try { res.json(db.prepare('SELECT * FROM spese WHERE anno=? ORDER BY data_spesa').all(req.params.anno)); }
+  catch(e) { res.status(500).json({error:e.message}); }
+});
+
+app.post('/api/spese', (req,res) => {
+  const b = req.body;
   try {
-    db.prepare('DELETE FROM diano2026 WHERE socio_id=?').run(req.params.socio_id);
-    res.json({ ok: true });
-  } catch(e) { res.status(400).json({ error: e.message }); }
+    const r = db.prepare(`INSERT INTO spese(anno,data_spesa,descrizione,categoria,importo,incassato,note)
+      VALUES(?,?,?,?,?,?,?)`).run(b.anno,b.data_spesa||null,b.descrizione,b.categoria||'Uscita',b.importo||0,b.incassato||0,b.note||'');
+    res.json(db.prepare('SELECT * FROM spese WHERE id=?').get(r.lastInsertRowid));
+  } catch(e) { res.status(400).json({error:e.message}); }
 });
 
-// ── API GALLERY ──────────────────────────────────────────────────────
-app.get('/api/gallery/:type', (req, res) => {
-  const table = req.params.type === 'video' ? 'gallery_video' : 'gallery_foto';
-  try { res.json(db.prepare(`SELECT * FROM ${table} ORDER BY created_at DESC`).all()); }
-  catch(e) { res.status(500).json({ error: e.message }); }
-});
-
-app.post('/api/gallery/:type', upload.single('file'), (req, res) => {
-  const type = req.params.type === 'video' ? 'video' : 'foto';
-  const table = type === 'foto' ? 'gallery_foto' : 'gallery_video';
-  const titolo = req.body.titolo || req.file.originalname;
-  const file_path = '/uploads/' + type + '/' + req.file.filename;
+app.patch('/api/spese/:id', (req,res) => {
+  const b = req.body;
   try {
-    if (type === 'foto') {
-      const r = db.prepare('INSERT INTO gallery_foto(titolo,mime_type,file_path) VALUES(?,?,?)').run(titolo, req.file.mimetype, file_path);
+    db.prepare(`UPDATE spese SET data_spesa=?,descrizione=?,categoria=?,importo=?,incassato=?,note=? WHERE id=?`).run(
+      b.data_spesa||null,b.descrizione,b.categoria||'Uscita',b.importo||0,b.incassato||0,b.note||'',req.params.id
+    );
+    res.json({ok:true});
+  } catch(e) { res.status(400).json({error:e.message}); }
+});
+
+app.delete('/api/spese/:id', (req,res) => {
+  try { db.prepare('DELETE FROM spese WHERE id=?').run(req.params.id); res.json({ok:true}); }
+  catch(e) { res.status(400).json({error:e.message}); }
+});
+
+// ── TRASFERTE ────────────────────────────────────────────────────────
+app.get('/api/trasferte/:anno', (req,res) => {
+  try {
+    const list = db.prepare('SELECT * FROM trasferte WHERE anno=? ORDER BY data_inizio').all(req.params.anno);
+    list.forEach(t => {
+      t.iscrizioni = db.prepare('SELECT * FROM iscrizioni_trasferta WHERE trasferta_id=?').all(t.id);
+    });
+    res.json(list);
+  } catch(e) { res.status(500).json({error:e.message}); }
+});
+
+app.post('/api/trasferte', (req,res) => {
+  const b = req.body;
+  try {
+    const r = db.prepare(`INSERT INTO trasferte(anno,nome,data_inizio,data_fine,luogo,km,dislivello,quota,max_posti,note)
+      VALUES(?,?,?,?,?,?,?,?,?,?)`).run(b.anno,b.nome,b.data_inizio||null,b.data_fine||null,b.luogo||'',
+      b.km||0,b.dislivello||0,b.quota||0,b.max_posti||20,b.note||'');
+    res.json(db.prepare('SELECT * FROM trasferte WHERE id=?').get(r.lastInsertRowid));
+  } catch(e) { res.status(400).json({error:e.message}); }
+});
+
+app.patch('/api/trasferte/:id', (req,res) => {
+  const b = req.body;
+  try {
+    db.prepare(`UPDATE trasferte SET nome=?,data_inizio=?,data_fine=?,luogo=?,km=?,dislivello=?,quota=?,max_posti=?,note=? WHERE id=?`).run(
+      b.nome,b.data_inizio||null,b.data_fine||null,b.luogo||'',b.km||0,b.dislivello||0,b.quota||0,b.max_posti||20,b.note||'',req.params.id
+    );
+    res.json({ok:true});
+  } catch(e) { res.status(400).json({error:e.message}); }
+});
+
+app.delete('/api/trasferte/:id', (req,res) => {
+  try { db.prepare('DELETE FROM trasferte WHERE id=?').run(req.params.id); res.json({ok:true}); }
+  catch(e) { res.status(400).json({error:e.message}); }
+});
+
+// Iscrizioni trasferta
+app.post('/api/trasferte/:id/iscrizioni', (req,res) => {
+  const b = req.body;
+  try {
+    db.prepare(`INSERT INTO iscrizioni_trasferta(trasferta_id,socio_id,acconto,saldo,data_iscr,metodo,camera,note)
+      VALUES(?,?,?,?,?,?,?,?)
+      ON CONFLICT(trasferta_id,socio_id) DO UPDATE SET acconto=excluded.acconto,saldo=excluded.saldo,
+      data_iscr=excluded.data_iscr,metodo=excluded.metodo,camera=excluded.camera,note=excluded.note`).run(
+      req.params.id,b.socio_id,b.acconto||0,b.saldo||0,b.data_iscr||null,b.metodo||'',b.camera||'',b.note||''
+    );
+    res.json({ok:true});
+  } catch(e) { res.status(400).json({error:e.message}); }
+});
+
+app.delete('/api/trasferte/:id/iscrizioni/:socio_id', (req,res) => {
+  try {
+    db.prepare('DELETE FROM iscrizioni_trasferta WHERE trasferta_id=? AND socio_id=?').run(req.params.id,req.params.socio_id);
+    res.json({ok:true});
+  } catch(e) { res.status(400).json({error:e.message}); }
+});
+
+// ── GALLERY ──────────────────────────────────────────────────────────
+app.get('/api/gallery/:type', (req,res) => {
+  const t = req.params.type==='video'?'gallery_video':'gallery_foto';
+  const anno = req.query.anno;
+  try {
+    const q = anno ? `SELECT * FROM ${t} WHERE anno=? ORDER BY created_at DESC` : `SELECT * FROM ${t} ORDER BY created_at DESC`;
+    res.json(anno ? db.prepare(q).all(anno) : db.prepare(q).all());
+  } catch(e) { res.status(500).json({error:e.message}); }
+});
+
+app.post('/api/gallery/:type', upload.single('file'), (req,res) => {
+  const type = req.params.type==='video'?'video':'foto';
+  const table = type==='foto'?'gallery_foto':'gallery_video';
+  const file_path = '/uploads/'+type+'/'+req.file.filename;
+  const anno = req.body.anno ? parseInt(req.body.anno) : new Date().getFullYear();
+  try {
+    if (type==='foto') {
+      const r = db.prepare('INSERT INTO gallery_foto(anno,titolo,mime_type,file_path) VALUES(?,?,?,?)').run(anno,req.body.titolo||req.file.originalname,req.file.mimetype,file_path);
       res.json(db.prepare('SELECT * FROM gallery_foto WHERE id=?').get(r.lastInsertRowid));
     } else {
-      const r = db.prepare('INSERT INTO gallery_video(titolo,mime_type,file_path,durata) VALUES(?,?,?,?)').run(titolo, req.file.mimetype, file_path, req.body.durata||'—');
+      const r = db.prepare('INSERT INTO gallery_video(anno,titolo,mime_type,file_path,durata) VALUES(?,?,?,?,?)').run(anno,req.body.titolo||req.file.originalname,req.file.mimetype,file_path,req.body.durata||'—');
       res.json(db.prepare('SELECT * FROM gallery_video WHERE id=?').get(r.lastInsertRowid));
     }
-  } catch(e) { res.status(400).json({ error: e.message }); }
+  } catch(e) { res.status(400).json({error:e.message}); }
 });
 
-app.delete('/api/gallery/:type/:id', (req, res) => {
-  const table = req.params.type === 'video' ? 'gallery_video' : 'gallery_foto';
+app.delete('/api/gallery/:type/:id', (req,res) => {
+  const t = req.params.type==='video'?'gallery_video':'gallery_foto';
   try {
-    const row = db.prepare(`SELECT file_path FROM ${table} WHERE id=?`).get(req.params.id);
-    if (row?.file_path) {
-      const full = path.join(UPLOAD_DIR, row.file_path.replace('/uploads/', ''));
-      if (fs.existsSync(full)) fs.unlinkSync(full);
-    }
-    db.prepare(`DELETE FROM ${table} WHERE id=?`).run(req.params.id);
-    res.json({ ok: true });
-  } catch(e) { res.status(400).json({ error: e.message }); }
+    const row = db.prepare(`SELECT file_path FROM ${t} WHERE id=?`).get(req.params.id);
+    if (row?.file_path) { const f=path.join(UPLOAD_DIR,row.file_path.replace('/uploads/','')); if(fs.existsSync(f))fs.unlinkSync(f); }
+    db.prepare(`DELETE FROM ${t} WHERE id=?`).run(req.params.id);
+    res.json({ok:true});
+  } catch(e) { res.status(400).json({error:e.message}); }
 });
 
-// ── API NOTE ADMIN ───────────────────────────────────────────────────
-app.get('/api/admin/note', (req, res) => {
+// ── NOTE ADMIN ───────────────────────────────────────────────────────
+app.get('/api/admin/note/:anno', (req,res) => {
   try {
-    const row = db.prepare('SELECT testo FROM admin_note WHERE id=1').get();
-    res.json({ testo: row?.testo || '' });
-  } catch(e) { res.status(500).json({ error: e.message }); }
+    const row = db.prepare('SELECT testo FROM admin_note WHERE anno=?').get(req.params.anno);
+    res.json({testo: row?.testo||''});
+  } catch(e) { res.status(500).json({error:e.message}); }
 });
 
-app.post('/api/admin/note', (req, res) => {
+app.post('/api/admin/note', (req,res) => {
   try {
-    db.prepare('INSERT INTO admin_note(id,testo) VALUES(1,?) ON CONFLICT(id) DO UPDATE SET testo=excluded.testo').run(req.body.testo||'');
-    res.json({ ok: true });
-  } catch(e) { res.status(400).json({ error: e.message }); }
+    db.prepare('INSERT INTO admin_note(anno,testo) VALUES(?,?) ON CONFLICT(anno) DO UPDATE SET testo=excluded.testo').run(req.body.anno,req.body.testo||'');
+    res.json({ok:true});
+  } catch(e) { res.status(400).json({error:e.message}); }
 });
 
-// ── SPA FALLBACK ─────────────────────────────────────────────────────
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
+// ── FALLBACK ─────────────────────────────────────────────────────────
+app.get('*', (req,res) => res.sendFile(path.join(__dirname,'public','index.html')));
 
-// ── START ─────────────────────────────────────────────────────────────
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`CTR La Röda → http://localhost:${PORT}`);
-  console.log(`Health check: http://localhost:${PORT}/api/health`);
-});
+app.listen(PORT, '0.0.0.0', () => console.log(`CTR La Röda → http://localhost:${PORT}`));
