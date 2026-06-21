@@ -1,4 +1,4 @@
-# Ciclo Team La Röda — CTR1
+# Ciclo Team La Röda — CTR
 
 Sito web del club ciclistico amatoriale. Backend Node.js + SQLite, frontend SPA.
 
