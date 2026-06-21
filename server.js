@@ -104,28 +104,90 @@ CREATE TABLE IF NOT EXISTS admin_note (
 // Seed admin note
 if (!db.prepare('SELECT id FROM admin_note WHERE id=1').get()) {
   db.prepare("INSERT INTO admin_note(id,testo) VALUES(1,?)").run(
-    '- Rinnovare polizza assicurativa entro settembre\n- Contattare comune per uscita 21 settembre\n- Raccogliere quote da: Ferretti, Bassi, Romano, Conti'
+    '- Soci 2026 caricati da lista ufficiale\n- Verificare quote mancanti\n- Organizzare prossima uscita'
   );
 }
 
-// Seed soci
+// ── SOCI REALI 2026 ──────────────────────────────────────────────────
+const SOCI_2026 = [
+  // [nome, cognome, tessera, email, tel, indirizzo, citta, cap]
+  ['Stefano','Angelella','CTR-001','stefano.angelella@gmail.com','079 824 15 53','Residenza al Noce','Quartino','6572'],
+  ['Hans-Rudolf','Bluntschli','CTR-002','hadu55@bluewin.ch','076 429 29 33','Via San Gottardo 59b','Bellinzona','6500'],
+  ['Roberto','Borner','CTR-003','rborner@cce.ch','079 421 81 76','Via degli orti 2','Losone','6616'],
+  ['Monica','Borner','CTR-004','mborner@cce.ch','078 624 05 30','Via degli orti 2','Losone','6616'],
+  ['Marco','Bricola','CTR-005','briccm@bluewin.ch','076 505 84 45','','Pregassona','6963'],
+  ['Otto','Bruseghini','CTR-006','8bruse51@gmail.com','079 821 10 50','Via Arbostra 20','Pregassona','6963'],
+  ['Enrico','Burkhard','CTR-007','enrico.burkhard@bluewin.ch','078 621 10 01','Via Golino 18','Golino','6656'],
+  ['Livio','Bui','CTR-008','livio.bui@bluewin.ch','079 413 83 21','Via D. Bacilieri 9c','Muralto','6600'],
+  ['Vito','Buzzini','CTR-009','vito.buzzini@yahoo.it','078 705 43 79','','Losone','6616'],
+  ['Massimo','Capponi','CTR-010','massimo.capponi@gmail.com','079 405 45 18','','Cugnasco','6516'],
+  ['Paolo','Colombi','CTR-011','paolocolombi@bluewin.ch','079 423 67 24','Via Reslina 14','Losone','6616'],
+  ['Raffaele','Covelli','CTR-012','r.covelli@gmail.com','079 409 91 92','Cadepezzo 18','Quartino','6572'],
+  ['Moreno','Dal Mas','CTR-013','dalmas54@bluewin.ch','079 678 04 25','','',''],
+  ['Leonardo','Di Mase','CTR-014','','078 785 75 21','','Quartino','6572'],
+  ['Renzo','Dolfini','CTR-015','renzo.dolfini@sbb.ch','079 252 03 52','Via al Ramello 31','Contone','6594'],
+  ['Mauro','Doniselli','CTR-016','','076 561 90 38','','Minusio','6648'],
+  ['Peter','Filipek','CTR-017','feipeter@bluewin.ch','077 403 59 37','Via trisnera 35','Losone','6616'],
+  ['Javier','Gallardo','CTR-018','javier.gallardo@bluewin.ch','079 949 71 45','Al Guast 35','Camorino','6528'],
+  ['Paolo','Gazza','CTR-019','paolo.gazza@bluemail.ch','079 512 94 78','Via Sociale','Muralto','6600'],
+  ['Gianni','Gilardi','CTR-020','giannigil@bluewin.ch','079 616 95 78','Via la Monda 67','Contone','6594'],
+  ['Sandro','Ghisla','CTR-021','sandro.ghisla@uni-konstanz.de','079 5695649','','',''],
+  ['Andreas','Haertel','CTR-022','a.rivega@gmx.ch','076 4406520','Via al Trodo 8','Quartino','6572'],
+  ['Ivo','Imperatori','CTR-023','ivo.imperatori@sunrise.ch','079 223 31 47','Via Riarena 15','Cugnasco','6516'],
+  ['Andreas','Jäggin','CTR-024','info@drjaeggin.ch','079 440 31 74','Via Vignole 16','Orselina','6644'],
+  ['Stephan','Kempf','CTR-025','galerie.kempf@bluewin.ch','079 665 33 26','Via Collina 14','Riazzino','6595'],
+  ['Claudio','Luppi','CTR-026','lupodeluppi@yahoo.com','079 250 27 08','Gaggini da Bissone 9','Lugano','6900'],
+  ['Samuel','Lüscher','CTR-027','sa.luescher@bluewin.ch','079 223 91 11','Contrada Maggiore','Losone','6616'],
+  ['Aurelio','Mokedo','CTR-028','Aurelio.mokedo@gmail.com','076 456 74 58','','',''],
+  ['Moreno','Moioli','CTR-029','102905@bluewin.ch','079 620 97 17','Via Lanaccio 9','Cadro','6965'],
+  ['Heinz','Nebel','CTR-030','heinz.nebel@bluewin.ch','079 239 09 62','Via Bustelli 14','Locarno','6600'],
+  ['Tiziano','Orru','CTR-031','tizianoorru@bluewin.ch','079717 47 13','Via Lusciago 17 A','Losone','6616'],
+  ['Massimo','Pacciorini','CTR-032','galerie.kempf@bluewin.ch','079 621 37 38','Via Collina 14','Riazzino','6595'],
+  ['Gianni','Pasinelli','CTR-033','serares@bluewin.ch','079 621 24 52','Via Mezzana 15','Losone','6616'],
+  ['Franco','Polito','CTR-034','serpent2000@hotmail.it','079 653 65 44','Via Loco 8','Pregassona','6963'],
+  ['Francesco','Prados','CTR-035','francesco.prados@zurich.ch','078 623 85 27','Via Muraccio 5','Ascona','6612'],
+  ['Sebastiano','Privitello','CTR-036','sebastianop@bluewin.ch','079 452 25 11','In Paes 74','Quartino','6572'],
+  ['Luigi','Radaelli','CTR-037','galerie.kempf@bluewin.ch','078 625 04 12','Via Collina 14','Riazzino','6595'],
+  ['Illija','Rasic','CTR-038','irasic@icloud.com','079 621 8624','','',''],
+  ['Francesco','Riva','CTR-039','francesco.riva@sbb.ch','079 223 18 83','via Francesca 93','Gordola','6596'],
+  ['Sebastiano','Robbiani','CTR-040','s-robbiani@hotmail.com','076 471 01 10','','',''],
+  ['Milo','Sala Veni','CTR-041','milo.salaveni@gemarship.ch','076 363 48 51','Via Sentiero Trona 12','Ruvigliana','6977'],
+  ['Giuseppe','Sangermano','CTR-042','gsange911@gmail.com','076 559 35 44','via Campagna 11','Bellinzona',''],
+  ['Calogero','Santamaria','CTR-043','caloge57@gmail.com','393240567946','','',''],
+  ['Marco','Sartori','CTR-044','marcobaiaf@bluewin.ch','076 679 79 49','','Muralto','6600'],
+  ['Freddy','Schnoz','CTR-045','a.schnoz@autoag.ch','079 412 42 36','','',''],
+  ['Martin','Schär','CTR-046','schaerm@yahoo.com','079 372 44 19','Via Federica Spitzer 14','Breganzona','6932'],
+  ['Davis','Sciacca','CTR-047','','079 888 18 28','','Locarno',''],
+  ['Luca','Silini','CTR-048','','079 429 64 18','','',''],
+  ['Josef','Simmen','CTR-049','joe.simmen@bluewin.ch','078 926 42 46','Via delle Vigne 7','Tenero','6598'],
+  ['Muslija','Sonic','CTR-050','mukisonic@gmail.com','076 369 18 96','Via Bastoria 5','Solduno','6600'],
+  ['Franco','Vezzoli','CTR-051','franco.v@bluewin.ch','079 5124020','','Quartino',''],
+  ['Flavio','Ulleri','CTR-052','','079 3006575','','',''],
+  ['Richard','Vallejos','CTR-053','','079 1385218','','',''],
+  ['Daniela','Mozzettini','CTR-054','','079 6288583','','',''],
+  ['Giovanni','Cividini','CTR-055','','','','',''],
+];
+
+// Se RESET_DB=true cancella e reinserisce tutti i soci
+if (process.env.RESET_DB === 'true') {
+  console.log('RESET_DB: cancello soci esistenti e reinserisco lista 2026...');
+  db.prepare('DELETE FROM diano2026').run();
+  db.prepare('DELETE FROM quota2026').run();
+  db.prepare('DELETE FROM soci').run();
+  db.prepare("DELETE FROM sqlite_sequence WHERE name='soci'").run();
+  console.log('Tabelle svuotate');
+}
+
+// Inserisce soci solo se la tabella è vuota
 if (db.prepare('SELECT COUNT(*) as n FROM soci').get().n === 0) {
   const ins = db.prepare(`INSERT INTO soci
-    (nome,cognome,tessera,email,tel,nascita,cf,indirizzo,citta,cap,ruolo,stato,quota,iscritto)
-    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`);
-  [
-    ['Marco','Bernardi','CTR-001','m.bernardi@mail.it','+39 333 1234567','1975-06-12','BRNMRC75H12L682Z','Via Cairoli 4','Varese','21100','Presidente','Attivo',1,'2010-03-15'],
-    ['Laura','Cattaneo','CTR-002','l.cattaneo@mail.it','+39 347 2345678','1980-03-22','CTTLRA80C62L682X','Via Manzoni 18','Varese','21100','Segretaria','Attivo',1,'2012-05-20'],
-    ['Giovanni','Ferretti','CTR-007','g.ferretti@mail.it','+39 320 3456789','1968-11-05','FRRGNN68S05L682Y','Via Garibaldi 33','Gallarate','21013','Socio','Attivo',0,'2015-09-10'],
-    ['Chiara','Manzoni','CTR-011','c.manzoni@mail.it','+39 340 4567890','1990-07-18','MNZCHR90L58L682W','Piazza Podesta 2','Varese','21100','Socio','Attivo',1,'2018-03-22'],
-    ['Roberto','Bassi','CTR-014','r.bassi@mail.it','+39 388 5678901','1972-04-30','BSSRRT72D30L682V','Via Volta 7','Busto Arsizio','21052','Socio','Sospeso',0,'2019-01-08'],
-    ['Silvia','Fumagalli','CTR-016','s.fumagalli@mail.it','+39 335 6789012','1985-09-14','FMGSLV85P54L682U','Via Como 45','Varese','21100','Socio','Attivo',1,'2020-06-14'],
-    ['Andrea','Romano','CTR-019','a.romano@mail.it','+39 342 7890123','1993-02-28','RMNNDR93B28L682T','Via Marconi 12','Saronno','21047','Socio','Attivo',0,'2021-03-30'],
-    ['Elena','Conti','CTR-022','e.conti@mail.it','+39 366 8901234','1997-12-01','CNTLNE97T41L682S','Viale Aguggiari 88','Varese','21100','Socio','Nuovo',0,'2022-04-01'],
-    ['Luca','Brambilla','CTR-024','l.brambilla@mail.it','+39 391 9012345','1982-08-16','BRMLCU82M16L682R','Via Magenta 5','Varese','21100','Tesoriere','Attivo',1,'2023-01-15'],
-    ['Federica','Sala','CTR-026','f.sala@mail.it','+39 328 0123456','1995-05-09','SLAFRC95E49L682Q','Via Dandolo 3','Gallarate','21013','Socio','Nuovo',1,'2023-09-05'],
-  ].forEach(r => ins.run(...r));
-  console.log('Soci demo inseriti');
+    (nome,cognome,tessera,email,tel,indirizzo,citta,cap,ruolo,stato,quota)
+    VALUES (?,?,?,?,?,?,?,?,?,?,?)`);
+  const insertMany = db.transaction((rows) => {
+    for (const r of rows) ins.run(...r, 'Socio', 'Attivo', 0);
+  });
+  insertMany(SOCI_2026.map(r => r.slice(0, 8)));
+  console.log(`Inseriti ${SOCI_2026.length} soci 2026`);
 }
 
 // ── MIDDLEWARE ───────────────────────────────────────────────────────
