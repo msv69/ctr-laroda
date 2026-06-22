@@ -191,13 +191,16 @@ CREATE TABLE IF NOT EXISTS admin_note (
 );
 `);
 
-// Migrate vecchie tabelle se esistono ancora
 // Migrate: aggiungi colonne se mancano in DB esistenti
 ['ALTER TABLE gallery_foto ADD COLUMN anno INTEGER',
  'ALTER TABLE gallery_foto ADD COLUMN album_id INTEGER',
  'ALTER TABLE gallery_video ADD COLUMN anno INTEGER',
  'ALTER TABLE gallery_video ADD COLUMN album_id INTEGER',
+ 'ALTER TABLE soci ADD COLUMN foto_profilo TEXT',
 ].forEach(sql => { try { db.exec(sql); } catch(e){} });
+
+// Crea cartella profili
+fs.mkdirSync(path.join(UPLOAD_DIR, 'profili'), {recursive:true});
 
 // Seed news di default se tabella vuota
 if (db.prepare('SELECT COUNT(*) as n FROM news').get().n === 0) {
@@ -413,6 +416,202 @@ app.patch('/api/uscite/:id', (req,res) => {
 app.delete('/api/uscite/:id', (req,res) => {
   try { db.prepare('DELETE FROM uscite WHERE id=?').run(req.params.id); res.json({ok:true}); }
   catch(e) { res.status(400).json({error:e.message}); }
+});
+
+// ── ISCRIZIONI USCITE ────────────────────────────────────────────────
+app.get('/api/uscite/:id/iscrizioni', (req,res) => {
+  try {
+    const rows = db.prepare(`
+      SELECT s.id, s.nome, s.cognome, s.tessera, s.tel, s.email, s.foto_profilo,
+             i.created_at as data_iscr
+      FROM iscrizioni_uscita i
+      JOIN soci s ON s.id = i.socio_id
+      WHERE i.uscita_id = ?
+      ORDER BY s.cognome`).all(req.params.id);
+    res.json(rows);
+  } catch(e) { res.status(500).json({error:e.message}); }
+});
+
+app.post('/api/uscite/:id/iscrizioni', (req,res) => {
+  const { socio_id } = req.body;
+  if (!socio_id) return res.status(400).json({error:'socio_id mancante'});
+  try {
+    // Controlla posti disponibili
+    const uscita = db.prepare('SELECT max_posti FROM uscite WHERE id=?').get(req.params.id);
+    const count  = db.prepare('SELECT COUNT(*) as n FROM iscrizioni_uscita WHERE uscita_id=?').get(req.params.id).n;
+    if (uscita && count >= uscita.max_posti)
+      return res.status(400).json({error:'Uscita al completo'});
+    // Verifica già iscritto
+    const exists = db.prepare('SELECT 1 FROM iscrizioni_uscita WHERE uscita_id=? AND socio_id=?').get(req.params.id, socio_id);
+    if (exists) return res.status(400).json({error:'Già iscritto a questa uscita'});
+    db.prepare('INSERT INTO iscrizioni_uscita(uscita_id,socio_id) VALUES(?,?)').run(req.params.id, socio_id);
+    // Aggiorna contatore iscritti nell'uscita
+    res.json({ok:true});
+  } catch(e) { res.status(400).json({error:e.message}); }
+});
+
+app.delete('/api/uscite/:id/iscrizioni/:socio_id', (req,res) => {
+  try {
+    db.prepare('DELETE FROM iscrizioni_uscita WHERE uscita_id=? AND socio_id=?').run(req.params.id, req.params.socio_id);
+    res.json({ok:true});
+  } catch(e) { res.status(400).json({error:e.message}); }
+});
+
+// Socio aggiorna i propri dati di contatto (via tessera auth)
+app.patch('/api/tessera/:socio_id/profilo', (req,res) => {
+  const b = req.body;
+  try {
+    db.prepare(`UPDATE soci SET
+      email=?, tel=?, indirizzo=?, citta=?, cap=?, nascita=?, cf=?, note=?
+      WHERE id=?`).run(
+      b.email||'', b.tel||'', b.indirizzo||'', b.citta||'', b.cap||'',
+      b.nascita||null, (b.cf||'').toUpperCase(), b.note||'', req.params.socio_id
+    );
+    res.json(db.prepare('SELECT * FROM soci WHERE id=?').get(req.params.socio_id));
+  } catch(e) { res.status(400).json({error:e.message}); }
+});
+
+// ── FOTO PROFILO ─────────────────────────────────────────────────────
+const uploadProfilo = multer({
+  storage: multer.diskStorage({
+    destination: (req,file,cb) => cb(null, path.join(UPLOAD_DIR,'profili')),
+    filename: (req,file,cb) => cb(null, 'profilo_' + req.params.socio_id + path.extname(file.originalname))
+  }),
+  limits: { fileSize: 5*1024*1024 },
+  fileFilter: (req,file,cb) => {
+    if (file.mimetype.startsWith('image/')) cb(null,true);
+    else cb(new Error('Solo immagini'));
+  }
+});
+
+app.post('/api/soci/:socio_id/foto-profilo', uploadProfilo.single('foto'), (req,res) => {
+  try {
+    const file_path = '/uploads/profili/' + req.file.filename;
+    db.prepare('UPDATE soci SET foto_profilo=? WHERE id=?').run(file_path, req.params.socio_id);
+    res.json({ok:true, foto_profilo: file_path});
+  } catch(e) { res.status(400).json({error:e.message}); }
+});
+
+app.delete('/api/soci/:socio_id/foto-profilo', (req,res) => {
+  try {
+    const s = db.prepare('SELECT foto_profilo FROM soci WHERE id=?').get(req.params.socio_id);
+    if (s?.foto_profilo) {
+      const f = path.join(UPLOAD_DIR, s.foto_profilo.replace('/uploads/',''));
+      if (fs.existsSync(f)) fs.unlinkSync(f);
+    }
+    db.prepare('UPDATE soci SET foto_profilo=NULL WHERE id=?').run(req.params.socio_id);
+    res.json({ok:true});
+  } catch(e) { res.status(400).json({error:e.message}); }
+});
+
+// ── TESSERA SOCIO ────────────────────────────────────────────────────
+// Autenticazione socio: tessera + cognome → restituisce dati socio
+app.post('/api/tessera/auth', (req,res) => {
+  const { tessera, cognome } = req.body;
+  if (!tessera || !cognome) return res.status(400).json({error:'Tessera e cognome richiesti'});
+  try {
+    const s = db.prepare(
+      "SELECT * FROM soci WHERE UPPER(tessera)=UPPER(?) AND UPPER(cognome)=UPPER(?)"
+    ).get(tessera.trim(), cognome.trim());
+    if (!s) return res.status(404).json({error:'Socio non trovato. Verifica numero tessera e cognome.'});
+    res.json(s);
+  } catch(e) { res.status(500).json({error:e.message}); }
+});
+
+// Tessera HTML (renderizzata server-side, aperta in nuova tab)
+app.get('/api/tessera/:socio_id', (req,res) => {
+  try {
+    const s = db.prepare('SELECT * FROM soci WHERE id=?').get(req.params.socio_id);
+    if (!s) return res.status(404).json({error:'Socio non trovato'});
+    const anno = new Date().getFullYear();
+    // Dati QR: JSON compatto con dati essenziali
+    const qrData = JSON.stringify({id:s.id, tessera:s.tessera, nome:s.nome, cognome:s.cognome, anno});
+    const qrUrl  = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrData)}&bgcolor=1a1a1a&color=8dc63f&qzone=2`;
+    const html = `<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tessera — ${s.nome} ${s.cognome}</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#111;display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:'DM Sans',sans-serif;padding:2rem}
+  .card{width:340px;background:linear-gradient(135deg,#1a2e08 0%,#0d1a06 60%,#1a2008 100%);border:2px solid #8dc63f;border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.6),0 0 0 1px rgba(141,198,63,.1)}
+  .card-header{background:linear-gradient(135deg,#5a8a1a,#3d6010);padding:1.4rem 1.6rem 1rem;position:relative;overflow:hidden}
+  .card-header::after{content:'';position:absolute;top:-20px;right:-20px;width:120px;height:120px;border-radius:50%;background:rgba(141,198,63,.08)}
+  .club-name{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:.25em;color:rgba(255,255,255,.6);text-transform:uppercase}
+  .card-title{font-family:'Bebas Neue',sans-serif;font-size:2rem;color:#8dc63f;letter-spacing:.05em;line-height:1;margin-top:.2rem}
+  .valid-year{position:absolute;top:1.2rem;right:1.4rem;font-family:'DM Mono',monospace;font-size:.65rem;color:#f5c400;background:rgba(245,196,0,.15);border:1px solid rgba(245,196,0,.3);padding:.25rem .6rem;border-radius:3px}
+  .card-body{padding:1.4rem 1.6rem}
+  .socio-name{font-family:'Bebas Neue',sans-serif;font-size:2.2rem;color:#fff;letter-spacing:.04em;line-height:1;margin-bottom:.4rem}
+  .socio-role{font-family:'DM Mono',monospace;font-size:.65rem;text-transform:uppercase;letter-spacing:.15em;color:#8dc63f;margin-bottom:1.2rem}
+  .tessera-num{font-family:'DM Mono',monospace;font-size:1.5rem;color:#f5c400;letter-spacing:.2em;background:rgba(245,196,0,.08);border:1px solid rgba(245,196,0,.2);padding:.5rem 1rem;border-radius:6px;display:inline-block;margin-bottom:1.2rem}
+  .socio-details{display:flex;flex-direction:column;gap:.3rem;margin-bottom:1.2rem}
+  .detail-row{font-size:.78rem;color:rgba(255,255,255,.6);display:flex;gap:.5rem}
+  .detail-label{font-family:'DM Mono',monospace;font-size:.6rem;text-transform:uppercase;color:#5a8a1a;min-width:60px}
+  .qr-section{display:flex;align-items:center;gap:1.2rem;background:rgba(0,0,0,.3);border-radius:8px;padding:1rem;border:1px solid rgba(141,198,63,.15)}
+  .qr-wrap{background:#1a1a1a;border-radius:6px;padding:4px;border:1px solid #8dc63f;flex-shrink:0}
+  .qr-wrap img{display:block;border-radius:4px}
+  .qr-info{flex:1}
+  .qr-info-title{font-family:'DM Mono',monospace;font-size:.58rem;text-transform:uppercase;letter-spacing:.12em;color:#8dc63f;margin-bottom:.3rem}
+  .qr-info-text{font-size:.72rem;color:rgba(255,255,255,.5);line-height:1.5}
+  .card-footer{background:rgba(0,0,0,.3);padding:.8rem 1.6rem;display:flex;justify-content:space-between;align-items:center;border-top:1px solid rgba(141,198,63,.15)}
+  .footer-text{font-family:'DM Mono',monospace;font-size:.55rem;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.3)}
+  .stripe{height:4px;background:linear-gradient(90deg,#5a8a1a,#8dc63f,#f5c400,#8dc63f,#5a8a1a)}
+  @media print{body{background:#fff;padding:0}  .card{box-shadow:none;border:2px solid #5a8a1a} .no-print{display:none}}
+</style>
+</head>
+<body>
+<div>
+  <div class="stripe"></div>
+  <div class="card">
+    <div class="card-header">
+      <div class="club-name">Club Ciclistico Amatoriale</div>
+      <div class="card-title">Ciclo Team<br>La Röda</div>
+      <div class="valid-year">✓ ${anno}</div>
+    </div>
+    <div class="card-body">
+      <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1rem">
+        ${s.foto_profilo
+          ? `<img src="${s.foto_profilo}" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid #8dc63f;flex-shrink:0">`
+          : `<div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#5a8a1a,#3d6010);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:#fff;border:2px solid #8dc63f;flex-shrink:0">${s.nome[0]}${s.cognome[0]}</div>`}
+        <div>
+          <div class="socio-name" style="font-size:1.7rem">${s.nome}<br>${s.cognome}</div>
+          <div class="socio-role">${s.ruolo||'Socio'}</div>
+        </div>
+      </div>
+      <div class="tessera-num">${s.tessera||'—'}</div>
+      <div class="socio-details">
+        ${s.citta?`<div class="detail-row"><span class="detail-label">Città</span><span>${s.citta}${s.cap?' '+s.cap:''}</span></div>`:''}
+        ${s.tel?`<div class="detail-row"><span class="detail-label">Tel</span><span>${s.tel}</span></div>`:''}
+        ${s.email?`<div class="detail-row"><span class="detail-label">Email</span><span>${s.email}</span></div>`:''}
+      </div>
+      <div class="qr-section">
+        <div class="qr-wrap">
+          <img src="${qrUrl}" width="90" height="90" alt="QR Code">
+        </div>
+        <div class="qr-info">
+          <div class="qr-info-title">Scansiona per verificare</div>
+          <div class="qr-info-text">QR code contiene i dati del socio per identificazione rapida alle uscite</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-footer">
+      <span class="footer-text">CTR La Röda — ${anno}</span>
+      <span class="footer-text">Tesserato regolare</span>
+    </div>
+  </div>
+  <div class="stripe"></div>
+  <div class="no-print" style="text-align:center;margin-top:1.5rem;display:flex;gap:1rem;justify-content:center">
+    <button onclick="window.print()" style="background:#5a8a1a;color:#fff;border:none;padding:.7rem 1.8rem;border-radius:6px;font-family:'DM Mono',monospace;font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer">🖨 Stampa / Salva PDF</button>
+    <button onclick="window.close()" style="background:none;color:#666;border:1px solid #333;padding:.7rem 1.8rem;border-radius:6px;font-family:'DM Mono',monospace;font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer">Chiudi</button>
+  </div>
+</div>
+</body>
+</html>`;
+    res.send(html);
+  } catch(e) { res.status(500).json({error:e.message}); }
 });
 
 // ── SPESE ────────────────────────────────────────────────────────────
