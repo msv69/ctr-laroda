@@ -185,6 +185,7 @@ tbody td{padding:.85rem 1rem;font-size:.88rem}
     <button onclick="showPage('uscite')" id="nav-uscite">Uscite</button>
     <button onclick="showPage('gallery')" id="nav-gallery">Gallery</button>
     <button onclick="showPage('documenti')" id="nav-documenti">Documenti</button>
+    <button onclick="showPage('tessera')" id="nav-tessera" style="border:1px solid var(--giallo);color:var(--giallo);border-radius:3px">🎫 Tessera</button>
     <div class="csw">
       <button id="btn-chf" onclick="setCurrency('CHF')">CHF</button>
       <button id="btn-eur" onclick="setCurrency('EUR')" class="active">EUR</button>
@@ -229,9 +230,10 @@ tbody td{padding:.85rem 1rem;font-size:.88rem}
 
 <!-- SOCI -->
 <div class="page" id="page-soci">
-  <div class="sh"><h2>Lista <span>Soci</span></h2></div>
-  <div style="padding:1.5rem 2rem 0;display:flex;gap:.8rem;flex-wrap:wrap">
-    <input class="sb" type="text" id="search-soci" placeholder="🔍 Cerca socio..." oninput="filterSoci()">
+  <div class="sh"><h2>Il mio <span>Profilo</span></h2></div>
+  <div style="padding:1.5rem 2rem 0;display:flex;gap:.8rem;flex-wrap:wrap;align-items:center">
+    <input class="sb" type="text" id="search-soci" placeholder="🔍 Cerca..." oninput="filterSoci()" style="display:none">
+    <div id="soci-hint" style="display:none;font-size:.82rem;color:var(--gc)">Stai visualizzando solo i tuoi dati. Per modificarli vai alla tab <strong style="color:var(--giallo)">🎫 Tessera</strong>.</div>
   </div>
   <div class="tw sc">
     <table>
@@ -249,13 +251,135 @@ tbody td{padding:.85rem 1rem;font-size:.88rem}
 <!-- USCITE -->
 <div class="page" id="page-uscite">
   <div class="sh"><h2>Uscite <span id="uscite-anno-title">2026</span></h2></div>
-  <div style="padding:1.5rem 2rem 0;display:flex;gap:.5rem;flex-wrap:wrap">
+  <div style="padding:1.5rem 2rem 0;display:flex;gap:.5rem;flex-wrap:wrap;align-items:center">
     <button class="btn bv2" onclick="filterUscite('tutti')" id="uf-tutti">Tutte</button>
     <button class="btn bo" onclick="filterUscite('F')" id="uf-F">🔵 Facile</button>
     <button class="btn bo" onclick="filterUscite('M')" id="uf-M">🟡 Media</button>
     <button class="btn bo" onclick="filterUscite('D')" id="uf-D">🔴 Difficile</button>
+    <div style="margin-left:auto">
+      <button class="btn bo" onclick="showPage('tessera')" style="border-color:var(--giallo);color:var(--giallo);font-size:.68rem">🎫 Accedi con tessera</button>
+    </div>
   </div>
   <div class="ug" id="uscite-list"><div class="ld">Caricamento</div></div>
+</div>
+
+<!-- TESSERA / LOGIN SOCIO -->
+<div class="page" id="page-tessera">
+  <div class="sh"><h2>🎫 Area <span>Socio</span></h2><p>Accedi con il tuo numero tessera per scaricare la pass e iscriverti alle uscite</p></div>
+  <div id="tessera-login-wrap" style="max-width:420px;margin:2rem auto;padding:0 1rem">
+    <div style="background:var(--g);border:1px solid rgba(245,196,0,.3);border-radius:8px;padding:2rem">
+      <div style="font-size:2.5rem;text-align:center;margin-bottom:1rem">🎫</div>
+      <div class="fg"><label>Numero Tessera</label><input id="t-tessera" type="text" placeholder="CTR-001" style="text-transform:uppercase" onkeydown="if(event.key==='Enter')socioLogin()"></div>
+      <div class="fg"><label>Cognome</label><input id="t-cognome" type="text" placeholder="Rossi" onkeydown="if(event.key==='Enter')socioLogin()"></div>
+      <button class="btn by" style="width:100%;margin-top:.5rem" onclick="socioLogin()">Entra →</button>
+      <p style="font-size:.72rem;color:var(--gm);margin-top:1rem;text-align:center">Inserisci il tuo numero tessera (es. CTR-001) e il cognome</p>
+    </div>
+  </div>
+  <div id="tessera-panel" style="display:none;padding:1.5rem 2rem">
+    <!-- HEADER con avatar e bottoni -->
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem">
+      <div style="display:flex;align-items:center;gap:1.2rem">
+        <div style="position:relative">
+          <div id="tp-avatar" style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--verde),#3d6010);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:#fff;border:2px solid var(--verde-chiaro);overflow:hidden;cursor:pointer" onclick="document.getElementById('foto-profilo-input').click()" title="Clicca per cambiare foto">
+            <span id="tp-avatar-initials"></span>
+            <img id="tp-avatar-img" src="" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;inset:0">
+          </div>
+          <div style="position:absolute;bottom:-4px;right:-4px;width:22px;height:22px;background:var(--verde);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.7rem;cursor:pointer;border:2px solid var(--gs)" onclick="document.getElementById('foto-profilo-input').click()">✏️</div>
+          <input type="file" id="foto-profilo-input" accept="image/*" style="display:none" onchange="uploadFotoProfilo(this)">
+        </div>
+        <div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--giallo);letter-spacing:.04em;line-height:1" id="tp-nome"></div>
+          <div style="font-family:'DM Mono',monospace;font-size:.75rem;color:var(--verde-chiaro);margin-top:.2rem" id="tp-tessera"></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:.8rem;flex-wrap:wrap">
+        <button class="btn bv2" onclick="downloadTessera()">🖨 Tessera PDF</button>
+        <button class="btn bo" onclick="socioLogout()">← Esci</button>
+      </div>
+    </div>
+
+    <!-- TAB NAV -->
+    <div style="display:flex;gap:0;border-bottom:2px solid rgba(90,138,26,.3);margin-bottom:1.5rem">
+      <button class="gtab active" id="tab-profilo" onclick="switchTesseraTab('profilo')">👤 Il mio profilo</button>
+      <button class="gtab" id="tab-uscite-tab" onclick="switchTesseraTab('uscite')">🚴 Uscite</button>
+    </div>
+
+    <!-- TAB: PROFILO -->
+    <div id="tab-content-profilo">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem">
+        <div style="font-family:'DM Mono',monospace;font-size:.72rem;text-transform:uppercase;letter-spacing:.15em;color:var(--verde-chiaro)">I miei dati</div>
+        <button class="btn bv2 bs2" id="btn-edit-profilo" onclick="enableEditProfilo()">✏️ Modifica</button>
+      </div>
+
+      <!-- VISTA DATI (readonly) -->
+      <div id="profilo-view">
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:.8rem">
+          <div style="background:var(--g);border-radius:6px;padding:1rem">
+            <div style="font-family:'DM Mono',monospace;font-size:.6rem;text-transform:uppercase;color:var(--verde-chiaro);margin-bottom:.4rem">📧 Email</div>
+            <div id="pv-email" style="font-size:.9rem">—</div>
+          </div>
+          <div style="background:var(--g);border-radius:6px;padding:1rem">
+            <div style="font-family:'DM Mono',monospace;font-size:.6rem;text-transform:uppercase;color:var(--verde-chiaro);margin-bottom:.4rem">📱 Telefono</div>
+            <div id="pv-tel" style="font-size:.9rem">—</div>
+          </div>
+          <div style="background:var(--g);border-radius:6px;padding:1rem">
+            <div style="font-family:'DM Mono',monospace;font-size:.6rem;text-transform:uppercase;color:var(--verde-chiaro);margin-bottom:.4rem">🏠 Indirizzo</div>
+            <div id="pv-indirizzo" style="font-size:.9rem">—</div>
+          </div>
+          <div style="background:var(--g);border-radius:6px;padding:1rem">
+            <div style="font-family:'DM Mono',monospace;font-size:.6rem;text-transform:uppercase;color:var(--verde-chiaro);margin-bottom:.4rem">🏙 Città / CAP</div>
+            <div id="pv-citta" style="font-size:.9rem">—</div>
+          </div>
+          <div style="background:var(--g);border-radius:6px;padding:1rem">
+            <div style="font-family:'DM Mono',monospace;font-size:.6rem;text-transform:uppercase;color:var(--verde-chiaro);margin-bottom:.4rem">🎂 Data di nascita</div>
+            <div id="pv-nascita" style="font-size:.9rem">—</div>
+          </div>
+          <div style="background:var(--g);border-radius:6px;padding:1rem">
+            <div style="font-family:'DM Mono',monospace;font-size:.6rem;text-transform:uppercase;color:var(--verde-chiaro);margin-bottom:.4rem">📋 Codice Fiscale</div>
+            <div id="pv-cf" style="font-family:'DM Mono',monospace;font-size:.85rem;letter-spacing:.05em">—</div>
+          </div>
+        </div>
+        <div style="margin-top:.8rem;background:var(--g);border-radius:6px;padding:1rem">
+          <div style="font-family:'DM Mono',monospace;font-size:.6rem;text-transform:uppercase;color:var(--verde-chiaro);margin-bottom:.4rem">📝 Note personali</div>
+          <div id="pv-note" style="font-size:.88rem;color:var(--gc)">—</div>
+        </div>
+        <p style="font-size:.72rem;color:var(--gm);margin-top:.8rem">Per modificare clicca il pulsante ✏️ Modifica in alto a destra</p>
+      </div>
+
+      <!-- FORM MODIFICA -->
+      <div id="profilo-edit" style="display:none">
+        <div style="background:rgba(90,138,26,.08);border:1px solid rgba(90,138,26,.2);border-radius:6px;padding:.8rem 1rem;margin-bottom:1.2rem;font-size:.82rem;color:var(--gc)">
+          ℹ️ Puoi modificare i tuoi dati di contatto. Nome, cognome e numero tessera non sono modificabili.
+        </div>
+        <div class="mr">
+          <div class="fg"><label>Email</label><input id="pe-email" type="email"></div>
+          <div class="fg"><label>Telefono</label><input id="pe-tel" type="text"></div>
+        </div>
+        <div class="fg"><label>Indirizzo</label><input id="pe-indirizzo" type="text"></div>
+        <div class="mr">
+          <div class="fg"><label>Città</label><input id="pe-citta" type="text"></div>
+          <div class="fg"><label>CAP</label><input id="pe-cap" type="text"></div>
+        </div>
+        <div class="mr">
+          <div class="fg"><label>Data di Nascita</label><input id="pe-nascita" type="date"></div>
+          <div class="fg"><label>Codice Fiscale</label><input id="pe-cf" type="text" style="text-transform:uppercase"></div>
+        </div>
+        <div class="fg"><label>Note personali</label><textarea id="pe-note" style="min-height:70px" placeholder="Allergie, preferenze, informazioni utili..."></textarea></div>
+        <div style="display:flex;gap:.8rem;justify-content:flex-end;margin-top:1rem">
+          <button class="btn bo" onclick="cancelEditProfilo()">Annulla</button>
+          <button class="btn bv2" onclick="saveProfilo()">💾 Salva modifiche</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: USCITE -->
+    <div id="tab-content-uscite" style="display:none">
+      <div style="font-family:'DM Mono',monospace;font-size:.72rem;text-transform:uppercase;letter-spacing:.15em;color:var(--verde-chiaro);margin-bottom:1rem">
+        Iscriviti alle uscite — <span id="tp-anno"></span>
+      </div>
+      <div id="tp-uscite-list"><div class="ld">Caricamento</div></div>
+    </div>
+  </div>
 </div>
 
 <!-- GALLERY -->
@@ -691,6 +815,14 @@ tbody td{padding:.85rem 1rem;font-size:.88rem}
   </div>
 </div>
 
+<!-- MODAL PARTECIPANTI USCITA -->
+<div class="mo" id="modal-partecipanti">
+  <div class="md" style="max-width:520px">
+    <div class="mh"><h3 id="mp-title">Partecipanti</h3><button class="mc2" onclick="closeModal('modal-partecipanti')">✕</button></div>
+    <div id="mp-body"></div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -738,10 +870,31 @@ function showPage(p){
   document.getElementById("page-"+p).classList.add("active");
   const nb=document.getElementById("nav-"+p);if(nb)nb.classList.add("active");
   if(p==="home"||p==="news"){renderNewsPub();}
-  if(p==="soci")renderSociPub();
+  if(p==="soci"){
+    if(SOCIO_CORRENTE){
+      // Socio loggato: mostra solo i propri dati
+      renderSociPub([SOCIO_CORRENTE]);
+      // Nasconde ricerca e ordinamento
+      const sh=document.getElementById("search-soci");if(sh)sh.style.display="none";
+      const hint=document.getElementById("soci-hint");
+      if(hint)hint.style.display="block";
+    } else {
+      // Non loggato: invita ad accedere con tessera
+      const tb=document.getElementById("soci-tbody");
+      if(tb)tb.innerHTML=`<tr><td colspan="6">
+        <div style="text-align:center;padding:3rem 1rem">
+          <div style="font-size:3rem;margin-bottom:1rem">🎫</div>
+          <div style="font-family:'DM Mono',monospace;font-size:.8rem;text-transform:uppercase;letter-spacing:.1em;color:var(--gc);margin-bottom:1rem">Accedi con la tua tessera per vedere i tuoi dati</div>
+          <button class="btn bv2" onclick="showPage('tessera')">Vai alla Tessera →</button>
+        </div>
+      </td></tr>`;
+      const sh=document.getElementById("search-soci");if(sh)sh.style.display="none";
+    }
+  }
   if(p==="uscite")loadUscitePub();
   if(p==="gallery"){CUR_ALBUM=null;document.getElementById("gallery-album-view").style.display="block";document.getElementById("gallery-album-open").style.display="none";renderGallery();}
   if(p==="documenti")renderDocumenti();
+  if(p==="tessera"){if(SOCIO_CORRENTE&&document.getElementById("tp-uscite-list")){loadUscitePub().then(()=>renderTesseraUscite());}}
   if(p==="admin"&&adminLogged)renderAdmin();
 }
 
@@ -792,15 +945,19 @@ function renderSociPub(list){
   const data=list!==undefined?list:SOCI_F;
   const tb=document.getElementById("soci-tbody");if(!tb)return;
   if(!data.length){tb.innerHTML="<tr><td colspan='6'><div class='empty'>Nessun socio trovato</div></td></tr>";return;}
-  tb.innerHTML=data.map(s=>`
-    <tr onclick="showSocioDetail(${s.id})" style="cursor:pointer">
-      <td><span class="av">${ini(s)}</span><strong>${s.nome} ${s.cognome}</strong><br><small style="color:var(--gc);font-size:.72rem">${s.ruolo||"Socio"}</small></td>
+  tb.innerHTML=data.map(s=>{
+    const avatarHtml=s.foto_profilo
+      ? `<img src="${s.foto_profilo}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;margin-right:.6rem;vertical-align:middle;border:1px solid var(--verde)">`
+      : `<span class="av">${ini(s)}</span>`;
+    return `<tr onclick="showSocioDetail(${s.id})" style="cursor:pointer">
+      <td>${avatarHtml}<strong>${s.nome} ${s.cognome}</strong><br><small style="color:var(--gc);font-size:.72rem">${s.ruolo||"Socio"}</small></td>
       <td style="font-family:'DM Mono',monospace;font-size:.82rem;color:var(--giallo)">${s.tessera||"—"}</td>
       <td style="font-size:.82rem">${s.email||"—"}</td>
       <td style="font-size:.82rem">${s.tel||"—"}</td>
       <td style="font-size:.8rem">${[s.citta,s.cap].filter(Boolean).join(" ")||"—"}</td>
       <td><span class="badge ${sc2(s)}">${s.stato||"Attivo"}</span></td>
-    </tr>`).join("");
+    </tr>`;
+  }).join("");
 }
 function filterSoci(){const q=document.getElementById("search-soci").value.toLowerCase();SOCI_F=SOCI.filter(s=>(s.nome+" "+s.cognome+(s.tessera||"")+(s.email||"")+(s.citta||"")).toLowerCase().includes(q));renderSociPub();}
 function sortSoci(col){if(sortCol===col)sortDir*=-1;else{sortCol=col;sortDir=1;}SOCI_F.sort((a,b)=>{const va=(a[col]||"").toString().toLowerCase(),vb=(b[col]||"").toString().toLowerCase();return va<vb?-sortDir:va>vb?sortDir:0;});renderSociPub();}
@@ -841,47 +998,297 @@ async function toggleSospeso(id){const s=SOCI.find(x=>x.id===id);if(!s)return;co
 async function loadUscitePub(){
   const annoEl=document.getElementById("uscite-anno-title");
   if(annoEl)annoEl.textContent=ANNO;
-  const el=document.getElementById("uscite-list");
-  try{
-    USCITE_DB=await api("GET","/uscite/"+ANNO);
-  }catch(e){USCITE_DB=[];}
+  try{ USCITE_DB=await api("GET","/uscite/"+ANNO); }catch(e){ USCITE_DB=[]; }
   USCITE_F=[...USCITE_DB];
-  const c=document.getElementById("cnt-uscite");
-  if(c)c.textContent=USCITE_DB.length;
+  const c=document.getElementById("cnt-uscite"); if(c)c.textContent=USCITE_DB.length;
   renderUscitePub();
 }
 function renderUscitePub(){
   const el=document.getElementById("uscite-list");if(!el)return;
   const list=filtroU==="tutti"?USCITE_F:USCITE_F.filter(u=>u.difficolta===filtroU);
   const dm={F:"Facile",M:"Media",D:"Difficile"};
-  if(!list.length){el.innerHTML=`<div class="empty">Nessuna uscita trovata per ${ANNO}</div>`;return;}
+  if(!list.length){el.innerHTML=`<div class="empty">Nessuna uscita per ${ANNO}</div>`;return;}
   el.innerHTML=list.map(u=>`
     <div class="uc" onclick="showUscitaDetail(${u.id})">
       <div class="ud"><div class="ug-d">${u.giorno||"—"}</div><div class="um">${u.mese||"—"}</div></div>
-      <div class="ui"><h3>${u.titolo}</h3><div class="ui-meta"><span>🕐 ${u.ora||"—"}</span><span>📏 ${u.km||0} km</span><span>⬆️ ${u.dislivello||0}m</span><span>👥 ${u.iscritti||0}/${u.max_posti||30}</span></div></div>
-      <div class="ur"><span class="db d${u.difficolta||"M"}">${dm[u.difficolta||"M"]}</span></div>
+      <div class="ui"><h3>${u.titolo}</h3><div class="ui-meta"><span>🕐 ${u.ora||"—"}</span><span>📏 ${u.km||0} km</span><span>⬆️ ${u.dislivello||0}m</span><span>👥 <strong style="color:${(u.iscritti||0)>=(u.max_posti||30)?"var(--rosso)":"var(--verde-chiaro)"}">${u.iscritti||0}</strong>/${u.max_posti||30}</span></div></div>
+      <div class="ur"><span class="db d${u.difficolta||"M"}">${dm[u.difficolta||"M"]}</span>
+        <button onclick="event.stopPropagation();showPartecipanti(${u.id})" style="font-size:.58rem;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.06em;background:rgba(90,138,26,.2);border:1px solid var(--verde);color:var(--verde-chiaro);padding:.25rem .6rem;border-radius:3px;cursor:pointer;margin-top:.3rem">👥 Lista</button>
+      </div>
     </div>`).join("");
 }
 function filterUscite(f){filtroU=f;document.querySelectorAll("[id^='uf-']").forEach(b=>b.className="btn bo");document.getElementById("uf-"+f).className="btn bv2";renderUscitePub();}
+
+async function showPartecipanti(uscitaId){
+  const u=USCITE_DB.find(x=>x.id===uscitaId);if(!u)return;
+  document.getElementById("mp-title").textContent="👥 "+u.titolo;
+  document.getElementById("mp-body").innerHTML=`<div class="ld">Caricamento</div>`;
+  document.getElementById("modal-partecipanti").classList.add("open");
+  try {
+    const list=await api("GET","/uscite/"+uscitaId+"/iscrizioni");
+    if(!list.length){
+      document.getElementById("mp-body").innerHTML=`<div class="empty">Nessun iscritto ancora</div>
+        <div style="display:flex;justify-content:flex-end;margin-top:1rem"><button class="btn bo" onclick="closeModal('modal-partecipanti')">Chiudi</button></div>`;
+      return;
+    }
+    document.getElementById("mp-body").innerHTML=`
+      <div style="font-family:'DM Mono',monospace;font-size:.7rem;color:var(--gc);margin-bottom:1rem">${list.length} iscritti su ${u.max_posti||30} posti</div>
+      <div style="display:flex;flex-direction:column;gap:.5rem;max-height:360px;overflow-y:auto">
+        ${list.map((s,i)=>`
+          <div style="display:flex;align-items:center;gap:.8rem;padding:.6rem .8rem;background:var(--gs);border-radius:6px;border-left:3px solid var(--verde)">
+            <span style="font-family:'DM Mono',monospace;font-size:.65rem;color:var(--gc);min-width:24px">${i+1}.</span>
+            ${s.foto_profilo
+              ? `<img src="${s.foto_profilo}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid var(--verde);flex-shrink:0">`
+              : `<span style="width:36px;height:36px;border-radius:50%;background:var(--verde);color:var(--b);display:inline-flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:500;flex-shrink:0">${(s.nome[0]+s.cognome[0]).toUpperCase()}</span>`}
+            <div style="flex:1">
+              <div style="font-weight:500">${s.nome} ${s.cognome}</div>
+              <div style="font-family:'DM Mono',monospace;font-size:.65rem;color:var(--giallo)">${s.tessera||"—"}</div>
+            </div>
+            ${s.tel?`<div style="font-size:.75rem;color:var(--gc)">${s.tel}</div>`:""}
+          </div>`).join("")}
+      </div>
+      <div style="display:flex;justify-content:flex-end;margin-top:1.2rem">
+        <button class="btn bo" onclick="closeModal('modal-partecipanti')">Chiudi</button>
+      </div>`;
+  } catch(e){ document.getElementById("mp-body").innerHTML=`<div class="empty">Errore caricamento</div>`; }
+}
+
 function showUscitaDetail(id){
   const u=USCITE_DB.find(x=>x.id===id);if(!u)return;
   const dm={F:"🔵 Facile",M:"🟡 Media",D:"🔴 Difficile"};
+  const posti=u.max_posti||30, iscr=u.iscritti||0, pieno=iscr>=posti;
   document.getElementById("md-title").textContent=u.titolo;
   document.getElementById("md-body").innerHTML=`
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem">
-      <div style="background:var(--gs);border-radius:4px;padding:1rem;text-align:center"><div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--giallo)">${u.giorno||"—"} ${u.mese||""}</div><small style="color:var(--gc)">Ore ${u.ora||"—"}</small></div>
-      <div style="background:var(--gs);border-radius:4px;padding:1rem;text-align:center"><div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--verde-chiaro)">${u.km||0} km</div><small style="color:var(--gc)">D+ ${u.dislivello||0}m</small></div>
+      <div style="background:var(--gs);border-radius:4px;padding:1rem;text-align:center">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--giallo)">${u.giorno||"—"} ${u.mese||""}</div>
+        <small style="color:var(--gc)">Ore ${u.ora||"—"}</small>
+      </div>
+      <div style="background:var(--gs);border-radius:4px;padding:1rem;text-align:center">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--verde-chiaro)">${u.km||0} km</div>
+        <small style="color:var(--gc)">D+ ${u.dislivello||0}m</small>
+      </div>
     </div>
-    <div style="margin-bottom:1rem"><span class="db d${u.difficolta||"M"}" style="margin-right:.5rem">${dm[u.difficolta||"M"]}</span><span style="font-size:.82rem;color:var(--gc)">👥 ${u.iscritti||0}/${u.max_posti||30} iscritti</span></div>
-    ${u.note?`<p style="font-size:.88rem;color:var(--gc);line-height:1.6">${u.note}</p>`:""}
-    <div style="display:flex;gap:.8rem;justify-content:flex-end;margin-top:1.5rem">
+    <div style="margin-bottom:1rem;display:flex;align-items:center;gap:.8rem;flex-wrap:wrap">
+      <span class="db d${u.difficolta||"M"}">${dm[u.difficolta||"M"]}</span>
+      <span style="font-size:.82rem;color:${pieno?"var(--rosso)":"var(--gc)"}">👥 ${iscr}/${posti} iscritti${pieno?" — AL COMPLETO":""}</span>
+      <button onclick="closeModal('modal-detail');showPartecipanti(${u.id})" style="font-size:.65rem;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.06em;background:rgba(90,138,26,.15);border:1px solid var(--verde);color:var(--verde-chiaro);padding:.25rem .7rem;border-radius:3px;cursor:pointer">Vedi lista →</button>
+    </div>
+    ${u.note?`<p style="font-size:.88rem;color:var(--gc);line-height:1.6;margin-bottom:1rem">${u.note}</p>`:""}
+    <div style="background:rgba(90,138,26,.08);border:1px solid rgba(90,138,26,.2);border-radius:6px;padding:1rem;margin-bottom:1rem;font-size:.82rem;color:var(--gc)">
+      💡 Per iscriverti usa il pulsante <strong style="color:var(--giallo)">🎫 Accedi con tessera</strong> nella barra in alto
+    </div>
+    <div style="display:flex;gap:.8rem;justify-content:flex-end">
       <button class="btn bo" onclick="closeModal('modal-detail')">Chiudi</button>
-      <button class="btn bv2" onclick="toast('✅ Iscrizione inviata!');closeModal('modal-detail')">✓ Iscriviti</button>
+      <button class="btn bv2" onclick="closeModal('modal-detail');showPage('tessera')" ${pieno?"disabled style='opacity:.4'":''}>${pieno?"Al completo":"🎫 Vai alla tessera"}</button>
     </div>`;
   document.getElementById("modal-detail").classList.add("open");
 }
 
-// ── ALBUM & GALLERY ───────────────────────────────────
+// ── TESSERA SOCIO ─────────────────────────────────────
+let SOCIO_CORRENTE = null;
+
+async function socioLogin(){
+  const tessera=document.getElementById("t-tessera").value.trim().toUpperCase();
+  const cognome=document.getElementById("t-cognome").value.trim();
+  if(!tessera||!cognome){toast("⚠️ Inserisci tessera e cognome");return;}
+  try{
+    SOCIO_CORRENTE=await api("POST","/tessera/auth",{tessera,cognome});
+    document.getElementById("tessera-login-wrap").style.display="none";
+    document.getElementById("tessera-panel").style.display="block";
+    document.getElementById("tp-nome").textContent=SOCIO_CORRENTE.nome+" "+SOCIO_CORRENTE.cognome;
+    document.getElementById("tp-tessera").textContent=SOCIO_CORRENTE.tessera+" · "+(SOCIO_CORRENTE.ruolo||"Socio");
+    document.getElementById("tp-anno").textContent=ANNO;
+    // Avatar
+    const initials=(SOCIO_CORRENTE.nome[0]+SOCIO_CORRENTE.cognome[0]).toUpperCase();
+    document.getElementById("tp-avatar-initials").textContent=initials;
+    aggiornaAvatarUI(SOCIO_CORRENTE.foto_profilo);
+    // Mostra profilo
+    renderProfiloView();
+    switchTesseraTab("profilo");
+    await loadUscitePub();
+    toast("✅ Benvenuto/a "+SOCIO_CORRENTE.nome+"!");
+  }catch(e){toast("❌ "+e.message);}
+}
+function socioLogout(){
+  SOCIO_CORRENTE=null;
+  document.getElementById("tessera-login-wrap").style.display="block";
+  document.getElementById("tessera-panel").style.display="none";
+  document.getElementById("t-tessera").value="";
+  document.getElementById("t-cognome").value="";
+}
+
+function aggiornaAvatarUI(fotoProfilo){
+  const img=document.getElementById("tp-avatar-img");
+  const ini=document.getElementById("tp-avatar-initials");
+  if(fotoProfilo){
+    img.src=fotoProfilo+"?t="+Date.now(); // cache bust
+    img.style.display="block";
+    ini.style.display="none";
+  }else{
+    img.style.display="none";
+    ini.style.display="block";
+  }
+}
+
+async function uploadFotoProfilo(input){
+  if(!SOCIO_CORRENTE||!input.files[0])return;
+  const file=input.files[0];
+  if(file.size>5*1024*1024){toast("⚠️ Immagine troppo grande (max 5MB)");return;}
+  // Preview immediato
+  const url=URL.createObjectURL(file);
+  const img=document.getElementById("tp-avatar-img");
+  img.src=url; img.style.display="block";
+  document.getElementById("tp-avatar-initials").style.display="none";
+  toast("⏳ Caricamento in corso...");
+  try{
+    const fd=new FormData();
+    fd.append("foto",file);
+    const res=await api("POST","/soci/"+SOCIO_CORRENTE.id+"/foto-profilo",fd);
+    SOCIO_CORRENTE.foto_profilo=res.foto_profilo;
+    // Aggiorna anche nella lista soci locale
+    const s=SOCI.find(x=>x.id===SOCIO_CORRENTE.id);
+    if(s)s.foto_profilo=res.foto_profilo;
+    aggiornaAvatarUI(res.foto_profilo);
+    toast("✅ Foto profilo aggiornata!");
+  }catch(e){
+    // Ripristina
+    aggiornaAvatarUI(SOCIO_CORRENTE.foto_profilo);
+    toast("❌ "+e.message);
+  }
+  input.value="";
+}
+function downloadTessera(){
+  if(!SOCIO_CORRENTE){toast("⚠️ Accedi prima");return;}
+  window.open("/api/tessera/"+SOCIO_CORRENTE.id,"_blank");
+}
+
+async function renderTesseraUscite(){
+  const el=document.getElementById("tp-uscite-list");if(!el||!SOCIO_CORRENTE)return;
+  // Carica iscrizioni esistenti del socio
+  let mieIscrizioni=[];
+  try{
+    const tutte=await Promise.all(USCITE_DB.map(u=>api("GET","/uscite/"+u.id+"/iscrizioni").then(list=>{const trovato=list.find(x=>x.id===SOCIO_CORRENTE.id);return trovato?u.id:null;}).catch(()=>null)));
+    mieIscrizioni=tutte.filter(Boolean);
+  }catch(e){}
+  const dm={F:"🔵",M:"🟡",D:"🔴"};
+  if(!USCITE_DB.length){el.innerHTML=`<div class="empty">Nessuna uscita programmata per ${ANNO}</div>`;return;}
+  el.innerHTML=`<div style="display:flex;flex-direction:column;gap:.8rem">${USCITE_DB.map(u=>{
+    const iscritto=mieIscrizioni.includes(u.id);
+    const pieno=(u.iscritti||0)>=(u.max_posti||30)&&!iscritto;
+    return `<div style="background:var(--g);border:1px solid ${iscritto?"var(--verde)":"rgba(90,138,26,.2)"};border-radius:8px;padding:1rem 1.2rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
+      <div style="background:var(--verde);border-radius:6px;padding:.4rem .8rem;text-align:center;min-width:54px">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:var(--b);line-height:1">${u.giorno||"—"}</div>
+        <div style="font-family:'DM Mono',monospace;font-size:.55rem;color:rgba(255,255,255,.8);text-transform:uppercase">${u.mese||""}</div>
+      </div>
+      <div style="flex:1;min-width:160px">
+        <div style="font-weight:500;margin-bottom:.2rem">${dm[u.difficolta||"M"]} ${u.titolo}</div>
+        <div style="font-size:.75rem;color:var(--gc)">${u.ora||""} · ${u.km||0}km · 👥 ${u.iscritti||0}/${u.max_posti||30}</div>
+      </div>
+      <div>
+        ${iscritto
+          ? `<div style="display:flex;gap:.5rem;align-items:center"><span style="font-family:'DM Mono',monospace;font-size:.65rem;color:var(--verde-chiaro);background:rgba(90,138,26,.15);border:1px solid var(--verde);padding:.3rem .7rem;border-radius:4px">✓ Iscritto</span><button class="btn br2 bs2" onclick="disiscriviUscita(${u.id})">Annulla</button></div>`
+          : pieno
+            ? `<span style="font-family:'DM Mono',monospace;font-size:.65rem;color:var(--rosso)">Al completo</span>`
+            : `<button class="btn bv2" onclick="iscriviUscita(${u.id})" style="font-size:.72rem">+ Iscriviti</button>`
+        }
+      </div>
+    </div>`;
+  }).join("")}</div>`;
+}
+
+async function iscriviUscita(uscitaId){
+  if(!SOCIO_CORRENTE){toast("⚠️ Accedi prima");return;}
+  try{
+    await api("POST","/uscite/"+uscitaId+"/iscrizioni",{socio_id:SOCIO_CORRENTE.id});
+    toast("✅ Iscritto/a!");
+    await loadUscitePub();
+    renderUscitePub();
+    renderTesseraUscite();
+  }catch(e){toast("❌ "+e.message);}
+}
+async function disiscriviUscita(uscitaId){
+  if(!SOCIO_CORRENTE)return;
+  if(!confirm("Annullare la tua iscrizione?"))return;
+  try{
+    await api("DELETE","/uscite/"+uscitaId+"/iscrizioni/"+SOCIO_CORRENTE.id);
+    toast("✅ Iscrizione annullata");
+    await loadUscitePub();
+    renderUscitePub();
+    renderTesseraUscite();
+  }catch(e){toast("❌ "+e.message);}
+}
+
+// ── TESSERA TABS ──────────────────────────────────────
+function switchTesseraTab(tab){
+  document.querySelectorAll("[id^='tab-']").forEach(b=>{
+    if(b.tagName==="BUTTON") b.classList.remove("active");
+  });
+  document.getElementById("tab-"+tab).classList.add("active");
+  document.getElementById("tab-content-profilo").style.display = tab==="profilo"?"block":"none";
+  document.getElementById("tab-content-uscite").style.display  = tab==="uscite"?"block":"none";
+  if(tab==="uscite"&&SOCIO_CORRENTE) renderTesseraUscite();
+}
+
+// ── PROFILO SOCIO ─────────────────────────────────────
+function renderProfiloView(){
+  if(!SOCIO_CORRENTE)return;
+  const s=SOCIO_CORRENTE;
+  document.getElementById("pv-email").textContent    = s.email||"—";
+  document.getElementById("pv-tel").textContent      = s.tel||"—";
+  document.getElementById("pv-indirizzo").textContent= s.indirizzo||"—";
+  document.getElementById("pv-citta").textContent    = [s.citta,s.cap].filter(Boolean).join(" ")||"—";
+  document.getElementById("pv-nascita").textContent  = s.nascita?fmtD(s.nascita):"—";
+  document.getElementById("pv-cf").textContent       = s.cf||"—";
+  document.getElementById("pv-note").textContent     = s.note||"—";
+}
+function enableEditProfilo(){
+  if(!SOCIO_CORRENTE)return;
+  const s=SOCIO_CORRENTE;
+  document.getElementById("pe-email").value     = s.email||"";
+  document.getElementById("pe-tel").value       = s.tel||"";
+  document.getElementById("pe-indirizzo").value = s.indirizzo||"";
+  document.getElementById("pe-citta").value     = s.citta||"";
+  document.getElementById("pe-cap").value       = s.cap||"";
+  document.getElementById("pe-nascita").value   = s.nascita?s.nascita.split("T")[0]:"";
+  document.getElementById("pe-cf").value        = s.cf||"";
+  document.getElementById("pe-note").value      = s.note||"";
+  document.getElementById("profilo-view").style.display="none";
+  document.getElementById("profilo-edit").style.display="block";
+  document.getElementById("btn-edit-profilo").style.display="none";
+}
+function cancelEditProfilo(){
+  document.getElementById("profilo-view").style.display="block";
+  document.getElementById("profilo-edit").style.display="none";
+  document.getElementById("btn-edit-profilo").style.display="block";
+}
+async function saveProfilo(){
+  if(!SOCIO_CORRENTE)return;
+  const obj={
+    email:     document.getElementById("pe-email").value.trim(),
+    tel:       document.getElementById("pe-tel").value.trim(),
+    indirizzo: document.getElementById("pe-indirizzo").value.trim(),
+    citta:     document.getElementById("pe-citta").value.trim(),
+    cap:       document.getElementById("pe-cap").value.trim(),
+    nascita:   document.getElementById("pe-nascita").value||null,
+    cf:        document.getElementById("pe-cf").value.trim().toUpperCase(),
+    note:      document.getElementById("pe-note").value.trim(),
+  };
+  try{
+    const updated=await api("PATCH","/tessera/"+SOCIO_CORRENTE.id+"/profilo",obj);
+    // Aggiorna stato locale
+    Object.assign(SOCIO_CORRENTE,updated);
+    const s=SOCI.find(x=>x.id===SOCIO_CORRENTE.id);
+    if(s)Object.assign(s,updated);
+    cancelEditProfilo();
+    renderProfiloView();
+    toast("✅ Dati aggiornati!");
+  }catch(e){toast("❌ "+e.message);}
+}
+
+
+
+
 let CUR_ALBUM = null, CUR_ALBUM_TAB = 'foto';
 let ALBUMS_DB = [], FOTO_DB = [], VIDEO_DB = [];
 let LBX_IDX = 0, LBX_ITEMS = [], LBX_ADMIN = false;
@@ -1348,6 +1755,11 @@ function renderDocAdminTable() {
   </tr>`).join("");
 }
 
+// Download tessera anche dall'admin
+function apriTesseraSocio(socioId){
+  window.open("/api/tessera/"+socioId,"_blank");
+}
+
 // ── ADMIN ─────────────────────────────────────────────
 function adminLogin(){const u=document.getElementById("admin-user").value,p=document.getElementById("admin-pass").value;if(u==="ctr"&&p==="laroda2025"){adminLogged=true;document.getElementById("admin-login-wrap").style.display="none";document.getElementById("admin-panel-wrap").style.display="block";renderAdmin();toast("✅ Accesso effettuato!");}else{toast("❌ Credenziali errate!");document.getElementById("admin-pass").value="";}}
 function adminLogout(){adminLogged=false;document.getElementById("admin-login-wrap").style.display="block";document.getElementById("admin-panel-wrap").style.display="none";}
@@ -1615,6 +2027,7 @@ function adminRenderSoci(list){
       <button class="btn bo bs2" onclick="editSocio(${s.id})">✏️</button>
       <button class="btn bo bs2" style="border-color:var(--giallo);color:var(--giallo)" onclick="toggleSospeso(${s.id})">${s.stato==="Sospeso"?"▶":"⏸"}</button>
       <button class="btn br2 bs2" onclick="deleteSocio(${s.id})">🗑</button>
+      <button class="btn bo bs2" onclick="apriTesseraSocio(${s.id})" title="Apri tessera">🎫</button>
     </td>
   </tr>`).join("");
 }
