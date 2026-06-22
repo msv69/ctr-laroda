@@ -128,23 +128,60 @@ CREATE TABLE IF NOT EXISTS iscrizioni_trasferta (
   PRIMARY KEY (trasferta_id, socio_id)
 );
 
--- Gallery
+-- Album gallery
+CREATE TABLE IF NOT EXISTS album (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  anno        INTEGER NOT NULL,
+  nome        TEXT NOT NULL,
+  descrizione TEXT,
+  copertina   TEXT,
+  created_at  TEXT DEFAULT (datetime('now'))
+);
+
+-- Foto (legate a album)
 CREATE TABLE IF NOT EXISTS gallery_foto (
   id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  album_id   INTEGER REFERENCES album(id) ON DELETE CASCADE,
   anno       INTEGER,
   titolo     TEXT NOT NULL,
   mime_type  TEXT,
   file_path  TEXT,
   created_at TEXT DEFAULT (datetime('now'))
 );
+
+-- Video (legati a album)
 CREATE TABLE IF NOT EXISTS gallery_video (
   id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  album_id   INTEGER REFERENCES album(id) ON DELETE CASCADE,
   anno       INTEGER,
   titolo     TEXT NOT NULL,
   mime_type  TEXT,
   file_path  TEXT,
   durata     TEXT,
   created_at TEXT DEFAULT (datetime('now'))
+);
+
+-- News
+CREATE TABLE IF NOT EXISTS news (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  titolo     TEXT NOT NULL,
+  testo      TEXT,
+  tag        TEXT DEFAULT 'Comunicazione',
+  emoji      TEXT DEFAULT '📋',
+  data_pub   TEXT DEFAULT (date('now')),
+  created_at TEXT DEFAULT (datetime('now'))
+);
+
+-- Documenti
+CREATE TABLE IF NOT EXISTS documenti (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  titolo      TEXT NOT NULL,
+  descrizione TEXT,
+  categoria   TEXT DEFAULT 'Generale',
+  file_path   TEXT NOT NULL,
+  mime_type   TEXT,
+  size_kb     INTEGER DEFAULT 0,
+  created_at  TEXT DEFAULT (datetime('now'))
 );
 
 -- Note admin per anno
@@ -155,8 +192,22 @@ CREATE TABLE IF NOT EXISTS admin_note (
 `);
 
 // Migrate vecchie tabelle se esistono ancora
-try { db.exec(`ALTER TABLE gallery_foto ADD COLUMN anno INTEGER`); } catch(e){}
-try { db.exec(`ALTER TABLE gallery_video ADD COLUMN anno INTEGER`); } catch(e){}
+// Migrate: aggiungi colonne se mancano in DB esistenti
+['ALTER TABLE gallery_foto ADD COLUMN anno INTEGER',
+ 'ALTER TABLE gallery_foto ADD COLUMN album_id INTEGER',
+ 'ALTER TABLE gallery_video ADD COLUMN anno INTEGER',
+ 'ALTER TABLE gallery_video ADD COLUMN album_id INTEGER',
+].forEach(sql => { try { db.exec(sql); } catch(e){} });
+
+// Seed news di default se tabella vuota
+if (db.prepare('SELECT COUNT(*) as n FROM news').get().n === 0) {
+  const insNews = db.prepare('INSERT INTO news(titolo,testo,tag,emoji,data_pub) VALUES(?,?,?,?,?)');
+  [
+    ['Benvenuti nel nuovo sito CTR La Röda!','Il nuovo portale del club è online. Trovi tutte le informazioni su uscite, soci e gallery.','Comunicazione','🎉','2026-01-01'],
+    ['Rinnovo Tessere 2026','Il rinnovo tessere 2026 è aperto. Contattare la segreteria per la quota annuale.','Comunicazione','📋','2026-01-15'],
+    ['Trasferta Diano Marina — 5 giorni in Liguria','Dal 13 al 17 maggio 2026 la grande trasferta a Diano Marina. Iscriviti tramite il pannello admin!','Evento','🌊','2026-02-01'],
+  ].forEach(r => insNews.run(...r));
+}
 
 // ── SOCI 2026 ────────────────────────────────────────────────────────
 const SOCI_2026 = [
@@ -451,38 +502,228 @@ app.delete('/api/trasferte/:id/iscrizioni/:socio_id', (req,res) => {
   } catch(e) { res.status(400).json({error:e.message}); }
 });
 
-// ── GALLERY ──────────────────────────────────────────────────────────
-app.get('/api/gallery/:type', (req,res) => {
-  const t = req.params.type==='video'?'gallery_video':'gallery_foto';
+// ── ALBUM ────────────────────────────────────────────────────────────
+app.get('/api/album', (req,res) => {
   const anno = req.query.anno;
   try {
-    const q = anno ? `SELECT * FROM ${t} WHERE anno=? ORDER BY created_at DESC` : `SELECT * FROM ${t} ORDER BY created_at DESC`;
-    res.json(anno ? db.prepare(q).all(anno) : db.prepare(q).all());
+    const rows = anno
+      ? db.prepare('SELECT * FROM album WHERE anno=? ORDER BY created_at DESC').all(anno)
+      : db.prepare('SELECT * FROM album ORDER BY anno DESC, created_at DESC').all();
+    rows.forEach(a => {
+      a.n_foto  = db.prepare('SELECT COUNT(*) as n FROM gallery_foto  WHERE album_id=?').get(a.id).n;
+      a.n_video = db.prepare('SELECT COUNT(*) as n FROM gallery_video WHERE album_id=?').get(a.id).n;
+    });
+    res.json(rows);
   } catch(e) { res.status(500).json({error:e.message}); }
 });
 
-app.post('/api/gallery/:type', upload.single('file'), (req,res) => {
-  const type = req.params.type==='video'?'video':'foto';
-  const table = type==='foto'?'gallery_foto':'gallery_video';
-  const file_path = '/uploads/'+type+'/'+req.file.filename;
-  const anno = req.body.anno ? parseInt(req.body.anno) : new Date().getFullYear();
+app.post('/api/album', (req,res) => {
+  const b = req.body;
   try {
-    if (type==='foto') {
-      const r = db.prepare('INSERT INTO gallery_foto(anno,titolo,mime_type,file_path) VALUES(?,?,?,?)').run(anno,req.body.titolo||req.file.originalname,req.file.mimetype,file_path);
-      res.json(db.prepare('SELECT * FROM gallery_foto WHERE id=?').get(r.lastInsertRowid));
-    } else {
-      const r = db.prepare('INSERT INTO gallery_video(anno,titolo,mime_type,file_path,durata) VALUES(?,?,?,?,?)').run(anno,req.body.titolo||req.file.originalname,req.file.mimetype,file_path,req.body.durata||'—');
-      res.json(db.prepare('SELECT * FROM gallery_video WHERE id=?').get(r.lastInsertRowid));
-    }
+    const r = db.prepare('INSERT INTO album(anno,nome,descrizione) VALUES(?,?,?)').run(
+      b.anno||new Date().getFullYear(), b.nome, b.descrizione||''
+    );
+    res.json(db.prepare('SELECT * FROM album WHERE id=?').get(r.lastInsertRowid));
   } catch(e) { res.status(400).json({error:e.message}); }
 });
 
-app.delete('/api/gallery/:type/:id', (req,res) => {
-  const t = req.params.type==='video'?'gallery_video':'gallery_foto';
+app.patch('/api/album/:id', (req,res) => {
+  const b = req.body;
   try {
-    const row = db.prepare(`SELECT file_path FROM ${t} WHERE id=?`).get(req.params.id);
+    db.prepare('UPDATE album SET nome=?,descrizione=? WHERE id=?').run(b.nome, b.descrizione||'', req.params.id);
+    res.json({ok:true});
+  } catch(e) { res.status(400).json({error:e.message}); }
+});
+
+app.delete('/api/album/:id', (req,res) => {
+  try {
+    // Elimina file fisici delle foto/video nell'album
+    const foto  = db.prepare('SELECT file_path FROM gallery_foto  WHERE album_id=?').all(req.params.id);
+    const video = db.prepare('SELECT file_path FROM gallery_video WHERE album_id=?').all(req.params.id);
+    [...foto, ...video].forEach(r => {
+      if (r.file_path) {
+        const f = path.join(UPLOAD_DIR, r.file_path.replace('/uploads/',''));
+        if (fs.existsSync(f)) fs.unlinkSync(f);
+      }
+    });
+    db.prepare('DELETE FROM album WHERE id=?').run(req.params.id);
+    res.json({ok:true});
+  } catch(e) { res.status(400).json({error:e.message}); }
+});
+
+// ── GALLERY FOTO (con album) ─────────────────────────────────────────
+app.get('/api/gallery/foto', (req,res) => {
+  try {
+    const {anno, album_id} = req.query;
+    let q = 'SELECT * FROM gallery_foto WHERE 1=1';
+    const params = [];
+    if (anno)     { q += ' AND anno=?';     params.push(anno); }
+    if (album_id) { q += ' AND album_id=?'; params.push(album_id); }
+    q += ' ORDER BY created_at ASC';
+    res.json(db.prepare(q).all(...params));
+  } catch(e) { res.status(500).json({error:e.message}); }
+});
+
+app.post('/api/gallery/foto', upload.single('file'), (req,res) => {
+  const file_path = '/uploads/foto/' + req.file.filename;
+  const anno = parseInt(req.body.anno) || new Date().getFullYear();
+  const album_id = req.body.album_id ? parseInt(req.body.album_id) : null;
+  try {
+    const r = db.prepare('INSERT INTO gallery_foto(anno,album_id,titolo,mime_type,file_path) VALUES(?,?,?,?,?)').run(
+      anno, album_id, req.body.titolo||req.file.originalname, req.file.mimetype, file_path
+    );
+    // Imposta come copertina album se primo elemento
+    if (album_id) {
+      const alb = db.prepare('SELECT copertina FROM album WHERE id=?').get(album_id);
+      if (!alb?.copertina) db.prepare('UPDATE album SET copertina=? WHERE id=?').run(file_path, album_id);
+    }
+    res.json(db.prepare('SELECT * FROM gallery_foto WHERE id=?').get(r.lastInsertRowid));
+  } catch(e) { res.status(400).json({error:e.message}); }
+});
+
+app.patch('/api/gallery/foto/:id', (req,res) => {
+  try {
+    db.prepare('UPDATE gallery_foto SET titolo=? WHERE id=?').run(req.body.titolo, req.params.id);
+    res.json({ok:true});
+  } catch(e) { res.status(400).json({error:e.message}); }
+});
+
+app.delete('/api/gallery/foto/:id', (req,res) => {
+  try {
+    const row = db.prepare('SELECT file_path FROM gallery_foto WHERE id=?').get(req.params.id);
     if (row?.file_path) { const f=path.join(UPLOAD_DIR,row.file_path.replace('/uploads/','')); if(fs.existsSync(f))fs.unlinkSync(f); }
-    db.prepare(`DELETE FROM ${t} WHERE id=?`).run(req.params.id);
+    db.prepare('DELETE FROM gallery_foto WHERE id=?').run(req.params.id);
+    res.json({ok:true});
+  } catch(e) { res.status(400).json({error:e.message}); }
+});
+
+// ── GALLERY VIDEO (con album) ────────────────────────────────────────
+app.get('/api/gallery/video', (req,res) => {
+  try {
+    const {anno, album_id} = req.query;
+    let q = 'SELECT * FROM gallery_video WHERE 1=1';
+    const params = [];
+    if (anno)     { q += ' AND anno=?';     params.push(anno); }
+    if (album_id) { q += ' AND album_id=?'; params.push(album_id); }
+    q += ' ORDER BY created_at ASC';
+    res.json(db.prepare(q).all(...params));
+  } catch(e) { res.status(500).json({error:e.message}); }
+});
+
+app.post('/api/gallery/video', upload.single('file'), (req,res) => {
+  const file_path = '/uploads/video/' + req.file.filename;
+  const anno = parseInt(req.body.anno) || new Date().getFullYear();
+  const album_id = req.body.album_id ? parseInt(req.body.album_id) : null;
+  try {
+    const r = db.prepare('INSERT INTO gallery_video(anno,album_id,titolo,mime_type,file_path,durata) VALUES(?,?,?,?,?,?)').run(
+      anno, album_id, req.body.titolo||req.file.originalname, req.file.mimetype, file_path, req.body.durata||'—'
+    );
+    res.json(db.prepare('SELECT * FROM gallery_video WHERE id=?').get(r.lastInsertRowid));
+  } catch(e) { res.status(400).json({error:e.message}); }
+});
+
+app.patch('/api/gallery/video/:id', (req,res) => {
+  try {
+    const b = req.body;
+    db.prepare('UPDATE gallery_video SET titolo=?,durata=? WHERE id=?').run(b.titolo, b.durata||'—', req.params.id);
+    res.json({ok:true});
+  } catch(e) { res.status(400).json({error:e.message}); }
+});
+
+app.delete('/api/gallery/video/:id', (req,res) => {
+  try {
+    const row = db.prepare('SELECT file_path FROM gallery_video WHERE id=?').get(req.params.id);
+    if (row?.file_path) { const f=path.join(UPLOAD_DIR,row.file_path.replace('/uploads/','')); if(fs.existsSync(f))fs.unlinkSync(f); }
+    db.prepare('DELETE FROM gallery_video WHERE id=?').run(req.params.id);
+    res.json({ok:true});
+  } catch(e) { res.status(400).json({error:e.message}); }
+});
+
+// ── NEWS ─────────────────────────────────────────────────────────────
+app.get('/api/news', (req,res) => {
+  try { res.json(db.prepare('SELECT * FROM news ORDER BY data_pub DESC').all()); }
+  catch(e) { res.status(500).json({error:e.message}); }
+});
+
+app.post('/api/news', (req,res) => {
+  const b = req.body;
+  try {
+    const r = db.prepare('INSERT INTO news(titolo,testo,tag,emoji,data_pub) VALUES(?,?,?,?,?)').run(
+      b.titolo, b.testo||'', b.tag||'Comunicazione', b.emoji||'📋', b.data_pub||new Date().toISOString().split('T')[0]
+    );
+    res.json(db.prepare('SELECT * FROM news WHERE id=?').get(r.lastInsertRowid));
+  } catch(e) { res.status(400).json({error:e.message}); }
+});
+
+app.patch('/api/news/:id', (req,res) => {
+  const b = req.body;
+  try {
+    db.prepare('UPDATE news SET titolo=?,testo=?,tag=?,emoji=?,data_pub=? WHERE id=?').run(
+      b.titolo, b.testo||'', b.tag||'Comunicazione', b.emoji||'📋', b.data_pub, req.params.id
+    );
+    res.json({ok:true});
+  } catch(e) { res.status(400).json({error:e.message}); }
+});
+
+app.delete('/api/news/:id', (req,res) => {
+  try { db.prepare('DELETE FROM news WHERE id=?').run(req.params.id); res.json({ok:true}); }
+  catch(e) { res.status(400).json({error:e.message}); }
+});
+
+// ── DOCUMENTI ────────────────────────────────────────────────────────
+const uploadDocs = multer({
+  storage: multer.diskStorage({
+    destination: (req,file,cb) => {
+      const d = path.join(UPLOAD_DIR, 'documenti');
+      fs.mkdirSync(d, {recursive:true}); cb(null,d);
+    },
+    filename: (req,file,cb) => {
+      // Mantieni nome originale ma aggiungi timestamp per evitare conflitti
+      const ext = path.extname(file.originalname);
+      const base = path.basename(file.originalname, ext).replace(/[^a-zA-Z0-9_-]/g,'_');
+      cb(null, base + '_' + Date.now() + ext);
+    }
+  }),
+  limits: { fileSize: 50*1024*1024 },
+  fileFilter: (req,file,cb) => {
+    if (file.mimetype === 'application/pdf' || file.mimetype.startsWith('image/')) cb(null,true);
+    else cb(new Error('Solo PDF e immagini'));
+  }
+});
+
+app.get('/api/documenti', (req,res) => {
+  try { res.json(db.prepare('SELECT * FROM documenti ORDER BY categoria, titolo').all()); }
+  catch(e) { res.status(500).json({error:e.message}); }
+});
+
+app.post('/api/documenti', uploadDocs.single('file'), (req,res) => {
+  if (!req.file) return res.status(400).json({error:'File mancante'});
+  const file_path = '/uploads/documenti/' + req.file.filename;
+  const size_kb = Math.round(req.file.size / 1024);
+  try {
+    const r = db.prepare('INSERT INTO documenti(titolo,descrizione,categoria,file_path,mime_type,size_kb) VALUES(?,?,?,?,?,?)').run(
+      req.body.titolo||req.file.originalname, req.body.descrizione||'',
+      req.body.categoria||'Generale', file_path, req.file.mimetype, size_kb
+    );
+    res.json(db.prepare('SELECT * FROM documenti WHERE id=?').get(r.lastInsertRowid));
+  } catch(e) { res.status(400).json({error:e.message}); }
+});
+
+app.patch('/api/documenti/:id', (req,res) => {
+  const b = req.body;
+  try {
+    db.prepare('UPDATE documenti SET titolo=?,descrizione=?,categoria=? WHERE id=?').run(
+      b.titolo, b.descrizione||'', b.categoria||'Generale', req.params.id
+    );
+    res.json({ok:true});
+  } catch(e) { res.status(400).json({error:e.message}); }
+});
+
+app.delete('/api/documenti/:id', (req,res) => {
+  try {
+    const row = db.prepare('SELECT file_path FROM documenti WHERE id=?').get(req.params.id);
+    if (row?.file_path) { const f=path.join(UPLOAD_DIR,row.file_path.replace('/uploads/','')); if(fs.existsSync(f))fs.unlinkSync(f); }
+    db.prepare('DELETE FROM documenti WHERE id=?').run(req.params.id);
     res.json({ok:true});
   } catch(e) { res.status(400).json({error:e.message}); }
 });
