@@ -139,7 +139,39 @@ tbody td{padding:.85rem 1rem;font-size:.88rem}
 .ld{display:flex;align-items:center;justify-content:center;height:80px;color:var(--gc);font-family:"DM Mono",monospace;font-size:.75rem}
 .ld::after{content:"";display:inline-block;width:12px;height:12px;border:2px solid var(--verde);border-top-color:transparent;border-radius:50%;animation:sp .7s linear infinite;margin-left:.7rem}
 @keyframes sp{to{transform:rotate(360deg)}}
-.empty{text-align:center;padding:3rem 1rem;color:var(--gc);font-family:"DM Mono",monospace;font-size:.8rem;letter-spacing:.08em}
+/* LIGHTBOX */
+.lbx{display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.93);align-items:center;justify-content:center;flex-direction:column}
+.lbx.open{display:flex}
+.lbx-img{max-width:90vw;max-height:75vh;object-fit:contain;border-radius:4px;box-shadow:0 0 60px rgba(0,0,0,.5)}
+.lbx-cap{margin-top:1rem;font-family:"DM Mono",monospace;font-size:.8rem;color:rgba(255,255,255,.7);text-align:center;max-width:600px}
+.lbx-nav{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.12);border:none;color:#fff;font-size:2rem;padding:.5rem 1rem;cursor:pointer;border-radius:4px;transition:background .2s}
+.lbx-nav:hover{background:rgba(255,255,255,.25)}
+.lbx-prev{left:1rem}.lbx-next{right:1rem}
+.lbx-close{position:absolute;top:1rem;right:1.5rem;background:none;border:none;color:#fff;font-size:2rem;cursor:pointer;opacity:.7}
+.lbx-close:hover{opacity:1}
+.lbx-edit{position:absolute;bottom:1rem;right:1.5rem;background:rgba(90,138,26,.8);border:none;color:#fff;font-family:"DM Mono",monospace;font-size:.7rem;padding:.4rem .9rem;border-radius:4px;cursor:pointer;letter-spacing:.08em;text-transform:uppercase}
+.lbx-edit:hover{background:var(--verde)}
+.lbx-del{position:absolute;bottom:1rem;left:1.5rem;background:rgba(192,57,43,.8);border:none;color:#fff;font-family:"DM Mono",monospace;font-size:.7rem;padding:.4rem .9rem;border-radius:4px;cursor:pointer;letter-spacing:.08em;text-transform:uppercase}
+.lbx-del:hover{background:var(--rosso)}
+/* ALBUM */
+.album-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.2rem;padding:1.5rem 2rem}
+.album-card{background:var(--g);border:1px solid rgba(90,138,26,.2);border-radius:8px;overflow:hidden;cursor:pointer;transition:all .2s}
+.album-card:hover{border-color:var(--verde-chiaro);transform:translateY(-4px)}
+.album-cover{height:160px;background:linear-gradient(135deg,#1a2e08,#0d1a06);display:flex;align-items:center;justify-content:center;font-size:4rem;position:relative;overflow:hidden}
+.album-cover img{width:100%;height:100%;object-fit:cover}
+.album-info{padding:1rem}
+.album-info h4{font-size:.95rem;font-weight:500;margin-bottom:.3rem}
+.album-meta{font-family:"DM Mono",monospace;font-size:.65rem;color:var(--gc)}
+/* DOCUMENTI */
+.doc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;padding:1.5rem 2rem}
+.doc-card{background:var(--g);border:1px solid rgba(90,138,26,.2);border-radius:6px;padding:1.2rem;display:flex;gap:1rem;align-items:flex-start;transition:border-color .2s}
+.doc-card:hover{border-color:var(--verde-chiaro)}
+.doc-icon{font-size:2.2rem;flex-shrink:0}
+.doc-info h4{font-size:.9rem;font-weight:500;margin-bottom:.3rem}
+.doc-info p{font-size:.78rem;color:var(--gc);line-height:1.4}
+.doc-meta{font-family:"DM Mono",monospace;font-size:.62rem;color:var(--gm);margin-top:.5rem}
+/* NEWS CARD CLICK */
+.nc{cursor:pointer}
 </style>
 </head>
 <body>
@@ -152,6 +184,7 @@ tbody td{padding:.85rem 1rem;font-size:.88rem}
     <button onclick="showPage('soci')" id="nav-soci">Soci</button>
     <button onclick="showPage('uscite')" id="nav-uscite">Uscite</button>
     <button onclick="showPage('gallery')" id="nav-gallery">Gallery</button>
+    <button onclick="showPage('documenti')" id="nav-documenti">Documenti</button>
     <div class="csw">
       <button id="btn-chf" onclick="setCurrency('CHF')">CHF</button>
       <button id="btn-eur" onclick="setCurrency('EUR')" class="active">EUR</button>
@@ -227,32 +260,53 @@ tbody td{padding:.85rem 1rem;font-size:.88rem}
 
 <!-- GALLERY -->
 <div class="page" id="page-gallery">
-  <div class="sh"><h2>Gallery <span>Foto & Video</span></h2></div>
-  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.8rem;padding:0 2rem;margin-top:1rem">
-    <div style="display:flex;gap:.5rem">
-      <button class="gtab active" onclick="switchGallery('foto',this)">📷 Foto</button>
-      <button class="gtab" onclick="switchGallery('video',this)">🎬 Video</button>
+  <div class="sh"><h2>Gallery <span>Album</span></h2></div>
+  <div id="gallery-album-view">
+    <div style="padding:0 2rem .5rem">
+      <span style="font-family:'DM Mono',monospace;font-size:.72rem;color:var(--gc)" id="gallery-year-label"></span>
     </div>
-    <div style="display:flex;gap:.6rem;align-items:center;flex-wrap:wrap">
-      <input type="file" id="gallery-file-input" accept="image/*" style="display:none" onchange="handleGalleryUpload(this,'foto')">
-      <input type="file" id="gallery-video-input" accept="video/*" style="display:none" onchange="handleGalleryUpload(this,'video')">
-      <button class="btn bv2" id="btn-add-media" onclick="triggerGalleryUpload()" style="font-size:.72rem">+ Aggiungi Foto</button>
-      <span style="font-family:'DM Mono',monospace;font-size:.62rem;color:var(--gc)" id="gallery-count"></span>
-    </div>
+    <div class="album-grid" id="album-grid"><div class="ld">Caricamento</div></div>
   </div>
-  <div class="gc2" id="gallery-content"></div>
+  <div id="gallery-album-open" style="display:none">
+    <div style="padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.8rem">
+      <button class="btn bo" onclick="closeAlbum()">← Tutti gli album</button>
+      <div style="display:flex;gap:.5rem">
+        <button class="gtab active" id="gtab-foto" onclick="switchAlbumTab('foto',this)">📷 Foto</button>
+        <button class="gtab" id="gtab-video" onclick="switchAlbumTab('video',this)">🎬 Video</button>
+      </div>
+      <div style="display:flex;gap:.6rem;align-items:center">
+        <input type="file" id="album-foto-input" accept="image/*" multiple style="display:none" onchange="handleAlbumUpload(this,'foto')">
+        <input type="file" id="album-video-input" accept="video/*" multiple style="display:none" onchange="handleAlbumUpload(this,'video')">
+        <button class="btn bv2" id="btn-add-album-media" onclick="triggerAlbumUpload()" style="font-size:.72rem">+ Aggiungi Foto</button>
+        <span style="font-family:'DM Mono',monospace;font-size:.62rem;color:var(--gc)" id="album-media-count"></span>
+      </div>
+    </div>
+    <div style="padding:0 2rem .8rem">
+      <h3 id="album-open-title" style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:.04em;color:var(--giallo)"></h3>
+      <p id="album-open-desc" style="font-size:.85rem;color:var(--gc)"></p>
+    </div>
+    <div class="gc2" id="album-media-content"></div>
+  </div>
 </div>
-<div class="mo" id="modal-gallery-add">
-  <div class="md" style="max-width:460px">
-    <div class="mh"><h3 id="mga-title">Aggiungi Foto</h3><button class="mc2" onclick="closeModal('modal-gallery-add')">✕</button></div>
-    <div id="mga-preview" style="min-height:120px;background:var(--gs);border-radius:6px;margin-bottom:1rem;display:flex;align-items:center;justify-content:center;overflow:hidden"></div>
-    <div class="fg"><label>Titolo</label><input id="mga-titolo" type="text" placeholder="Descrizione..."></div>
-    <div id="mga-extra"></div>
-    <div style="display:flex;gap:.8rem;justify-content:flex-end;margin-top:1.5rem">
-      <button class="btn bo" onclick="closeModal('modal-gallery-add')">Annulla</button>
-      <button class="btn bv2" id="btn-save-gallery" onclick="saveGalleryItem()">Salva</button>
-    </div>
+
+<!-- LIGHTBOX -->
+<div class="lbx" id="lightbox">
+  <button class="lbx-close" onclick="closeLbx()">✕</button>
+  <button class="lbx-nav lbx-prev" onclick="lbxNav(-1)">‹</button>
+  <img class="lbx-img" id="lbx-img" src="" alt="">
+  <div class="lbx-cap" id="lbx-cap"></div>
+  <button class="lbx-nav lbx-next" onclick="lbxNav(1)">›</button>
+  <button class="lbx-edit" onclick="lbxEdit()" id="lbx-edit-btn" style="display:none">✏️ Rinomina</button>
+  <button class="lbx-del" onclick="lbxDelete()" id="lbx-del-btn" style="display:none">🗑 Elimina</button>
+</div>
+
+<!-- DOCUMENTI -->
+<div class="page" id="page-documenti">
+  <div class="sh"><h2>📄 <span>Documenti</span></h2><p>Regolamenti, calendari, moduli e materiale del club</p></div>
+  <div id="doc-filter" style="padding:1rem 2rem 0;display:flex;gap:.5rem;flex-wrap:wrap">
+    <button class="btn bv2 bs2" onclick="filterDocs('tutti')" id="df-tutti">Tutti</button>
   </div>
+  <div class="doc-grid" id="doc-grid"><div class="ld">Caricamento</div></div>
 </div>
 
 <!-- ADMIN -->
@@ -370,6 +424,37 @@ tbody td{padding:.85rem 1rem;font-size:.88rem}
         <textarea id="admin-note" style="width:100%;min-height:100px;background:var(--gs);border:1px solid var(--gm);border-radius:4px;padding:.8rem 1rem;color:var(--b);font-size:.88rem;outline:none;resize:vertical" placeholder="Note per questo anno..."></textarea>
         <button class="btn bv2" style="margin-top:.8rem" onclick="saveAdminNote()">Salva Note</button>
       </div>
+
+      <!-- NEWS ADMIN -->
+      <div class="as">
+        <h3>📰 Gestione News</h3>
+        <button class="btn bv2" onclick="openModalNews()" style="margin-bottom:1rem">+ Nuova News</button>
+        <div class="tw sc" style="padding:0">
+          <table><thead><tr><th>Data</th><th>Emoji</th><th>Tag</th><th>Titolo</th><th>Testo</th><th></th></tr></thead>
+          <tbody id="news-admin-tbody"><tr><td colspan="6"><div class="ld">Caricamento</div></td></tr></tbody></table>
+        </div>
+      </div>
+
+      <!-- ALBUM ADMIN -->
+      <div class="as">
+        <h3>🖼️ Gestione Album — Anno <span id="album-anno-label">—</span></h3>
+        <button class="btn bv2" onclick="openModalAlbum()" style="margin-bottom:1rem">+ Nuovo Album</button>
+        <div class="tw sc" style="padding:0">
+          <table><thead><tr><th>Nome Album</th><th>Descrizione</th><th>Foto</th><th>Video</th><th></th></tr></thead>
+          <tbody id="album-admin-tbody"><tr><td colspan="5"><div class="ld">Caricamento</div></td></tr></tbody></table>
+        </div>
+      </div>
+
+      <!-- DOCUMENTI ADMIN -->
+      <div class="as">
+        <h3>📄 Gestione Documenti</h3>
+        <button class="btn bv2" onclick="openModalDocumento()" style="margin-bottom:1rem">+ Carica PDF</button>
+        <div class="tw sc" style="padding:0">
+          <table><thead><tr><th>Titolo</th><th>Categoria</th><th>Descrizione</th><th>Dimensione</th><th></th></tr></thead>
+          <tbody id="doc-admin-tbody"><tr><td colspan="5"><div class="ld">Caricamento</div></td></tr></tbody></table>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>
@@ -536,6 +621,76 @@ tbody td{padding:.85rem 1rem;font-size:.88rem}
   </div>
 </div>
 
+<!-- MODAL ALBUM -->
+<div class="mo" id="modal-album">
+  <div class="md" style="max-width:460px">
+    <div class="mh"><h3 id="mal-title">Nuovo Album</h3><button class="mc2" onclick="closeModal('modal-album')">✕</button></div>
+    <input type="hidden" id="mal-id">
+    <div class="fg"><label>Nome album *</label><input id="mal-nome" type="text" placeholder="es. Stelvio 2026"></div>
+    <div class="fg"><label>Descrizione</label><input id="mal-desc" type="text" placeholder="es. Trasferta agosto 2026"></div>
+    <div style="display:flex;gap:.8rem;justify-content:flex-end;margin-top:1.5rem">
+      <button class="btn bo" onclick="closeModal('modal-album')">Annulla</button>
+      <button class="btn bv2" onclick="saveAlbum()">Salva</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL RINOMINA FOTO -->
+<div class="mo" id="modal-rename-media">
+  <div class="md" style="max-width:420px">
+    <div class="mh"><h3 id="mrm-title">Modifica Titolo</h3><button class="mc2" onclick="closeModal('modal-rename-media')">✕</button></div>
+    <input type="hidden" id="mrm-id">
+    <input type="hidden" id="mrm-type">
+    <div class="fg"><label>Titolo</label><input id="mrm-titolo" type="text"></div>
+    <div id="mrm-extra" class="fg" style="display:none"><label>Durata (es. 3:42)</label><input id="mrm-durata" type="text"></div>
+    <div style="display:flex;gap:.8rem;justify-content:flex-end;margin-top:1.5rem">
+      <button class="btn bo" onclick="closeModal('modal-rename-media')">Annulla</button>
+      <button class="btn bv2" onclick="saveRenameMedia()">Salva</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL NEWS -->
+<div class="mo" id="modal-news">
+  <div class="md" style="max-width:580px">
+    <div class="mh"><h3 id="mn-title">Nuova News</h3><button class="mc2" onclick="closeModal('modal-news')">✕</button></div>
+    <input type="hidden" id="mn-id">
+    <div class="mr">
+      <div class="fg"><label>Emoji</label><input id="mn-emoji" type="text" placeholder="📋" style="font-size:1.5rem;text-align:center"></div>
+      <div class="fg"><label>Tag / Categoria</label>
+        <select id="mn-tag"><option>Comunicazione</option><option>Evento</option><option>Reportage</option><option>Convenzione</option><option>Assemblea</option><option>Tecnologia</option><option>Altro</option></select>
+      </div>
+    </div>
+    <div class="fg"><label>Titolo *</label><input id="mn-titolo" type="text" placeholder="Titolo della news..."></div>
+    <div class="fg"><label>Testo</label><textarea id="mn-testo" style="min-height:120px" placeholder="Contenuto della news..."></textarea></div>
+    <div class="fg"><label>Data pubblicazione</label><input id="mn-data" type="date"></div>
+    <div style="display:flex;gap:.8rem;justify-content:flex-end;margin-top:1.5rem">
+      <button class="btn bo" onclick="closeModal('modal-news')">Annulla</button>
+      <button class="btn bv2" onclick="saveNews()">Pubblica</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DOCUMENTO -->
+<div class="mo" id="modal-documento">
+  <div class="md" style="max-width:500px">
+    <div class="mh"><h3 id="mdoc-title">Nuovo Documento</h3><button class="mc2" onclick="closeModal('modal-documento')">✕</button></div>
+    <input type="hidden" id="mdoc-id">
+    <div class="fg"><label>Titolo *</label><input id="mdoc-titolo" type="text" placeholder="es. Regolamento Club 2026"></div>
+    <div class="fg"><label>Categoria</label>
+      <select id="mdoc-cat"><option>Generale</option><option>Regolamento</option><option>Calendario</option><option>Modulo</option><option>Verbale</option><option>Comunicato</option></select>
+    </div>
+    <div class="fg"><label>Descrizione</label><input id="mdoc-desc" type="text" placeholder="Breve descrizione..."></div>
+    <div class="fg" id="mdoc-file-wrap"><label>File PDF *</label>
+      <input type="file" id="mdoc-file" accept=".pdf,application/pdf" style="background:var(--gs);border:1px solid var(--gm);border-radius:4px;padding:.6rem;color:var(--b);width:100%">
+    </div>
+    <div style="display:flex;gap:.8rem;justify-content:flex-end;margin-top:1.5rem">
+      <button class="btn bo" onclick="closeModal('modal-documento')">Annulla</button>
+      <button class="btn bv2" id="btn-save-doc" onclick="saveDocumento()">Carica</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -571,13 +726,9 @@ async function api(method,path,body){
 // ── INIT ──────────────────────────────────────────────
 async function init(){
   await loadSoci();
-  renderNews();
-  // Carica anni disponibili
-  try{
-    ANNI=await api("GET","/anni");
-    if(!ANNI.includes(ANNO))ANNI.unshift(ANNO);
-  }catch(e){ANNI=[ANNO];}
-  renderNews();
+  await loadNews();
+  renderNewsPub();
+  try{ANNI=await api("GET","/anni");if(!ANNI.includes(ANNO))ANNI.unshift(ANNO);}catch(e){ANNI=[ANNO];}
 }
 
 // ── NAV ───────────────────────────────────────────────
@@ -585,11 +736,12 @@ function showPage(p){
   document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
   document.querySelectorAll(".nav-links button[id^='nav-']").forEach(x=>x.classList.remove("active"));
   document.getElementById("page-"+p).classList.add("active");
-  document.getElementById("nav-"+p).classList.add("active");
-  if(p==="home"||p==="news")renderNews();
+  const nb=document.getElementById("nav-"+p);if(nb)nb.classList.add("active");
+  if(p==="home"||p==="news"){renderNewsPub();}
   if(p==="soci")renderSociPub();
   if(p==="uscite")loadUscitePub();
-  if(p==="gallery")renderGallery("foto");
+  if(p==="gallery"){CUR_ALBUM=null;document.getElementById("gallery-album-view").style.display="block";document.getElementById("gallery-album-open").style.display="none";renderGallery();}
+  if(p==="documenti")renderDocumenti();
   if(p==="admin"&&adminLogged)renderAdmin();
 }
 
@@ -685,14 +837,6 @@ async function saveSocio(){
 async function deleteSocio(id){if(!confirm("Eliminare questo socio?"))return;try{await api("DELETE","/soci/"+id);await loadSoci();adminRenderSoci();toast("🗑️ Eliminato");}catch(e){toast("❌ "+e.message);}}
 async function toggleSospeso(id){const s=SOCI.find(x=>x.id===id);if(!s)return;const ns=s.stato==="Sospeso"?"Attivo":"Sospeso";try{await api("PATCH","/soci/"+id+"/stato",{stato:ns});await loadSoci();adminRenderSoci();toast("Stato: "+ns);}catch(e){toast("❌ "+e.message);}}
 
-// ── NEWS ──────────────────────────────────────────────
-function renderNews(){
-  const t=n=>`<div class="nc"><div class="nc-img">${n.emoji}</div><div class="nc-body"><div class="nc-tag">${n.tag}</div><h3>${n.titolo}</h3><p>${n.testo}</p><div class="nc-meta">${n.data}</div></div></div>`;
-  const h=document.getElementById("home-news"),a=document.getElementById("all-news");
-  if(h)h.innerHTML=NEWS.slice(0,3).map(t).join("");
-  if(a)a.innerHTML=NEWS.map(t).join("");
-}
-
 // ── USCITE PUBBLICHE ──────────────────────────────────
 async function loadUscitePub(){
   const annoEl=document.getElementById("uscite-anno-title");
@@ -737,36 +881,471 @@ function showUscitaDetail(id){
   document.getElementById("modal-detail").classList.add("open");
 }
 
-// ── GALLERY ───────────────────────────────────────────
-function switchGallery(type,btn){document.querySelectorAll(".gtab").forEach(t=>t.classList.remove("active"));btn.classList.add("active");gallType=type;const ab=document.getElementById("btn-add-media");if(ab)ab.textContent=type==="foto"?"+ Aggiungi Foto":"+ Aggiungi Video";renderGallery(type);}
-function triggerGalleryUpload(){document.getElementById(gallType==="foto"?"gallery-file-input":"gallery-video-input").click();}
-function handleGalleryUpload(input,type){const file=input.files[0];if(!file)return;pendFile=file;pendType=type;const url=URL.createObjectURL(file);document.getElementById("mga-title").textContent=type==="foto"?"📷 Aggiungi Foto":"🎬 Aggiungi Video";document.getElementById("mga-titolo").value=file.name.replace(/\.[^.]+$/,"").replace(/[-_]/g," ");const prev=document.getElementById("mga-preview");prev.innerHTML=type==="foto"?`<img src="${url}" style="width:100%;max-height:220px;border-radius:6px;object-fit:cover">`:`<video src="${url}" style="width:100%;max-height:220px;border-radius:6px" controls></video>`;document.getElementById("mga-extra").innerHTML=type==="video"?"<div class='fg'><label>Durata (es. 3:42)</label><input id='mga-durata' type='text' placeholder='0:00'></div>":"";document.getElementById("modal-gallery-add").classList.add("open");input.value="";}
-async function saveGalleryItem(){if(!pendFile){toast("⚠️ Nessun file");return;}const btn=document.getElementById("btn-save-gallery");btn.disabled=true;btn.textContent="Caricamento...";try{const fd=new FormData();fd.append("file",pendFile);fd.append("titolo",document.getElementById("mga-titolo").value||"Senza titolo");fd.append("anno",ANNO);if(pendType==="video"){const d=document.getElementById("mga-durata");fd.append("durata",d?d.value:"—");}await api("POST","/gallery/"+pendType,fd);pendFile=null;pendType=null;closeModal("modal-gallery-add");renderGallery(gallType);toast("✅ Aggiunto!");}catch(e){toast("❌ "+e.message);}finally{btn.disabled=false;btn.textContent="Salva";}}
-async function deleteGalleryItem(type,id){if(!confirm("Eliminare?"))return;try{await api("DELETE","/gallery/"+type+"/"+id);renderGallery(gallType);toast("🗑️ Rimosso");}catch(e){toast("❌ "+e.message);}}
-async function renderGallery(type){
-  const el=document.getElementById("gallery-content");if(!el)return;
-  const cnt=document.getElementById("gallery-count");
-  if(type==="foto"){
-    let db=[];try{db=await api("GET","/gallery/foto?anno="+ANNO);}catch(e){}
-    const all=[...FOTO_SEED.map((f,i)=>({...f,_seed:true,_k:i})),...db];
-    if(cnt)cnt.textContent=all.length+" foto";
-    el.innerHTML=`<div class="pg">${all.map(f=>`
-      <div class="pi" style="position:relative;overflow:hidden">
-        ${f.file_path?`<img src="${f.file_path}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">`:`<span style="font-size:4rem;z-index:1">${f.emoji||"🖼️"}</span>`}
-        <div class="pl" style="z-index:2">${f.titolo||f.label}</div>
-        ${!f._seed?`<button onclick="deleteGalleryItem('foto',${f.id})" style="position:absolute;top:7px;right:7px;z-index:3;background:rgba(192,57,43,.9);border:none;border-radius:4px;color:#fff;font-size:.7rem;padding:.25rem .5rem;cursor:pointer">🗑</button>`:""}
+// ── ALBUM & GALLERY ───────────────────────────────────
+let CUR_ALBUM = null, CUR_ALBUM_TAB = 'foto';
+let ALBUMS_DB = [], FOTO_DB = [], VIDEO_DB = [];
+let LBX_IDX = 0, LBX_ITEMS = [], LBX_ADMIN = false;
+let editAlbumId = null;
+
+async function renderGallery(type) {
+  const lbl = document.getElementById("gallery-year-label");
+  if (lbl) lbl.textContent = "Anno " + ANNO;
+  try { ALBUMS_DB = await api("GET", "/album?anno=" + ANNO); } catch(e) { ALBUMS_DB = []; }
+  const grid = document.getElementById("album-grid");
+  if (!grid) return;
+  if (!ALBUMS_DB.length) {
+    grid.innerHTML = `<div class="empty">Nessun album per ${ANNO} — creane uno dall'Admin</div>`;
+    return;
+  }
+  grid.innerHTML = ALBUMS_DB.map(a => `
+    <div class="album-card" onclick="openAlbum(${a.id})">
+      <div class="album-cover">
+        ${a.copertina ? `<img src="${a.copertina}" alt="${a.nome}">` : `<span>🖼️</span>`}
+      </div>
+      <div class="album-info">
+        <h4>${a.nome}</h4>
+        <div class="album-meta">${a.n_foto||0} foto · ${a.n_video||0} video${a.descrizione ? ' · '+a.descrizione : ''}</div>
+      </div>
+    </div>`).join("");
+}
+
+async function openAlbum(albumId) {
+  CUR_ALBUM = ALBUMS_DB.find(a => a.id === albumId);
+  if (!CUR_ALBUM) return;
+  document.getElementById("album-open-title").textContent = CUR_ALBUM.nome;
+  document.getElementById("album-open-desc").textContent = CUR_ALBUM.descrizione || "";
+  document.getElementById("gallery-album-view").style.display = "none";
+  document.getElementById("gallery-album-open").style.display = "block";
+  await loadAlbumMedia('foto');
+}
+
+function closeAlbum() {
+  CUR_ALBUM = null;
+  document.getElementById("gallery-album-view").style.display = "block";
+  document.getElementById("gallery-album-open").style.display = "none";
+}
+
+async function switchAlbumTab(type, btn) {
+  document.querySelectorAll(".gtab").forEach(t => t.classList.remove("active"));
+  btn.classList.add("active");
+  CUR_ALBUM_TAB = type;
+  const ab = document.getElementById("btn-add-album-media");
+  if (ab) ab.textContent = type === "foto" ? "+ Aggiungi Foto" : "+ Aggiungi Video";
+  await loadAlbumMedia(type);
+}
+
+async function loadAlbumMedia(type) {
+  if (!CUR_ALBUM) return;
+  CUR_ALBUM_TAB = type;
+  const el = document.getElementById("album-media-content");
+  const cnt = document.getElementById("album-media-count");
+  try {
+    if (type === 'foto') {
+      FOTO_DB = await api("GET", "/gallery/foto?album_id=" + CUR_ALBUM.id);
+    } else {
+      VIDEO_DB = await api("GET", "/gallery/video?album_id=" + CUR_ALBUM.id);
+    }
+  } catch(e) { FOTO_DB = []; VIDEO_DB = []; }
+
+  if (type === 'foto') {
+    if (cnt) cnt.textContent = FOTO_DB.length + " foto";
+    if (!FOTO_DB.length) {
+      el.innerHTML = `<div class="empty">Nessuna foto in questo album — caricane alcune!</div>`;
+      return;
+    }
+    LBX_ITEMS = FOTO_DB; LBX_ADMIN = adminLogged;
+    el.innerHTML = `<div class="pg">${FOTO_DB.map((f,i) => `
+      <div class="pi" style="position:relative;overflow:hidden;cursor:zoom-in" onclick="openLbx(${i})">
+        <img src="${f.file_path}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" loading="lazy">
+        <div class="pl" style="z-index:2">${f.titolo}</div>
       </div>`).join("")}</div>`;
-  }else{
-    let db=[];try{db=await api("GET","/gallery/video?anno="+ANNO);}catch(e){}
-    const all=[...VIDEO_SEED.map((v,i)=>({...v,_seed:true,_k:i})),...db];
-    if(cnt)cnt.textContent=all.length+" video";
-    el.innerHTML=`<div class="vg">${all.map(v=>`
+  } else {
+    if (cnt) cnt.textContent = VIDEO_DB.length + " video";
+    if (!VIDEO_DB.length) {
+      el.innerHTML = `<div class="empty">Nessun video in questo album</div>`;
+      return;
+    }
+    el.innerHTML = `<div class="vg">${VIDEO_DB.map((v,i) => `
       <div class="vi" style="position:relative">
-        <div class="vt">${v.file_path?`<video src="${v.file_path}" style="width:100%;height:100%;object-fit:cover" controls></video>`:`<span style="font-size:3rem">${v.emoji||"🎬"}</span>`}</div>
-        <div class="vif"><h4>${v.titolo}</h4>${v.desc?`<p>${v.desc}</p>`:""}<div style="font-family:'DM Mono',monospace;font-size:.65rem;color:var(--giallo);margin-top:.4rem">⏱ ${v.durata||"—"}</div></div>
-        ${!v._seed?`<button onclick="deleteGalleryItem('video',${v.id})" style="position:absolute;top:7px;right:7px;z-index:3;background:rgba(192,57,43,.9);border:none;border-radius:4px;color:#fff;font-size:.7rem;padding:.25rem .5rem;cursor:pointer">🗑</button>`:""}
+        <div class="vt"><video src="${v.file_path}" style="width:100%;height:100%;object-fit:cover" controls></video></div>
+        <div class="vif">
+          <h4>${v.titolo}</h4>
+          <div style="font-family:'DM Mono',monospace;font-size:.65rem;color:var(--giallo);margin-top:.4rem">⏱ ${v.durata||"—"}</div>
+          ${adminLogged ? `<div style="display:flex;gap:.4rem;margin-top:.5rem">
+            <button class="btn bo bs2" onclick="openRenameMedia(${v.id},'video','${v.titolo.replace(/'/g,"\\'")}','${v.durata||"—"}')">✏️</button>
+            <button class="btn br2 bs2" onclick="deleteMedia('video',${v.id})">🗑</button>
+          </div>` : ""}
+        </div>
       </div>`).join("")}</div>`;
   }
+}
+
+function triggerAlbumUpload() {
+  if (!CUR_ALBUM) return;
+  document.getElementById(CUR_ALBUM_TAB === 'foto' ? 'album-foto-input' : 'album-video-input').click();
+}
+
+async function handleAlbumUpload(input, type) {
+  if (!CUR_ALBUM || !input.files.length) return;
+  const files = Array.from(input.files);
+  const btn = document.getElementById("btn-add-album-media");
+  btn.disabled = true;
+  let ok = 0;
+  for (const file of files) {
+    btn.textContent = `Caricamento ${ok+1}/${files.length}...`;
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      fd.append("titolo", file.name.replace(/\.[^.]+$/, "").replace(/[-_]/g, " "));
+      fd.append("anno", ANNO);
+      fd.append("album_id", CUR_ALBUM.id);
+      if (type === 'video') fd.append("durata", "—");
+      await api("POST", "/gallery/" + type, fd);
+      ok++;
+    } catch(e) { toast("❌ " + file.name + ": " + e.message); }
+  }
+  input.value = "";
+  btn.disabled = false;
+  btn.textContent = type === 'foto' ? '+ Aggiungi Foto' : '+ Aggiungi Video';
+  if (ok > 0) toast(`✅ ${ok} file caricati!`);
+  await loadAlbumMedia(type);
+}
+
+// LIGHTBOX
+function openLbx(idx) {
+  LBX_IDX = idx;
+  const lbx = document.getElementById("lightbox");
+  lbx.classList.add("open");
+  updateLbx();
+  document.addEventListener("keydown", lbxKey);
+}
+function closeLbx() {
+  document.getElementById("lightbox").classList.remove("open");
+  document.removeEventListener("keydown", lbxKey);
+}
+function lbxKey(e) { if(e.key==="ArrowRight")lbxNav(1); if(e.key==="ArrowLeft")lbxNav(-1); if(e.key==="Escape")closeLbx(); }
+function lbxNav(dir) { LBX_IDX=(LBX_IDX+dir+LBX_ITEMS.length)%LBX_ITEMS.length; updateLbx(); }
+function updateLbx() {
+  const f = LBX_ITEMS[LBX_IDX];
+  if (!f) return;
+  document.getElementById("lbx-img").src = f.file_path;
+  document.getElementById("lbx-cap").textContent = f.titolo + (LBX_ITEMS.length > 1 ? ` (${LBX_IDX+1}/${LBX_ITEMS.length})` : "");
+  const showAdmin = adminLogged;
+  document.getElementById("lbx-edit-btn").style.display = showAdmin ? "block" : "none";
+  document.getElementById("lbx-del-btn").style.display = showAdmin ? "block" : "none";
+}
+function lbxEdit() {
+  const f = LBX_ITEMS[LBX_IDX]; if (!f) return;
+  openRenameMedia(f.id, 'foto', f.titolo);
+  closeLbx();
+}
+async function lbxDelete() {
+  const f = LBX_ITEMS[LBX_IDX]; if (!f) return;
+  if (!confirm("Eliminare questa foto?")) return;
+  await deleteMedia('foto', f.id);
+  closeLbx();
+}
+async function deleteMedia(type, id) {
+  try {
+    await api("DELETE", "/gallery/" + type + "/" + id);
+    toast("🗑️ Rimosso");
+    if (CUR_ALBUM) await loadAlbumMedia(CUR_ALBUM_TAB);
+  } catch(e) { toast("❌ " + e.message); }
+}
+
+// RINOMINA MEDIA
+function openRenameMedia(id, type, titolo, durata) {
+  document.getElementById("mrm-id").value = id;
+  document.getElementById("mrm-type").value = type;
+  document.getElementById("mrm-titolo").value = titolo || "";
+  const extra = document.getElementById("mrm-extra");
+  if (type === 'video') {
+    extra.style.display = "block";
+    document.getElementById("mrm-durata").value = durata || "";
+    document.getElementById("mrm-title").textContent = "Modifica Video";
+  } else {
+    extra.style.display = "none";
+    document.getElementById("mrm-title").textContent = "Rinomina Foto";
+  }
+  document.getElementById("modal-rename-media").classList.add("open");
+}
+async function saveRenameMedia() {
+  const id = document.getElementById("mrm-id").value;
+  const type = document.getElementById("mrm-type").value;
+  const titolo = document.getElementById("mrm-titolo").value.trim();
+  if (!titolo) { toast("⚠️ Titolo obbligatorio"); return; }
+  try {
+    const body = {titolo};
+    if (type === 'video') body.durata = document.getElementById("mrm-durata").value || "—";
+    await api("PATCH", "/gallery/" + type + "/" + id, body);
+    // Aggiorna localmente
+    if (type === 'foto') { const f=FOTO_DB.find(x=>x.id==id); if(f){ f.titolo=titolo; } }
+    else { const v=VIDEO_DB.find(x=>x.id==id); if(v){ v.titolo=titolo; if(body.durata)v.durata=body.durata; } }
+    closeModal("modal-rename-media");
+    if (CUR_ALBUM) await loadAlbumMedia(CUR_ALBUM_TAB);
+    toast("✅ Titolo aggiornato!");
+  } catch(e) { toast("❌ " + e.message); }
+}
+
+// ALBUM ADMIN
+function openModalAlbum(id) {
+  editAlbumId = id || null;
+  if (id) {
+    const a = ALBUMS_DB.find(x => x.id === id);
+    document.getElementById("mal-title").textContent = "Modifica Album";
+    document.getElementById("mal-nome").value = a?.nome || "";
+    document.getElementById("mal-desc").value = a?.descrizione || "";
+  } else {
+    document.getElementById("mal-title").textContent = "Nuovo Album " + ANNO;
+    document.getElementById("mal-nome").value = "";
+    document.getElementById("mal-desc").value = "";
+  }
+  document.getElementById("modal-album").classList.add("open");
+}
+async function saveAlbum() {
+  const nome = document.getElementById("mal-nome").value.trim();
+  if (!nome) { toast("⚠️ Nome obbligatorio"); return; }
+  const obj = {nome, descrizione: document.getElementById("mal-desc").value.trim(), anno: ANNO};
+  try {
+    if (editAlbumId) {
+      await api("PATCH", "/album/" + editAlbumId, obj);
+      toast("✅ Album aggiornato!");
+    } else {
+      await api("POST", "/album", obj);
+      toast("✅ Album creato!");
+    }
+    closeModal("modal-album");
+    await loadAlbumAdmin();
+    await renderGallery();
+  } catch(e) { toast("❌ " + e.message); }
+}
+async function deleteAlbum(id) {
+  if (!confirm("Eliminare album e tutti i file al suo interno?")) return;
+  try {
+    await api("DELETE", "/album/" + id);
+    await loadAlbumAdmin();
+    await renderGallery();
+    toast("🗑️ Album eliminato");
+  } catch(e) { toast("❌ " + e.message); }
+}
+async function loadAlbumAdmin() {
+  try { ALBUMS_DB = await api("GET", "/album?anno=" + ANNO); } catch(e) { ALBUMS_DB = []; }
+  const tb = document.getElementById("album-admin-tbody");
+  const lbl = document.getElementById("album-anno-label");
+  if (lbl) lbl.textContent = ANNO;
+  if (!tb) return;
+  if (!ALBUMS_DB.length) {
+    tb.innerHTML = `<tr><td colspan="5"><div class="empty">Nessun album per ${ANNO}</div></td></tr>`;
+    return;
+  }
+  tb.innerHTML = ALBUMS_DB.map(a => `<tr>
+    <td><strong>${a.nome}</strong></td>
+    <td style="font-size:.82rem;color:var(--gc)">${a.descrizione||"—"}</td>
+    <td style="font-family:'DM Mono',monospace">${a.n_foto||0}</td>
+    <td style="font-family:'DM Mono',monospace">${a.n_video||0}</td>
+    <td style="display:flex;gap:.3rem">
+      <button class="btn bo bs2" onclick="openModalAlbum(${a.id})">✏️</button>
+      <button class="btn br2 bs2" onclick="deleteAlbum(${a.id})">🗑</button>
+    </td>
+  </tr>`).join("");
+}
+
+// ── NEWS ──────────────────────────────────────────────
+let NEWS_DB = [], editNewsId = null;
+
+async function loadNews() {
+  try { NEWS_DB = await api("GET", "/news"); } catch(e) { NEWS_DB = []; }
+}
+function renderNewsPub() {
+  const tmpl = n => `<div class="nc" onclick="showNewsDetail(${n.id})">
+    <div class="nc-img">${n.emoji||"📋"}</div>
+    <div class="nc-body">
+      <div class="nc-tag">${n.tag||"Comunicazione"}</div>
+      <h3>${n.titolo}</h3>
+      <p>${(n.testo||"").slice(0,120)}${(n.testo||"").length>120?"…":""}</p>
+      <div class="nc-meta">${fmtD(n.data_pub)}</div>
+    </div>
+  </div>`;
+  const h = document.getElementById("home-news"), a = document.getElementById("all-news");
+  if (h) h.innerHTML = NEWS_DB.slice(0,3).map(tmpl).join("");
+  if (a) a.innerHTML = NEWS_DB.map(tmpl).join("");
+}
+function showNewsDetail(id) {
+  const n = NEWS_DB.find(x => x.id === id); if (!n) return;
+  document.getElementById("md-title").textContent = n.titolo;
+  document.getElementById("md-body").innerHTML = `
+    <div style="display:flex;align-items:center;gap:.8rem;margin-bottom:1.2rem">
+      <span style="font-size:2.5rem">${n.emoji||"📋"}</span>
+      <div>
+        <span class="badge bn">${n.tag||"Comunicazione"}</span>
+        <div style="font-family:'DM Mono',monospace;font-size:.7rem;color:var(--gc);margin-top:.3rem">${fmtD(n.data_pub)}</div>
+      </div>
+    </div>
+    <p style="font-size:.92rem;line-height:1.7;white-space:pre-wrap">${n.testo||""}</p>
+    <div style="display:flex;gap:.8rem;justify-content:flex-end;margin-top:1.5rem">
+      <button class="btn bo" onclick="closeModal('modal-detail')">Chiudi</button>
+    </div>`;
+  document.getElementById("modal-detail").classList.add("open");
+}
+function openModalNews(id) {
+  editNewsId = id || null;
+  if (id) {
+    const n = NEWS_DB.find(x => x.id === id);
+    document.getElementById("mn-title").textContent = "Modifica News";
+    document.getElementById("mn-titolo").value = n?.titolo || "";
+    document.getElementById("mn-testo").value = n?.testo || "";
+    document.getElementById("mn-tag").value = n?.tag || "Comunicazione";
+    document.getElementById("mn-emoji").value = n?.emoji || "📋";
+    document.getElementById("mn-data").value = n?.data_pub ? n.data_pub.split("T")[0] : new Date().toISOString().split("T")[0];
+  } else {
+    document.getElementById("mn-title").textContent = "Nuova News";
+    ["titolo","testo"].forEach(f => { const e=document.getElementById("mn-"+f); if(e)e.value=""; });
+    document.getElementById("mn-tag").value = "Comunicazione";
+    document.getElementById("mn-emoji").value = "📋";
+    document.getElementById("mn-data").value = new Date().toISOString().split("T")[0];
+  }
+  document.getElementById("modal-news").classList.add("open");
+}
+async function saveNews() {
+  const titolo = document.getElementById("mn-titolo").value.trim();
+  if (!titolo) { toast("⚠️ Titolo obbligatorio"); return; }
+  const obj = {
+    titolo, testo: document.getElementById("mn-testo").value.trim(),
+    tag: document.getElementById("mn-tag").value, emoji: document.getElementById("mn-emoji").value||"📋",
+    data_pub: document.getElementById("mn-data").value
+  };
+  try {
+    if (editNewsId) { await api("PATCH", "/news/" + editNewsId, obj); toast("✅ News aggiornata!"); }
+    else { await api("POST", "/news", obj); toast("✅ News pubblicata!"); }
+    closeModal("modal-news");
+    await loadNews(); renderNewsPub(); renderNewsAdmin();
+  } catch(e) { toast("❌ " + e.message); }
+}
+async function deleteNews(id) {
+  if (!confirm("Eliminare questa news?")) return;
+  try { await api("DELETE", "/news/" + id); await loadNews(); renderNewsPub(); renderNewsAdmin(); toast("🗑️ Eliminata"); }
+  catch(e) { toast("❌ " + e.message); }
+}
+function renderNewsAdmin() {
+  const tb = document.getElementById("news-admin-tbody"); if (!tb) return;
+  if (!NEWS_DB.length) { tb.innerHTML = `<tr><td colspan="6"><div class="empty">Nessuna news</div></td></tr>`; return; }
+  tb.innerHTML = NEWS_DB.map(n => `<tr>
+    <td style="font-family:'DM Mono',monospace;font-size:.78rem">${fmtD(n.data_pub)}</td>
+    <td style="font-size:1.2rem">${n.emoji||"📋"}</td>
+    <td><span class="badge bn">${n.tag||"—"}</span></td>
+    <td><strong>${n.titolo}</strong></td>
+    <td style="font-size:.78rem;color:var(--gc);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${(n.testo||"").slice(0,60)}…</td>
+    <td style="display:flex;gap:.3rem">
+      <button class="btn bo bs2" onclick="openModalNews(${n.id})">✏️</button>
+      <button class="btn br2 bs2" onclick="deleteNews(${n.id})">🗑</button>
+    </td>
+  </tr>`).join("");
+}
+
+// ── DOCUMENTI ─────────────────────────────────────────
+let DOCS_DB = [], editDocId = null;
+
+async function loadDocumenti() {
+  try { DOCS_DB = await api("GET", "/documenti"); } catch(e) { DOCS_DB = []; }
+}
+async function renderDocumenti(filter) {
+  await loadDocumenti();
+  const el = document.getElementById("doc-grid"); if (!el) return;
+  // Costruisce filtri categorie
+  const cats = [...new Set(DOCS_DB.map(d => d.categoria))];
+  const filt = document.getElementById("doc-filter");
+  if (filt) {
+    filt.innerHTML = `<button class="btn bv2 bs2" onclick="filterDocs('tutti')" id="df-tutti">Tutti</button>`
+      + cats.map(c => `<button class="btn bo bs2" onclick="filterDocs('${c}')" id="df-${c.replace(/\s/g,'_')}">${c}</button>`).join("");
+  }
+  const list = filter && filter !== 'tutti' ? DOCS_DB.filter(d => d.categoria === filter) : DOCS_DB;
+  if (!list.length) { el.innerHTML = `<div class="empty">Nessun documento disponibile</div>`; return; }
+  el.innerHTML = list.map(d => `
+    <div class="doc-card">
+      <div class="doc-icon">📄</div>
+      <div class="doc-info" style="flex:1">
+        <h4>${d.titolo}</h4>
+        ${d.descrizione ? `<p>${d.descrizione}</p>` : ""}
+        <div class="doc-meta"><span class="badge bn" style="font-size:.55rem">${d.categoria||"Generale"}</span> · ${d.size_kb||0} KB</div>
+        <div style="margin-top:.7rem;display:flex;gap:.5rem;flex-wrap:wrap">
+          <a href="${d.file_path}" download target="_blank" class="btn bv2 bs2" style="text-decoration:none">⬇ Scarica</a>
+          <a href="${d.file_path}" target="_blank" class="btn bo bs2" style="text-decoration:none">👁 Apri</a>
+        </div>
+      </div>
+    </div>`).join("");
+}
+function filterDocs(cat) {
+  document.querySelectorAll("[id^='df-']").forEach(b => b.className = "btn bo bs2");
+  const btn = document.getElementById("df-" + (cat === 'tutti' ? 'tutti' : cat.replace(/\s/g,'_')));
+  if (btn) btn.className = "btn bv2 bs2";
+  renderDocumenti(cat);
+}
+function openModalDocumento(id) {
+  editDocId = id || null;
+  if (id) {
+    const d = DOCS_DB.find(x => x.id === id);
+    document.getElementById("mdoc-title").textContent = "Modifica Documento";
+    document.getElementById("mdoc-titolo").value = d?.titolo || "";
+    document.getElementById("mdoc-cat").value = d?.categoria || "Generale";
+    document.getElementById("mdoc-desc").value = d?.descrizione || "";
+    document.getElementById("mdoc-file-wrap").style.display = "none";
+  } else {
+    document.getElementById("mdoc-title").textContent = "Carica PDF";
+    ["titolo","desc"].forEach(f => { const e=document.getElementById("mdoc-"+f); if(e)e.value=""; });
+    document.getElementById("mdoc-cat").value = "Generale";
+    document.getElementById("mdoc-file-wrap").style.display = "block";
+    const fi = document.getElementById("mdoc-file"); if(fi) fi.value = "";
+  }
+  document.getElementById("modal-documento").classList.add("open");
+}
+async function saveDocumento() {
+  const titolo = document.getElementById("mdoc-titolo").value.trim();
+  if (!titolo) { toast("⚠️ Titolo obbligatorio"); return; }
+  const btn = document.getElementById("btn-save-doc");
+  btn.disabled = true; btn.textContent = "Caricamento...";
+  try {
+    if (editDocId) {
+      await api("PATCH", "/documenti/" + editDocId, {
+        titolo, categoria: document.getElementById("mdoc-cat").value,
+        descrizione: document.getElementById("mdoc-desc").value.trim()
+      });
+      toast("✅ Documento aggiornato!");
+    } else {
+      const file = document.getElementById("mdoc-file").files[0];
+      if (!file) { toast("⚠️ Seleziona un file"); return; }
+      const fd = new FormData();
+      fd.append("file", file);
+      fd.append("titolo", titolo);
+      fd.append("categoria", document.getElementById("mdoc-cat").value);
+      fd.append("descrizione", document.getElementById("mdoc-desc").value.trim());
+      await api("POST", "/documenti", fd);
+      toast("✅ Documento caricato!");
+    }
+    closeModal("modal-documento");
+    await loadDocumenti(); renderDocAdminTable();
+    if (document.getElementById("page-documenti").classList.contains("active")) renderDocumenti();
+  } catch(e) { toast("❌ " + e.message); }
+  finally { btn.disabled = false; btn.textContent = "Carica"; }
+}
+async function deleteDocumento(id) {
+  if (!confirm("Eliminare questo documento?")) return;
+  try { await api("DELETE", "/documenti/" + id); await loadDocumenti(); renderDocAdminTable(); toast("🗑️ Eliminato"); }
+  catch(e) { toast("❌ " + e.message); }
+}
+function renderDocAdminTable() {
+  const tb = document.getElementById("doc-admin-tbody"); if (!tb) return;
+  if (!DOCS_DB.length) { tb.innerHTML = `<tr><td colspan="5"><div class="empty">Nessun documento</div></td></tr>`; return; }
+  tb.innerHTML = DOCS_DB.map(d => `<tr>
+    <td><strong>${d.titolo}</strong></td>
+    <td><span class="badge bn">${d.categoria||"—"}</span></td>
+    <td style="font-size:.82rem;color:var(--gc)">${d.descrizione||"—"}</td>
+    <td style="font-family:'DM Mono',monospace;font-size:.78rem">${d.size_kb||0} KB</td>
+    <td style="display:flex;gap:.3rem">
+      <a href="${d.file_path}" target="_blank" class="btn bo bs2" style="text-decoration:none">👁</a>
+      <button class="btn bo bs2" onclick="openModalDocumento(${d.id})">✏️</button>
+      <button class="btn br2 bs2" onclick="deleteDocumento(${d.id})">🗑</button>
+    </td>
+  </tr>`).join("");
 }
 
 // ── ADMIN ─────────────────────────────────────────────
@@ -776,11 +1355,9 @@ function adminLogout(){adminLogged=false;document.getElementById("admin-login-wr
 async function renderAdmin(){
   await loadSoci();
   populateAnnoSelect();
-  ["quote","uscite","spese","trasferte","note"].forEach(s=>{const el=document.getElementById(s+"-anno-label");if(el)el.textContent=ANNO;});
+  ["quote","uscite","spese","trasferte","note","album"].forEach(s=>{const el=document.getElementById(s+"-anno-label");if(el)el.textContent=ANNO;});
   document.getElementById("k-soci").textContent=SOCI.length;
-  // Carica dati anno
-  await Promise.all([loadQuote(),loadUsciteAdmin(),loadSpese(),loadTrasferte()]);
-  // Note
+  await Promise.all([loadQuote(),loadUsciteAdmin(),loadSpese(),loadTrasferte(),loadAlbumAdmin(),loadNews().then(()=>{renderNewsAdmin();renderNewsPub();}),loadDocumenti().then(()=>renderDocAdminTable())]);
   try{const r=await api("GET","/admin/note/"+ANNO);document.getElementById("admin-note").value=r.testo||"";}catch(e){}
   adminRenderSoci();
 }
