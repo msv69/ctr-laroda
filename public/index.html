@@ -210,7 +210,8 @@ tbody td{padding:.85rem 1rem;font-size:.88rem}
       <div class="hero-stats">
         <div class="stat"><div class="stat-num" id="cnt-soci">—</div><div class="stat-label">Soci</div></div>
         <div class="stat"><div class="stat-num" id="cnt-uscite">—</div><div class="stat-label">Uscite 2026</div></div>
-        <div class="stat"><div class="stat-num">28</div><div class="stat-label">Anni di storia</div></div>
+        <div class="stat"><div class="stat-num">12k</div><div class="stat-label">Km percorsi</div></div>
+        <div class="stat"><div class="stat-num">15</div><div class="stat-label">Anni di storia</div></div>
       </div>
     </div>
   </div>
@@ -1164,15 +1165,17 @@ function downloadTessera(){
 }
 
 async function renderTesseraUscite(){
-  const el=document.getElementById("tp-uscite-list");if(!el||!SOCIO_CORRENTE)return;
-  // Carica iscrizioni esistenti del socio
+  const el=document.getElementById("tp-uscite-list");
+  if(!el||!SOCIO_CORRENTE)return;
+  el.innerHTML=`<div class="ld">Caricamento uscite</div>`;
+  // Una sola chiamata per sapere a quali uscite è già iscritto
   let mieIscrizioni=[];
-  try{
-    const tutte=await Promise.all(USCITE_DB.map(u=>api("GET","/uscite/"+u.id+"/iscrizioni").then(list=>{const trovato=list.find(x=>x.id===SOCIO_CORRENTE.id);return trovato?u.id:null;}).catch(()=>null)));
-    mieIscrizioni=tutte.filter(Boolean);
-  }catch(e){}
+  try{ mieIscrizioni=await api("GET","/soci/"+SOCIO_CORRENTE.id+"/iscrizioni"); }catch(e){}
   const dm={F:"🔵",M:"🟡",D:"🔴"};
-  if(!USCITE_DB.length){el.innerHTML=`<div class="empty">Nessuna uscita programmata per ${ANNO}</div>`;return;}
+  if(!USCITE_DB.length){
+    el.innerHTML=`<div class="empty">Nessuna uscita programmata per ${ANNO}</div>`;
+    return;
+  }
   el.innerHTML=`<div style="display:flex;flex-direction:column;gap:.8rem">${USCITE_DB.map(u=>{
     const iscritto=mieIscrizioni.includes(u.id);
     const pieno=(u.iscritti||0)>=(u.max_posti||30)&&!iscritto;
@@ -1183,11 +1186,14 @@ async function renderTesseraUscite(){
       </div>
       <div style="flex:1;min-width:160px">
         <div style="font-weight:500;margin-bottom:.2rem">${dm[u.difficolta||"M"]} ${u.titolo}</div>
-        <div style="font-size:.75rem;color:var(--gc)">${u.ora||""} · ${u.km||0}km · 👥 ${u.iscritti||0}/${u.max_posti||30}</div>
+        <div style="font-size:.75rem;color:var(--gc)">${u.ora||""} · ${u.km||0} km · 👥 ${u.iscritti||0}/${u.max_posti||30}</div>
       </div>
       <div>
         ${iscritto
-          ? `<div style="display:flex;gap:.5rem;align-items:center"><span style="font-family:'DM Mono',monospace;font-size:.65rem;color:var(--verde-chiaro);background:rgba(90,138,26,.15);border:1px solid var(--verde);padding:.3rem .7rem;border-radius:4px">✓ Iscritto</span><button class="btn br2 bs2" onclick="disiscriviUscita(${u.id})">Annulla</button></div>`
+          ? `<div style="display:flex;gap:.5rem;align-items:center">
+               <span style="font-family:'DM Mono',monospace;font-size:.65rem;color:var(--verde-chiaro);background:rgba(90,138,26,.15);border:1px solid var(--verde);padding:.3rem .7rem;border-radius:4px">✓ Iscritto/a</span>
+               <button class="btn br2 bs2" onclick="disiscriviUscita(${u.id})">Annulla</button>
+             </div>`
           : pieno
             ? `<span style="font-family:'DM Mono',monospace;font-size:.65rem;color:var(--rosso)">Al completo</span>`
             : `<button class="btn bv2" onclick="iscriviUscita(${u.id})" style="font-size:.72rem">+ Iscriviti</button>`
@@ -1221,13 +1227,15 @@ async function disiscriviUscita(uscitaId){
 
 // ── TESSERA TABS ──────────────────────────────────────
 function switchTesseraTab(tab){
-  document.querySelectorAll("[id^='tab-']").forEach(b=>{
-    if(b.tagName==="BUTTON") b.classList.remove("active");
-  });
-  document.getElementById("tab-"+tab).classList.add("active");
+  document.getElementById("tab-profilo").classList.remove("active");
+  document.getElementById("tab-uscite-tab").classList.remove("active");
+  if(tab==="profilo") document.getElementById("tab-profilo").classList.add("active");
+  else document.getElementById("tab-uscite-tab").classList.add("active");
   document.getElementById("tab-content-profilo").style.display = tab==="profilo"?"block":"none";
   document.getElementById("tab-content-uscite").style.display  = tab==="uscite"?"block":"none";
-  if(tab==="uscite"&&SOCIO_CORRENTE) renderTesseraUscite();
+  if(tab==="uscite"&&SOCIO_CORRENTE){
+    loadUscitePub().then(()=>renderTesseraUscite()).catch(e=>toast("❌ "+e.message));
+  }
 }
 
 // ── PROFILO SOCIO ─────────────────────────────────────
