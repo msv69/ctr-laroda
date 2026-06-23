@@ -192,25 +192,77 @@ CREATE TABLE IF NOT EXISTS admin_note (
 `);
 
 // Migrate: aggiungi colonne se mancano in DB esistenti
-['ALTER TABLE gallery_foto ADD COLUMN anno INTEGER',
- 'ALTER TABLE gallery_foto ADD COLUMN album_id INTEGER',
- 'ALTER TABLE gallery_video ADD COLUMN anno INTEGER',
- 'ALTER TABLE gallery_video ADD COLUMN album_id INTEGER',
- 'ALTER TABLE soci ADD COLUMN foto_profilo TEXT',
+[
+  'ALTER TABLE gallery_foto ADD COLUMN anno INTEGER',
+  'ALTER TABLE gallery_foto ADD COLUMN album_id INTEGER',
+  'ALTER TABLE gallery_video ADD COLUMN anno INTEGER',
+  'ALTER TABLE gallery_video ADD COLUMN album_id INTEGER',
+  'ALTER TABLE soci ADD COLUMN foto_profilo TEXT',
+  'ALTER TABLE admin_note ADD COLUMN anno INTEGER',
 ].forEach(sql => { try { db.exec(sql); } catch(e){} });
 
 // Crea cartella profili
 fs.mkdirSync(path.join(UPLOAD_DIR, 'profili'), {recursive:true});
 
-// Seed news di default se tabella vuota
-if (db.prepare('SELECT COUNT(*) as n FROM news').get().n === 0) {
-  const insNews = db.prepare('INSERT INTO news(titolo,testo,tag,emoji,data_pub) VALUES(?,?,?,?,?)');
-  [
-    ['Benvenuti nel nuovo sito CTR La Röda!','Il nuovo portale del club è online. Trovi tutte le informazioni su uscite, soci e gallery.','Comunicazione','🎉','2026-01-01'],
-    ['Rinnovo Tessere 2026','Il rinnovo tessere 2026 è aperto. Contattare la segreteria per la quota annuale.','Comunicazione','📋','2026-01-15'],
-    ['Trasferta Diano Marina — 5 giorni in Liguria','Dal 13 al 17 maggio 2026 la grande trasferta a Diano Marina. Iscriviti tramite il pannello admin!','Evento','🌊','2026-02-01'],
-  ].forEach(r => insNews.run(...r));
-}
+// Migra dati vecchi: quota2026 -> quote
+try {
+  const hasQ = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='quota2026'").get();
+  if (hasQ) {
+    const rows = db.prepare('SELECT * FROM quota2026').all();
+    const ins = db.prepare('INSERT OR IGNORE INTO quote(socio_id,anno,importo,data_pag,metodo,note,pagato) VALUES(?,2026,?,?,?,?,1)');
+    rows.forEach(r => { try { ins.run(r.socio_id,r.importo||0,r.data_pag,r.metodo,r.note||''); } catch(e){} });
+    if(rows.length>0) console.log('Migrati '+rows.length+' record da quota2026');
+  }
+} catch(e) {}
+
+// Migra dati vecchi: diano2026 -> trasferte
+try {
+  const hasD = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='diano2026'").get();
+  if (hasD) {
+    const rows = db.prepare('SELECT * FROM diano2026').all();
+    if (rows.length > 0) {
+      let tid = db.prepare("SELECT id FROM trasferte WHERE nome='Diano Marina 2026'").get();
+      if (!tid) {
+        const r = db.prepare("INSERT INTO trasferte(anno,nome,luogo,quota,max_posti) VALUES(2026,'Diano Marina 2026','Diano Marina (IM)',180,20)").run();
+        tid = {id: r.lastInsertRowid};
+      }
+      const ins = db.prepare('INSERT OR IGNORE INTO iscrizioni_trasferta(trasferta_id,socio_id,acconto,saldo,data_iscr,metodo,camera,note) VALUES(?,?,?,?,?,?,?,?)');
+      rows.forEach(r => { try { ins.run(tid.id,r.socio_id,r.acconto||0,r.saldo||0,r.data_iscr,r.metodo,r.camera||'',r.note||''); } catch(e){} });
+      console.log('Migrati '+rows.length+' record da diano2026');
+    }
+  }
+} catch(e) {}
+
+// Seed news
+try {
+  if (db.prepare('SELECT COUNT(*) as n FROM news').get().n === 0) {
+    const insNews = db.prepare('INSERT INTO news(titolo,testo,tag,emoji,data_pub) VALUES(?,?,?,?,?)');
+    [
+      ['Benvenuti nel nuovo sito CTR La Roda!','Il portale del club e online. Trovi tutte le informazioni su uscite, soci e gallery.','Comunicazione','🎉','2026-01-01'],
+      ['Rinnovo Tessere 2026','Il rinnovo tessere 2026 e aperto. Contattare la segreteria per la quota annuale.','Comunicazione','📋','2026-01-15'],
+      ['Trasferta Diano Marina','Dal 13 al 17 maggio 2026 la grande trasferta a Diano Marina.','Evento','🌊','2026-02-01'],
+    ].forEach(r => insNews.run(...r));
+  }
+} catch(e) { console.error('Seed news:', e.message); }
+
+// Seed uscite 2026
+try {
+  if (db.prepare('SELECT COUNT(*) as n FROM uscite WHERE anno=2026').get().n === 0) {
+    const insU = db.prepare('INSERT INTO uscite(anno,giorno,mese,data_uscita,titolo,km,dislivello,difficolta,ora,max_posti,note) VALUES(?,?,?,?,?,?,?,?,?,?,?)');
+    [
+      [2026,'29','Mar','2026-03-29','Mezzo giro del Lago direzione Brissago',0,0,'M','09:30',30,'Ritrovo: Posta di Ascona.'],
+      [2026,'19','Apr','2026-04-19','Cannobina da Brissago o da Golino',0,0,'M','09:30',30,'Ritrovo: Posta di Ascona. Aperitivo a Santa Maria Maggiore verso le 12.00.'],
+      [2026,'03','Mag','2026-05-03','Giro Valle di Muggio',0,0,'M','08:30',30,'Ritrovo: Posteggio Pregassona. Pranzo a San Fedele. Organizzato da Otto Bruseghini.'],
+      [2026,'13','Mag','2026-05-13','Diano Marina - La 5 giorni in Liguria',0,0,'M','08:00',30,'Trasferta 13-17 maggio.'],
+      [2026,'26','Mag','2026-05-26','Giro Italia Tappa speciale',0,0,'M','09:00',30,'Ritrovo sottopasso aeroporto ore 9.00, direzione Cari.'],
+      [2026,'27','Giu','2026-06-27','Piancavallo da Intra / Cannero, Trarego',0,0,'M','08:00',30,'Ritrovo: Posta Ascona. Pranzo zona Trarego verso le 13.00.'],
+      [2026,'30','Ago','2026-08-30','Lugano / Cernobbio / Argegno / Val Intelvi',0,0,'D','08:30',30,'Ritrovo: Posteggio Pregassona. Organizzato da Marco Bricola.'],
+      [2026,'13','Set','2026-09-13','Magadino - Soazza 100 km',100,0,'D','08:30',30,'Ritrovo: Quartino da Sebastiano. Grigliata ore 13.'],
+      [2026,'10','Ott','2026-10-10','Lugano / Melide / Morcote / Agno / Luino 120 km',120,0,'D','09:30',30,'Ritrovo: Posta Ascona.'],
+    ].forEach(r => { try { insU.run(...r); } catch(e){} });
+    console.log('Seed uscite 2026 inserite');
+  }
+} catch(e) { console.error('Seed uscite:', e.message); }
 
 // ── SOCI 2026 ────────────────────────────────────────────────────────
 const SOCI_2026 = [
