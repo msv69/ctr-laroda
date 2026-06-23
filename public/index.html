@@ -1106,8 +1106,9 @@ async function socioLogin(){
     // Mostra profilo
     renderProfiloView();
     switchTesseraTab("profilo");
-    await loadUscitePub();
     toast("✅ Benvenuto/a "+SOCIO_CORRENTE.nome+"!");
+    // Carica uscite in background — non blocca il login se fallisce
+    loadUscitePub().catch(()=>{});
   }catch(e){toast("❌ "+e.message);}
 }
 function socioLogout(){
