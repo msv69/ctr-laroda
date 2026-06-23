@@ -470,6 +470,14 @@ app.delete('/api/uscite/:id', (req,res) => {
   catch(e) { res.status(400).json({error:e.message}); }
 });
 
+// Iscrizioni di un singolo socio (per area tessera)
+app.get('/api/soci/:id/iscrizioni', (req,res) => {
+  try {
+    const rows = db.prepare('SELECT uscita_id FROM iscrizioni_uscita WHERE socio_id=?').all(req.params.id);
+    res.json(rows.map(r=>r.uscita_id));
+  } catch(e) { res.status(500).json({error:e.message}); }
+});
+
 // ── ISCRIZIONI USCITE ────────────────────────────────────────────────
 app.get('/api/uscite/:id/iscrizioni', (req,res) => {
   try {
