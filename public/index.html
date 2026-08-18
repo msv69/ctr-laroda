@@ -206,8 +206,7 @@ tbody td{padding:.85rem 1rem;font-size:.88rem}
       <div class="hero-stats">
         <div class="stat"><div class="stat-num" id="cnt-soci">—</div><div class="stat-label">Soci</div></div>
         <div class="stat"><div class="stat-num" id="cnt-uscite">—</div><div class="stat-label">Uscite 2026</div></div>
-        <div class="stat"><div class="stat-num">12k</div><div class="stat-label">Km percorsi</div></div>
-        <div class="stat"><div class="stat-num">15</div><div class="stat-label">Anni di storia</div></div>
+        <div class="stat"><div class="stat-num">28</div><div class="stat-label">Anni di storia</div></div>
       </div>
     </div>
   </div>
@@ -862,6 +861,13 @@ async function init(){
   await loadNews();
   renderNewsPub();
   try{ANNI=await api("GET","/anni");if(!ANNI.includes(ANNO))ANNI.unshift(ANNO);}catch(e){ANNI=[ANNO];}
+  // Carica uscite subito per aggiornare contatore home
+  try{
+    USCITE_DB=await api("GET","/uscite/"+ANNO);
+    USCITE_F=[...USCITE_DB];
+    const c=document.getElementById("cnt-uscite");
+    if(c)c.textContent=USCITE_DB.length;
+  }catch(e){}
 }
 
 // ── NAV ───────────────────────────────────────────────
