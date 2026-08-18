@@ -1050,6 +1050,7 @@ async function showPartecipanti(uscitaId){
             <div style="flex:1">
               <div style="font-weight:500">${s.nome} ${s.cognome}</div>
               <div style="font-family:'DM Mono',monospace;font-size:.65rem;color:var(--giallo)">${s.tessera||"—"}</div>
+              ${s.note?`<div style="font-size:.72rem;color:var(--gc);margin-top:.2rem">📝 ${s.note}</div>`:""}
             </div>
             ${s.tel?`<div style="font-size:.75rem;color:var(--gc)">${s.tel}</div>`:""}
           </div>`).join("")}
@@ -1203,7 +1204,10 @@ async function renderTesseraUscite(){
              </div>`
           : pieno
             ? `<span style="font-family:'DM Mono',monospace;font-size:.65rem;color:var(--rosso)">Al completo</span>`
-            : `<button class="btn bv2" onclick="iscriviUscita(${u.id})" style="font-size:.72rem">+ Iscriviti</button>`
+            : `<div style="display:flex;flex-direction:column;gap:.4rem;align-items:flex-end">
+                 <input type="text" id="note-uscita-${u.id}" placeholder="Note (es. vengo in auto...)" style="background:var(--gs);border:1px solid var(--gm);border-radius:4px;padding:.3rem .6rem;color:var(--b);font-size:.75rem;outline:none;width:200px" onfocus="this.style.borderColor='var(--verde-chiaro)'" onblur="this.style.borderColor='var(--gm)'">
+                 <button class="btn bv2" onclick="iscriviUscita(${u.id})" style="font-size:.72rem">+ Iscriviti</button>
+               </div>`
         }
       </div>
     </div>`;
@@ -1212,8 +1216,10 @@ async function renderTesseraUscite(){
 
 async function iscriviUscita(uscitaId){
   if(!SOCIO_CORRENTE){toast("⚠️ Accedi prima");return;}
+  const noteEl=document.getElementById("note-uscita-"+uscitaId);
+  const note=noteEl?noteEl.value.trim():"";
   try{
-    await api("POST","/uscite/"+uscitaId+"/iscrizioni",{socio_id:SOCIO_CORRENTE.id});
+    await api("POST","/uscite/"+uscitaId+"/iscrizioni",{socio_id:SOCIO_CORRENTE.id,note});
     toast("✅ Iscritto/a!");
     await loadUscitePub();
     renderUscitePub();
