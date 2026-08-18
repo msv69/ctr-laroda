@@ -1578,7 +1578,7 @@ async function loadNews() {
   try { NEWS_DB = await api("GET", "/news"); } catch(e) { NEWS_DB = []; }
 }
 function renderNewsPub() {
-  const tmpl = n => `<div class="nc" onclick="showNewsDetail(${n.id})">
+  const tmpl = n => `<div class="nc" data-news-id="${n.id}">
     <div class="nc-img">${n.emoji||"📋"}</div>
     <div class="nc-body">
       <div class="nc-tag">${n.tag||"Comunicazione"}</div>
