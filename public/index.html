@@ -448,8 +448,11 @@ tbody td{padding:.85rem 1rem;font-size:.88rem}
   <div id="admin-panel-wrap" style="display:none">
     <div class="ap">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--giallo);letter-spacing:.05em">⚙ Pannello Admin</div>
-        <button class="btn bo" onclick="adminLogout()">← Esci</button>
+<div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--giallo);letter-spacing:.05em">⚙ Pannello Admin</div>
+<div style="display:flex;gap:.6rem;flex-wrap:wrap">
+  <button class="btn bv2" onclick="downloadBackup()" style="font-size:.7rem;background:linear-gradient(135deg,#2c5f0a,#3d8010)">💾 Backup</button>
+  <button class="btn bo" onclick="adminLogout()">← Esci</button>
+
       </div>
 
       <!-- SELETTORE ANNO -->
