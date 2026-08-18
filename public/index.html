@@ -1047,11 +1047,14 @@ async function showPartecipanti(uscitaId){
             ${s.foto_profilo
               ? `<img src="${s.foto_profilo}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid var(--verde);flex-shrink:0">`
               : `<span style="width:36px;height:36px;border-radius:50%;background:var(--verde);color:var(--b);display:inline-flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:500;flex-shrink:0">${(s.nome[0]+s.cognome[0]).toUpperCase()}</span>`}
+         
+         
             <div style="flex:1">
               <div style="font-weight:500">${s.nome} ${s.cognome}</div>
-              <div style="font-family:'DM Mono',monospace;font-size:.65rem;color:var(--giallo)">${s.tessera||"—"}</div>
+              ${adminLogged?`<div style="font-family:'DM Mono',monospace;font-size:.65rem;color:var(--giallo)">${s.tessera||"—"}</div>`:""}
               ${s.note?`<div style="font-size:.72rem;color:var(--gc);margin-top:.2rem">📝 ${s.note}</div>`:""}
             </div>
+            
             ${s.tel?`<div style="font-size:.75rem;color:var(--gc)">${s.tel}</div>`:""}
           </div>`).join("")}
       </div>
