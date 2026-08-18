@@ -1002,6 +1002,7 @@ app.post('/api/admin/note', (req,res) => {
   } catch(e) { res.status(400).json({error:e.message}); }
 });
 
+// ── BACKUP ───────────────────────────────────────────────────────────
 app.get('/api/admin/backup', async (req, res) => {
   const pwd = req.query.pwd || req.headers['x-admin-pwd'];
   if (pwd !== 'laroda2025') return res.status(401).json({error:'Non autorizzato'});
@@ -1019,9 +1020,36 @@ app.get('/api/admin/backup', async (req, res) => {
       const full = path.join(__dirname, f);
       if (fs.existsSync(full)) archive.file(full, { name: f });
     });
-    archive.append(`CTR La Röda — Backup ${new Date().toLocaleString('it-IT')}\n\nctr.db: database\nuploads/: file media\n`, { name: 'README.txt' });
+    archive.append(`CTR La Röda — Backup ${new Date().toLocaleString('it-IT')}\n`, { name: 'README.txt' });
     archive.finalize();
     archive.on('error', err => { if (!res.headersSent) res.status(500).end(); });
+  } catch(e) { res.status(500).json({error: e.message}); }
+});
+
+// ── RIPRISTINO DB ────────────────────────────────────────────────────
+const uploadDB = multer({
+  dest: '/tmp/',
+  limits: { fileSize: 100 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (file.originalname.endsWith('.db') || file.mimetype === 'application/octet-stream')
+      cb(null, true);
+    else cb(new Error('Solo file .db'));
+  }
+});
+
+app.post('/api/admin/restore-db', uploadDB.single('db'), (req, res) => {
+  const pwd = req.query.pwd || req.headers['x-admin-pwd'];
+  if (pwd !== 'laroda2025') return res.status(401).json({error:'Non autorizzato'});
+  if (!req.file) return res.status(400).json({error:'File mancante'});
+  try {
+    try { db.pragma('wal_checkpoint(TRUNCATE)'); } catch(e){}
+    db.close();
+    const backupPath = DB_PATH + '.bak.' + Date.now();
+    if (fs.existsSync(DB_PATH)) fs.copyFileSync(DB_PATH, backupPath);
+    fs.copyFileSync(req.file.path, DB_PATH);
+    fs.unlinkSync(req.file.path);
+    res.json({ok:true, msg:'Database ripristinato. Il server si riavvierà.'});
+    setTimeout(() => process.exit(0), 1000);
   } catch(e) { res.status(500).json({error: e.message}); }
 });
 
