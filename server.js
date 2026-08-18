@@ -1002,6 +1002,30 @@ app.post('/api/admin/note', (req,res) => {
   } catch(e) { res.status(400).json({error:e.message}); }
 });
 
+app.get('/api/admin/backup', async (req, res) => {
+  const pwd = req.query.pwd || req.headers['x-admin-pwd'];
+  if (pwd !== 'laroda2025') return res.status(401).json({error:'Non autorizzato'});
+  try {
+    const archiver = require('archiver');
+    const dateStr = new Date().toISOString().slice(0,10);
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', `attachment; filename="ctr-backup-${dateStr}.zip"`);
+    const archive = archiver('zip', { zlib: { level: 6 } });
+    archive.pipe(res);
+    try { db.pragma('wal_checkpoint(TRUNCATE)'); } catch(e){}
+    if (fs.existsSync(DB_PATH)) archive.file(DB_PATH, { name: 'ctr.db' });
+    if (fs.existsSync(UPLOAD_DIR)) archive.directory(UPLOAD_DIR, 'uploads');
+    ['package.json','server.js'].forEach(f => {
+      const full = path.join(__dirname, f);
+      if (fs.existsSync(full)) archive.file(full, { name: f });
+    });
+    archive.append(`CTR La Röda — Backup ${new Date().toLocaleString('it-IT')}\n\nctr.db: database\nuploads/: file media\n`, { name: 'README.txt' });
+    archive.finalize();
+    archive.on('error', err => { if (!res.headersSent) res.status(500).end(); });
+  } catch(e) { res.status(500).json({error: e.message}); }
+});
+
+
 // ── FALLBACK ─────────────────────────────────────────────────────────
 app.get('*', (req,res) => res.sendFile(path.join(__dirname,'public','index.html')));
 
