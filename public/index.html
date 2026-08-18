@@ -1590,6 +1590,9 @@ function renderNewsPub() {
   const h = document.getElementById("home-news"), a = document.getElementById("all-news");
   if (h) h.innerHTML = NEWS_DB.slice(0,3).map(tmpl).join("");
   if (a) a.innerHTML = NEWS_DB.map(tmpl).join("");
+    document.querySelectorAll(".nc[data-news-id]").forEach(el => {
+    el.addEventListener("click", () => showNewsDetail(parseInt(el.dataset.newsId)));
+  });
 }
 function showNewsDetail(id) {
   const n = NEWS_DB.find(x => x.id == id); if (!n) return;
