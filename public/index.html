@@ -1773,7 +1773,18 @@ function apriTesseraSocio(socioId){
 // ── ADMIN ─────────────────────────────────────────────
 function adminLogin(){const u=document.getElementById("admin-user").value,p=document.getElementById("admin-pass").value;if(u==="ctr"&&p==="laroda2025"){adminLogged=true;document.getElementById("admin-login-wrap").style.display="none";document.getElementById("admin-panel-wrap").style.display="block";renderAdmin();toast("✅ Accesso effettuato!");}else{toast("❌ Credenziali errate!");document.getElementById("admin-pass").value="";}}
 function adminLogout(){adminLogged=false;document.getElementById("admin-login-wrap").style.display="block";document.getElementById("admin-panel-wrap").style.display="none";}
+async function downloadBackup(){
+  toast("⏳ Preparazione backup...");
+  const a=document.createElement("a");
+  a.href="/api/admin/backup?pwd=laroda2025";
+  a.download="ctr-backup.zip";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(()=>toast("✅ Backup scaricato!"),1500);
+}
 
+  
 async function renderAdmin(){
   await loadSoci();
   populateAnnoSelect();
