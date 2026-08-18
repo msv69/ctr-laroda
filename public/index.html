@@ -1,6 +1,6 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="it">
-<head> 
+<head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ciclo Team La Röda</title>
@@ -122,8 +122,8 @@ tbody td{padding:.85rem 1rem;font-size:.88rem}
 .br2{background:var(--rosso);color:var(--b)}.br2:hover{background:#a93226}
 .bs2{padding:.25rem .55rem;font-size:.6rem}
 /* MODAL */
-.mo{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:1rem;width:100vw;height:100vh}
-.mo.open{display:flex !important}  
+.mo{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:1rem}
+.mo.open{display:flex}
 .md{background:var(--g);border:1px solid var(--verde);border-radius:8px;padding:2rem;width:100%;max-width:560px;max-height:87vh;overflow-y:auto;animation:mi .25s ease}
 @keyframes mi{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
 .mh{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem}
@@ -186,7 +186,6 @@ tbody td{padding:.85rem 1rem;font-size:.88rem}
     <button onclick="showPage('gallery')" id="nav-gallery">Gallery</button>
     <button onclick="showPage('documenti')" id="nav-documenti">Documenti</button>
     <button onclick="showPage('tessera')" id="nav-tessera" style="border:1px solid var(--giallo);color:var(--giallo);border-radius:3px">🎫 Tessera</button>
-
     <button onclick="showPage('admin')" id="nav-admin" class="admin-btn">⚙ Admin</button>
   </div>
 </nav>
@@ -207,7 +206,8 @@ tbody td{padding:.85rem 1rem;font-size:.88rem}
       <div class="hero-stats">
         <div class="stat"><div class="stat-num" id="cnt-soci">—</div><div class="stat-label">Soci</div></div>
         <div class="stat"><div class="stat-num" id="cnt-uscite">—</div><div class="stat-label">Uscite 2026</div></div>
-        <div class="stat"><div class="stat-num">28</div><div class="stat-label">Anni di storia</div></div>
+        <div class="stat"><div class="stat-num">12k</div><div class="stat-label">Km percorsi</div></div>
+        <div class="stat"><div class="stat-num">15</div><div class="stat-label">Anni di storia</div></div>
       </div>
     </div>
   </div>
@@ -445,13 +445,14 @@ tbody td{padding:.85rem 1rem;font-size:.88rem}
   <div id="admin-panel-wrap" style="display:none">
     <div class="ap">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem">
-<div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--giallo);letter-spacing:.05em">⚙ Pannello Admin</div>
-<div style="display:flex;gap:.6rem;flex-wrap:wrap">
-  <button class="btn bv2" onclick="downloadBackup()" style="font-size:.7rem;background:linear-gradient(135deg,#2c5f0a,#3d8010)">💾 Backup</button>
-  <button class="btn bo" onclick="triggerRestore()" style="font-size:.7rem;border-color:#3498db;color:#5dade2">📥 Ripristina DB</button>
-  <input type="file" id="restore-db-input" accept=".db" style="display:none" onchange="uploadRestoreDB(this)">
-  <button class="btn bo" onclick="adminLogout()">← Esci</button>
-</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--giallo);letter-spacing:.05em">⚙ Pannello Admin</div>
+        <div style="display:flex;gap:.6rem;flex-wrap:wrap">
+          <button class="btn bv2" onclick="downloadBackup()" style="font-size:.7rem;background:linear-gradient(135deg,#2c5f0a,#3d8010)">💾 Backup</button>
+          <button class="btn bo" onclick="triggerRestore()" style="font-size:.7rem;border-color:#3498db;color:#5dade2">📥 Ripristina DB</button>
+          <input type="file" id="restore-db-input" accept=".db" style="display:none" onchange="uploadRestoreDB(this)">
+          <button class="btn bo" onclick="adminLogout()">← Esci</button>
+        </div>
+      </div>
 
       <!-- SELETTORE ANNO -->
       <div class="anno-bar">
@@ -861,12 +862,6 @@ async function init(){
   await loadNews();
   renderNewsPub();
   try{ANNI=await api("GET","/anni");if(!ANNI.includes(ANNO))ANNI.unshift(ANNO);}catch(e){ANNI=[ANNO];}
-  // Carica uscite in background per aggiornare contatore home
-  try{
-    USCITE_DB=await api("GET","/uscite/"+ANNO);
-    const c=document.getElementById("cnt-uscite");
-    if(c)c.textContent=USCITE_DB.length;
-  }catch(e){}
 }
 
 // ── NAV ───────────────────────────────────────────────
@@ -1578,7 +1573,7 @@ async function loadNews() {
   try { NEWS_DB = await api("GET", "/news"); } catch(e) { NEWS_DB = []; }
 }
 function renderNewsPub() {
-  const tmpl = n => `<div class="nc" data-news-id="${n.id}">
+  const tmpl = n => `<div class="nc" onclick="showNewsDetail(${n.id})">
     <div class="nc-img">${n.emoji||"📋"}</div>
     <div class="nc-body">
       <div class="nc-tag">${n.tag||"Comunicazione"}</div>
@@ -1590,12 +1585,9 @@ function renderNewsPub() {
   const h = document.getElementById("home-news"), a = document.getElementById("all-news");
   if (h) h.innerHTML = NEWS_DB.slice(0,3).map(tmpl).join("");
   if (a) a.innerHTML = NEWS_DB.map(tmpl).join("");
-    document.querySelectorAll(".nc[data-news-id]").forEach(el => {
-    el.addEventListener("click", () => showNewsDetail(parseInt(el.dataset.newsId)));
-  });
 }
 function showNewsDetail(id) {
-  const n = NEWS_DB.find(x => x.id == id); if (!n) return;
+  const n = NEWS_DB.find(x => x.id === id); if (!n) return;
   document.getElementById("md-title").textContent = n.titolo;
   document.getElementById("md-body").innerHTML = `
     <div style="display:flex;align-items:center;gap:.8rem;margin-bottom:1.2rem">
@@ -1780,19 +1772,23 @@ function apriTesseraSocio(socioId){
 // ── ADMIN ─────────────────────────────────────────────
 function adminLogin(){const u=document.getElementById("admin-user").value,p=document.getElementById("admin-pass").value;if(u==="ctr"&&p==="laroda2025"){adminLogged=true;document.getElementById("admin-login-wrap").style.display="none";document.getElementById("admin-panel-wrap").style.display="block";renderAdmin();toast("✅ Accesso effettuato!");}else{toast("❌ Credenziali errate!");document.getElementById("admin-pass").value="";}}
 function adminLogout(){adminLogged=false;document.getElementById("admin-login-wrap").style.display="block";document.getElementById("admin-panel-wrap").style.display="none";}
+
 async function downloadBackup(){
-  toast("⏳ Preparazione backup...");
-  const a=document.createElement("a");
-  a.href="/api/admin/backup?pwd=laroda2025";
-  a.download="ctr-backup.zip";
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  setTimeout(()=>toast("✅ Backup scaricato!"),1500);
+  toast("⏳ Preparazione backup in corso...");
+  try{
+    const url="/api/admin/backup?pwd=laroda2025";
+    const a=document.createElement("a");
+    a.href=url;
+    a.download="ctr-backup.zip";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(()=>toast("✅ Backup scaricato!"),1500);
+  }catch(e){toast("❌ Backup fallito: "+e.message);}
 }
 
 function triggerRestore(){
-  if(!confirm("⚠️ Ripristinare il database?\n\nIl DB attuale verrà sostituito."))return;
+  if(!confirm("⚠️ Ripristinare il database da un file di backup?\n\nIl database attuale verrà sostituito. Assicurati di avere un backup recente."))return;
   document.getElementById("restore-db-input").click();
 }
 
@@ -1800,25 +1796,28 @@ async function uploadRestoreDB(input){
   const file=input.files[0];
   if(!file)return;
   if(!file.name.endsWith(".db")){toast("⚠️ Seleziona un file .db");return;}
+  // Overlay progress
   const overlay=document.createElement("div");
+  overlay.id="restore-overlay";
   overlay.style.cssText="position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center";
   overlay.innerHTML=`<div style="background:#1a2e08;border:2px solid #5a8a1a;border-radius:12px;padding:2.5rem;width:360px;text-align:center">
     <div style="font-size:2.5rem;margin-bottom:1rem">📥</div>
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:#8dc63f;margin-bottom:.5rem">Ripristino in corso</div>
-    <div style="font-size:.82rem;color:#b0b0b0;margin-bottom:1.5rem" id="restore-status">Caricamento...</div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:#8dc63f;letter-spacing:.05em;margin-bottom:.5rem">Ripristino in corso</div>
+    <div style="font-size:.82rem;color:#b0b0b0;margin-bottom:1.5rem" id="restore-status">Caricamento ${file.name}...</div>
     <div style="height:6px;background:#0d1a06;border-radius:3px;overflow:hidden">
       <div id="restore-bar" style="height:100%;background:linear-gradient(90deg,#5a8a1a,#8dc63f);width:0%;transition:width .3s;border-radius:3px"></div>
     </div>
   </div>`;
   document.body.appendChild(overlay);
-  const fd=new FormData(); fd.append("db",file);
+  const fd=new FormData();
+  fd.append("db",file);
   const xhr=new XMLHttpRequest();
   xhr.open("POST","/api/admin/restore-db?pwd=laroda2025");
   xhr.upload.onprogress=(e)=>{
     if(e.lengthComputable){
       const pct=Math.round(e.loaded/e.total*100);
       document.getElementById("restore-bar").style.width=pct+"%";
-      document.getElementById("restore-status").textContent="Caricamento "+pct+"%";
+      document.getElementById("restore-status").textContent=`Caricamento ${pct}% — ${(file.size/1024).toFixed(0)} KB`;
     }
   };
   xhr.onload=()=>{
@@ -1826,21 +1825,21 @@ async function uploadRestoreDB(input){
     try{
       const res=JSON.parse(xhr.responseText);
       if(xhr.status===200&&res.ok){
-        document.getElementById("restore-status").textContent="✅ Completato! Riavvio in corso...";
-        setTimeout(()=>{document.body.removeChild(overlay);toast("✅ DB ripristinato!");setTimeout(()=>location.reload(),2000);},2000);
+        document.getElementById("restore-status").textContent="✅ Ripristino completato! Il server si riavvia...";
+        setTimeout(()=>{document.body.removeChild(overlay);toast("✅ DB ripristinato — ricarico...");setTimeout(()=>location.reload(),2000);},2000);
       }else{
-        document.getElementById("restore-status").textContent="❌ "+(res.error||"Errore");
+        document.getElementById("restore-status").textContent="❌ Errore: "+(res.error||"sconosciuto");
         document.getElementById("restore-bar").style.background="#c0392b";
         setTimeout(()=>document.body.removeChild(overlay),3000);
+        toast("❌ Ripristino fallito");
       }
-    }catch(e){setTimeout(()=>document.body.removeChild(overlay),3000);}
+    }catch(e){document.getElementById("restore-status").textContent="❌ Risposta non valida";setTimeout(()=>document.body.removeChild(overlay),3000);}
     input.value="";
   };
   xhr.onerror=()=>{document.body.removeChild(overlay);toast("❌ Errore di rete");input.value="";};
   xhr.send(fd);
 }
 
-  
 async function renderAdmin(){
   await loadSoci();
   populateAnnoSelect();
