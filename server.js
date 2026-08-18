@@ -1048,8 +1048,17 @@ app.post('/api/admin/restore-db', uploadDB.single('db'), (req, res) => {
     if (fs.existsSync(DB_PATH)) fs.copyFileSync(DB_PATH, backupPath);
     fs.copyFileSync(req.file.path, DB_PATH);
     fs.unlinkSync(req.file.path);
-    res.json({ok:true, msg:'Database ripristinato. Il server si riavvierà.'});
-    setTimeout(() => process.exit(0), 1000);
+const Database = require('better-sqlite3');
+const newDb = new Database(DB_PATH);
+newDb.pragma('journal_mode = WAL');
+newDb.pragma('foreign_keys = ON');
+db.prepare = newDb.prepare.bind(newDb);
+db.exec = newDb.exec.bind(newDb);
+db.pragma = newDb.pragma.bind(newDb);
+db.transaction = newDb.transaction.bind(newDb);
+db.close = newDb.close.bind(newDb);
+console.log('DB ripristinato e riaperto senza riavvio');
+res.json({ok:true, msg:'Database ripristinato con successo.'});
   } catch(e) { res.status(500).json({error: e.message}); }
 });
 
