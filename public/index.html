@@ -1592,7 +1592,7 @@ function renderNewsPub() {
   if (a) a.innerHTML = NEWS_DB.map(tmpl).join("");
 }
 function showNewsDetail(id) {
-  const n = NEWS_DB.find(x => x.id === id); if (!n) return;
+  const n = NEWS_DB.find(x => x.id == id); if (!n) return;
   document.getElementById("md-title").textContent = n.titolo;
   document.getElementById("md-body").innerHTML = `
     <div style="display:flex;align-items:center;gap:.8rem;margin-bottom:1.2rem">
