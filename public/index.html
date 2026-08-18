@@ -451,9 +451,10 @@ tbody td{padding:.85rem 1rem;font-size:.88rem}
 <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--giallo);letter-spacing:.05em">⚙ Pannello Admin</div>
 <div style="display:flex;gap:.6rem;flex-wrap:wrap">
   <button class="btn bv2" onclick="downloadBackup()" style="font-size:.7rem;background:linear-gradient(135deg,#2c5f0a,#3d8010)">💾 Backup</button>
+  <button class="btn bo" onclick="triggerRestore()" style="font-size:.7rem;border-color:#3498db;color:#5dade2">📥 Ripristina DB</button>
+  <input type="file" id="restore-db-input" accept=".db" style="display:none" onchange="uploadRestoreDB(this)">
   <button class="btn bo" onclick="adminLogout()">← Esci</button>
-
-      </div>
+</div>
 
       <!-- SELETTORE ANNO -->
       <div class="anno-bar">
