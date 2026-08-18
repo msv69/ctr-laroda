@@ -81,6 +81,7 @@ CREATE TABLE IF NOT EXISTS uscite (
 CREATE TABLE IF NOT EXISTS iscrizioni_uscita (
   uscita_id  INTEGER REFERENCES uscite(id) ON DELETE CASCADE,
   socio_id   INTEGER REFERENCES soci(id) ON DELETE CASCADE,
+  note       TEXT,
   created_at TEXT DEFAULT (datetime('now')),
   PRIMARY KEY (uscita_id, socio_id)
 );
@@ -199,6 +200,7 @@ CREATE TABLE IF NOT EXISTS admin_note (
   'ALTER TABLE gallery_video ADD COLUMN album_id INTEGER',
   'ALTER TABLE soci ADD COLUMN foto_profilo TEXT',
   'ALTER TABLE admin_note ADD COLUMN anno INTEGER',
+  'ALTER TABLE iscrizioni_uscita ADD COLUMN note TEXT',
 ].forEach(sql => { try { db.exec(sql); } catch(e){} });
 
 // Crea cartella profili
@@ -483,7 +485,7 @@ app.get('/api/uscite/:id/iscrizioni', (req,res) => {
   try {
     const rows = db.prepare(`
       SELECT s.id, s.nome, s.cognome, s.tessera, s.tel, s.email, s.foto_profilo,
-             i.created_at as data_iscr
+             i.note, i.created_at as data_iscr
       FROM iscrizioni_uscita i
       JOIN soci s ON s.id = i.socio_id
       WHERE i.uscita_id = ?
@@ -493,19 +495,20 @@ app.get('/api/uscite/:id/iscrizioni', (req,res) => {
 });
 
 app.post('/api/uscite/:id/iscrizioni', (req,res) => {
-  const { socio_id } = req.body;
+  const { socio_id, note } = req.body;
   if (!socio_id) return res.status(400).json({error:'socio_id mancante'});
   try {
-    // Controlla posti disponibili
     const uscita = db.prepare('SELECT max_posti FROM uscite WHERE id=?').get(req.params.id);
     const count  = db.prepare('SELECT COUNT(*) as n FROM iscrizioni_uscita WHERE uscita_id=?').get(req.params.id).n;
     if (uscita && count >= uscita.max_posti)
       return res.status(400).json({error:'Uscita al completo'});
-    // Verifica già iscritto
     const exists = db.prepare('SELECT 1 FROM iscrizioni_uscita WHERE uscita_id=? AND socio_id=?').get(req.params.id, socio_id);
-    if (exists) return res.status(400).json({error:'Già iscritto a questa uscita'});
-    db.prepare('INSERT INTO iscrizioni_uscita(uscita_id,socio_id) VALUES(?,?)').run(req.params.id, socio_id);
-    // Aggiorna contatore iscritti nell'uscita
+    if (exists) {
+      // Aggiorna la nota se già iscritto
+      db.prepare('UPDATE iscrizioni_uscita SET note=? WHERE uscita_id=? AND socio_id=?').run(note||'', req.params.id, socio_id);
+    } else {
+      db.prepare('INSERT INTO iscrizioni_uscita(uscita_id,socio_id,note) VALUES(?,?,?)').run(req.params.id, socio_id, note||'');
+    }
     res.json({ok:true});
   } catch(e) { res.status(400).json({error:e.message}); }
 });
@@ -1002,28 +1005,71 @@ app.post('/api/admin/note', (req,res) => {
   } catch(e) { res.status(400).json({error:e.message}); }
 });
 
+// ── FALLBACK ─────────────────────────────────────────────────────────
 // ── BACKUP ───────────────────────────────────────────────────────────
 app.get('/api/admin/backup', async (req, res) => {
+  // Protezione base: richiede header o query param con password admin
   const pwd = req.query.pwd || req.headers['x-admin-pwd'];
   if (pwd !== 'laroda2025') return res.status(401).json({error:'Non autorizzato'});
+
   try {
     const archiver = require('archiver');
     const dateStr = new Date().toISOString().slice(0,10);
+    const filename = `ctr-backup-${dateStr}.zip`;
+
     res.setHeader('Content-Type', 'application/zip');
-    res.setHeader('Content-Disposition', `attachment; filename="ctr-backup-${dateStr}.zip"`);
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+
     const archive = archiver('zip', { zlib: { level: 6 } });
     archive.pipe(res);
+
+    // 1. Backup DB — checkpoint WAL prima per avere dati aggiornati
     try { db.pragma('wal_checkpoint(TRUNCATE)'); } catch(e){}
-    if (fs.existsSync(DB_PATH)) archive.file(DB_PATH, { name: 'ctr.db' });
-    if (fs.existsSync(UPLOAD_DIR)) archive.directory(UPLOAD_DIR, 'uploads');
-    ['package.json','server.js'].forEach(f => {
+    if (fs.existsSync(DB_PATH)) {
+      archive.file(DB_PATH, { name: 'ctr.db' });
+    }
+
+    // 2. Tutti gli uploads (foto, video, profili, documenti)
+    if (fs.existsSync(UPLOAD_DIR)) {
+      archive.directory(UPLOAD_DIR, 'uploads');
+    }
+
+    // 3. File di configurazione utili
+    const configFiles = ['package.json','fly.toml','railway.toml','server.js'];
+    configFiles.forEach(f => {
       const full = path.join(__dirname, f);
       if (fs.existsSync(full)) archive.file(full, { name: f });
     });
-    archive.append(`CTR La Röda — Backup ${new Date().toLocaleString('it-IT')}\n`, { name: 'README.txt' });
+
+    // 4. README con info backup
+    const readme = `CTR La Röda — Backup
+Data: ${new Date().toLocaleString('it-IT')}
+==========================
+Contenuto:
+- ctr.db       → Database SQLite completo
+- uploads/     → Tutte le foto, video, profili e documenti
+- server.js    → Backend applicazione
+- package.json → Dipendenze Node.js
+- fly.toml     → Configurazione Fly.io
+
+Per ripristinare:
+1. Copia ctr.db nel volume /data/
+2. Copia uploads/ in /data/uploads/
+3. Rideploya l'applicazione
+`;
+    archive.append(readme, { name: 'README.txt' });
+
     archive.finalize();
-    archive.on('error', err => { if (!res.headersSent) res.status(500).end(); });
-  } catch(e) { res.status(500).json({error: e.message}); }
+
+    archive.on('error', err => {
+      console.error('Backup error:', err);
+      if (!res.headersSent) res.status(500).json({error: err.message});
+    });
+
+  } catch(e) {
+    console.error('Backup failed:', e);
+    res.status(500).json({error: e.message});
+  }
 });
 
 // ── RIPRISTINO DB ────────────────────────────────────────────────────
@@ -1042,28 +1088,37 @@ app.post('/api/admin/restore-db', uploadDB.single('db'), (req, res) => {
   if (pwd !== 'laroda2025') return res.status(401).json({error:'Non autorizzato'});
   if (!req.file) return res.status(400).json({error:'File mancante'});
   try {
+    // Checkpoint WAL e chiudi DB corrente
     try { db.pragma('wal_checkpoint(TRUNCATE)'); } catch(e){}
     db.close();
+    // Backup del DB attuale prima di sovrascrivere
     const backupPath = DB_PATH + '.bak.' + Date.now();
     if (fs.existsSync(DB_PATH)) fs.copyFileSync(DB_PATH, backupPath);
+    // Copia il nuovo DB
     fs.copyFileSync(req.file.path, DB_PATH);
     fs.unlinkSync(req.file.path);
-const Database = require('better-sqlite3');
-const newDb = new Database(DB_PATH);
-newDb.pragma('journal_mode = WAL');
-newDb.pragma('foreign_keys = ON');
-db.prepare = newDb.prepare.bind(newDb);
-db.exec = newDb.exec.bind(newDb);
-db.pragma = newDb.pragma.bind(newDb);
-db.transaction = newDb.transaction.bind(newDb);
-db.close = newDb.close.bind(newDb);
-console.log('DB ripristinato e riaperto senza riavvio');
-res.json({ok:true, msg:'Database ripristinato con successo.'});
-  } catch(e) { res.status(500).json({error: e.message}); }
+    console.log('DB ripristinato da backup. Backup precedente:', backupPath);
+    // Riapri il DB senza riavviare il processo
+    const Database = require('better-sqlite3');
+    const newDb = new Database(DB_PATH);
+    newDb.pragma('journal_mode = WAL');
+    newDb.pragma('foreign_keys = ON');
+    // Sostituisci il db globale
+    Object.assign(db, newDb);
+    // Copia tutti i metodi sul db esistente
+    db.prepare = newDb.prepare.bind(newDb);
+    db.exec = newDb.exec.bind(newDb);
+    db.pragma = newDb.pragma.bind(newDb);
+    db.transaction = newDb.transaction.bind(newDb);
+    db.close = newDb.close.bind(newDb);
+    console.log('DB ripristinato e riaperto senza riavvio');
+    res.json({ok:true, msg:'Database ripristinato con successo.'});
+  } catch(e) {
+    res.status(500).json({error: e.message});
+  }
 });
 
-
-// ── FALLBACK ─────────────────────────────────────────────────────────
+// ── SPA FALLBACK ──────────────────────────────────────────────────────
 app.get('*', (req,res) => res.sendFile(path.join(__dirname,'public','index.html')));
 
 app.listen(PORT, '0.0.0.0', () => console.log(`CTR La Röda → http://localhost:${PORT}`));
