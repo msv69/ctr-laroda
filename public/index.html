@@ -1,4 +1,4 @@
-<!DOCTYPE html>   
+<!DOCTYPE html>
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -10,14 +10,28 @@
 :root{--verde:#5a8a1a;--verde-chiaro:#8dc63f;--giallo:#f5c400;--gs:#1a1a1a;--g:#2e2e2e;--gm:#444;--gc:#b0b0b0;--b:#f4f1eb;--rosso:#c0392b}
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:"DM Sans",sans-serif;background:var(--gs);color:var(--b);overflow-x:hidden}
-nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(26,26,26,.96);backdrop-filter:blur(12px);border-bottom:2px solid var(--verde);display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem;height:64px;gap:.5rem;flex-wrap:wrap}
-.nav-logo{cursor:pointer;display:flex;align-items:center}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(26,26,26,.96);backdrop-filter:blur(12px);border-bottom:2px solid var(--verde);display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem;height:64px;gap:.5rem}
+.nav-logo{cursor:pointer;display:flex;align-items:center;flex-shrink:0}
 .nav-logo img{height:44px}
 .nav-links{display:flex;gap:.2rem;flex-wrap:wrap}
 .nav-links button{background:none;border:none;color:var(--gc);font-family:"DM Mono",monospace;font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;padding:.35rem .7rem;border-radius:3px;cursor:pointer;transition:all .2s}
 .nav-links button:hover,.nav-links button.active{background:var(--verde);color:var(--b)}
 .nav-links button.admin-btn{border:1px solid var(--giallo);color:var(--giallo)}
 .nav-links button.admin-btn:hover,.nav-links button.admin-btn.active{background:var(--giallo);color:var(--gs)}
+/* HAMBURGER MOBILE */
+.nav-hamburger{display:none;flex-direction:column;gap:5px;background:none;border:none;cursor:pointer;padding:.4rem;flex-shrink:0}
+.nav-hamburger span{display:block;width:22px;height:2px;background:var(--b);border-radius:2px;transition:all .3s}
+.nav-mobile-menu{display:none;position:fixed;top:64px;left:0;right:0;z-index:99;background:rgba(20,20,20,.98);backdrop-filter:blur(12px);border-bottom:2px solid var(--verde);padding:1rem 1.5rem;flex-direction:column;gap:.4rem}
+.nav-mobile-menu.open{display:flex}
+.nav-mobile-menu button{background:none;border:none;color:var(--gc);font-family:"DM Mono",monospace;font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;padding:.6rem .8rem;border-radius:4px;cursor:pointer;transition:all .2s;text-align:left}
+.nav-mobile-menu button:hover,.nav-mobile-menu button.active{background:var(--verde);color:var(--b)}
+.nav-mobile-menu button.admin-btn{border:1px solid var(--giallo);color:var(--giallo)}
+.nav-mobile-menu button.admin-btn:hover,.nav-mobile-menu button.admin-btn.active{background:var(--giallo);color:var(--gs)}
+@media(max-width:768px){
+  .nav-links{display:none}
+  .nav-hamburger{display:flex}
+  .page{padding-top:64px}
+}
 .csw{display:flex;align-items:center;gap:.25rem;border-left:1px solid var(--gm);padding-left:.6rem}
 .csw button{padding:.28rem .55rem;font-size:.62rem;font-family:"DM Mono",monospace;background:none;border:1px solid var(--gm);color:var(--gc);border-radius:3px;cursor:pointer;transition:all .2s}
 .csw button.active{background:var(--verde);color:var(--b);border-color:var(--verde)}
@@ -177,7 +191,7 @@ tbody td{padding:.85rem 1rem;font-size:.88rem}
 <body>
 
 <nav>
-  <div class="nav-logo" onclick="showPage('home')"><img src="/logo.jpg" alt="CTR La Röda"></div>
+  <div class="nav-logo" onclick="showPage('home');closeMobileMenu()"><img src="/logo.jpg" alt="CTR La Röda"></div>
   <div class="nav-links">
     <button onclick="showPage('home')" id="nav-home" class="active">Home</button>
     <button onclick="showPage('news')" id="nav-news">News</button>
@@ -188,7 +202,22 @@ tbody td{padding:.85rem 1rem;font-size:.88rem}
     <button onclick="showPage('tessera')" id="nav-tessera" style="border:1px solid var(--giallo);color:var(--giallo);border-radius:3px">🎫 Tessera</button>
     <button onclick="showPage('admin')" id="nav-admin" class="admin-btn">⚙ Admin</button>
   </div>
+  <button class="nav-hamburger" id="nav-hamburger" onclick="toggleMobileMenu()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
 </nav>
+
+<!-- MENU MOBILE -->
+<div class="nav-mobile-menu" id="nav-mobile-menu">
+  <button onclick="showPage('home');closeMobileMenu()" id="mob-home" class="active">🏠 Home</button>
+  <button onclick="showPage('news');closeMobileMenu()" id="mob-news">📰 News</button>
+  <button onclick="showPage('soci');closeMobileMenu()" id="mob-soci">👥 Soci</button>
+  <button onclick="showPage('uscite');closeMobileMenu()" id="mob-uscite">🚴 Uscite</button>
+  <button onclick="showPage('gallery');closeMobileMenu()" id="mob-gallery">📷 Gallery</button>
+  <button onclick="showPage('documenti');closeMobileMenu()" id="mob-documenti">📄 Documenti</button>
+  <button onclick="showPage('tessera');closeMobileMenu()" id="mob-tessera" style="border:1px solid var(--giallo);color:var(--giallo);border-radius:4px">🎫 Tessera</button>
+  <button onclick="showPage('admin');closeMobileMenu()" id="mob-admin" class="admin-btn">⚙ Admin</button>
+</div>
 
 <!-- HOME -->
 <div class="page active" id="page-home">
@@ -840,7 +869,7 @@ const VIDEO_SEED=[{emoji:"📹",titolo:"Highlights Stelvio 2025",desc:"12 soci i
 
 // ── STATE ─────────────────────────────────────────────
 let SOCI=[],SOCI_F=[],adminLogged=false,editId=null,sortCol="cognome",sortDir=1;
-let filtroU="tutti",curr="CHF",gallType="foto",pendFile=null,pendType=null;
+let filtroU="tutti",curr="€",gallType="foto",pendFile=null,pendType=null;
 let ANNO=new Date().getFullYear(),ANNI=[];
 let USCITE_DB=[],USCITE_F=[],TRASFERTE_DB=[],SPESE_DB=[],QUOTE_DB=[];
 let editUscitaId=null,editSpesaId=null,editTrasfertaId=null;
@@ -1047,14 +1076,11 @@ async function showPartecipanti(uscitaId){
             ${s.foto_profilo
               ? `<img src="${s.foto_profilo}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid var(--verde);flex-shrink:0">`
               : `<span style="width:36px;height:36px;border-radius:50%;background:var(--verde);color:var(--b);display:inline-flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:500;flex-shrink:0">${(s.nome[0]+s.cognome[0]).toUpperCase()}</span>`}
-         
-         
             <div style="flex:1">
               <div style="font-weight:500">${s.nome} ${s.cognome}</div>
-              ${adminLogged?`<div style="font-family:'DM Mono',monospace;font-size:.65rem;color:var(--giallo)">${s.tessera||"—"}</div>`:""}
+              <div style="font-family:'DM Mono',monospace;font-size:.65rem;color:var(--giallo)">${s.tessera||"—"}</div>
               ${s.note?`<div style="font-size:.72rem;color:var(--gc);margin-top:.2rem">📝 ${s.note}</div>`:""}
             </div>
-            
             ${s.tel?`<div style="font-size:.75rem;color:var(--gc)">${s.tel}</div>`:""}
           </div>`).join("")}
       </div>
@@ -1787,6 +1813,39 @@ function apriTesseraSocio(socioId){
 // ── ADMIN ─────────────────────────────────────────────
 function adminLogin(){const u=document.getElementById("admin-user").value,p=document.getElementById("admin-pass").value;if(u==="ctr"&&p==="laroda2025"){adminLogged=true;document.getElementById("admin-login-wrap").style.display="none";document.getElementById("admin-panel-wrap").style.display="block";renderAdmin();toast("✅ Accesso effettuato!");}else{toast("❌ Credenziali errate!");document.getElementById("admin-pass").value="";}}
 function adminLogout(){adminLogged=false;document.getElementById("admin-login-wrap").style.display="block";document.getElementById("admin-panel-wrap").style.display="none";}
+
+// ── MOBILE MENU ───────────────────────────────────────────
+function toggleMobileMenu(){
+  const m=document.getElementById("nav-mobile-menu");
+  const h=document.getElementById("nav-hamburger");
+  const open=m.classList.toggle("open");
+  // Anima hamburger → X
+  const spans=h.querySelectorAll("span");
+  if(open){
+    spans[0].style.cssText="transform:translateY(7px) rotate(45deg)";
+    spans[1].style.cssText="opacity:0";
+    spans[2].style.cssText="transform:translateY(-7px) rotate(-45deg)";
+  } else {
+    spans.forEach(s=>s.style.cssText="");
+  }
+}
+function closeMobileMenu(){
+  const m=document.getElementById("nav-mobile-menu");
+  if(!m)return;
+  m.classList.remove("open");
+  const spans=document.querySelectorAll(".nav-hamburger span");
+  spans.forEach(s=>s.style.cssText="");
+}
+
+// Aggiorna active state anche nei bottoni mobile
+const _origShowPage=showPage;
+function showPage(p){
+  _origShowPage(p);
+  // Sync active su menu mobile
+  document.querySelectorAll("#nav-mobile-menu button[id^='mob-']").forEach(b=>b.classList.remove("active"));
+  const mb=document.getElementById("mob-"+p);
+  if(mb)mb.classList.add("active");
+}
 
 async function downloadBackup(){
   toast("⏳ Preparazione backup in corso...");
