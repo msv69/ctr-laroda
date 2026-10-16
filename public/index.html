@@ -274,7 +274,10 @@ tbody td{padding:.85rem 1rem;font-size:.88rem}
 
 <!-- USCITE -->
 <div class="page" id="page-uscite">
-  <div class="sh"><h2>Uscite <span id="uscite-anno-title">2026</span></h2></div>
+  <div class="sh" style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
+    <h2 style="margin:0">Uscite <span id="uscite-anno-title">2026</span></h2>
+    <select id="pub-anno-sel" onchange="cambiaAnnoPub(this.value)" style="background:var(--sfondo-card);color:var(--testo);border:1px solid var(--bordo);border-radius:6px;padding:.3rem .6rem;font-family:inherit;font-size:.85rem;cursor:pointer"></select>
+  </div>
   <div style="padding:1.5rem 2rem 0;display:flex;gap:.5rem;flex-wrap:wrap;align-items:center">
     <button class="btn bv2" onclick="filterUscite('tutti')" id="uf-tutti">Tutte</button>
     <button class="btn bo" onclick="filterUscite('F')" id="uf-F">🔵 Facile</button>
@@ -510,7 +513,7 @@ tbody td{padding:.85rem 1rem;font-size:.88rem}
         <div style="display:flex;gap:.8rem;align-items:center;margin-bottom:1rem;flex-wrap:wrap">
           <div style="display:flex;align-items:center;gap:.5rem;background:var(--g);border-radius:6px;padding:.8rem 1.2rem;border-left:4px solid var(--verde)">
             <span style="font-family:'DM Mono',monospace;font-size:.65rem;text-transform:uppercase;color:var(--verde-chiaro)">Importo</span>
-            <span id="q-sign" style="color:var(--gc)">€</span>
+            <span id="q-sign" style="color:var(--gc)">CHF</span>
             <input id="q-importo" type="number" value="20" style="width:70px;background:var(--gs);border:1px solid var(--gm);border-radius:4px;padding:.3rem .6rem;color:var(--giallo);font-family:'DM Mono',monospace;font-size:1rem;outline:none">
           </div>
           <input class="sb" type="text" id="admin-search-quote" placeholder="🔍 Cerca..." oninput="filterQuote()" style="max-width:220px">
@@ -875,8 +878,8 @@ const VIDEO_SEED=[{emoji:"📹",titolo:"Highlights Stelvio 2025",desc:"12 soci i
 
 // ── STATE ─────────────────────────────────────────────
 let SOCI=[],SOCI_F=[],adminLogged=false,editId=null,sortCol="cognome",sortDir=1;
-let filtroU="tutti",curr="€",gallType="foto",pendFile=null,pendType=null;
-let ANNO=new Date().getFullYear(),ANNI=[],ANNO_TESSERA=new Date().getFullYear();
+let filtroU="tutti",curr="CHF",gallType="foto",pendFile=null,pendType=null;
+let ANNO=new Date().getFullYear(),ANNI=[],ANNO_TESSERA=new Date().getFullYear(),ANNO_PUB=new Date().getFullYear();
 let USCITE_DB=[],USCITE_F=[],TRASFERTE_DB=[],SPESE_DB=[],QUOTE_DB=[];
 let editUscitaId=null,editSpesaId=null,editTrasfertaId=null;
 
@@ -896,9 +899,9 @@ async function init(){
   await loadNews();
   renderNewsPub();
   try{ANNI=await api("GET","/anni");if(!ANNI.includes(ANNO))ANNI.unshift(ANNO);}catch(e){ANNI=[ANNO];}
-  // Carica uscite subito per aggiornare contatore home
+  // Carica uscite subito per aggiornare contatore home (usa ANNO_PUB = anno corrente)
   try{
-    USCITE_DB=await api("GET","/uscite/"+ANNO);
+    USCITE_DB=await api("GET","/uscite/"+ANNO_PUB);
     USCITE_F=[...USCITE_DB];
     const c=document.getElementById("cnt-uscite");
     if(c)c.textContent=USCITE_DB.length;
@@ -936,7 +939,15 @@ function showPage(p){
       const sh=document.getElementById("search-soci");if(sh)sh.style.display="none";
     }
   }
-  if(p==="uscite")loadUscitePub();
+  if(p==="uscite"){
+    // Popola dropdown anno pubblico
+    const sel=document.getElementById("pub-anno-sel");
+    if(sel&&ANNI.length){
+      sel.innerHTML=ANNI.map(a=>`<option value="${a}"${a===ANNO_PUB?" selected":""}>${a}</option>`).join("");
+      sel.dataset.populated="1";
+    }
+    loadUscitePub();
+  }
   if(p==="gallery"){CUR_ALBUM=null;document.getElementById("gallery-album-view").style.display="block";document.getElementById("gallery-album-open").style.display="none";renderGallery();}
   if(p==="documenti")renderDocumenti();
   if(p==="tessera"){if(SOCIO_CORRENTE&&document.getElementById("tp-uscite-list")){loadUscitePub().then(()=>renderTesseraUscite());}}
@@ -945,7 +956,7 @@ function showPage(p){
 
 // ── CURRENCY ──────────────────────────────────────────
 function setCurrency(c){
-  curr=c==="CHF"?"CHF":"€";
+  curr="CHF";
   document.getElementById("btn-chf").className=c==="CHF"?"active":"";
   document.getElementById("btn-eur").className=c==="EUR"?"active":"";
   document.querySelectorAll("[id$='-sign'],[id='q-sign']").forEach(el=>{if(el)el.textContent=curr;});
@@ -966,6 +977,7 @@ function populateAnnoSelect(){
 async function changeAnno(v){
   ANNO=parseInt(v);
   renderAdmin();
+  // ANNO_PUB è indipendente dall'anno admin, non viene modificato qui
 }
 function addNewYear(){
   const y=parseInt(prompt("Inserisci anno (es. 2027):",ANNO+1));
@@ -976,6 +988,7 @@ function addNewYear(){
   populateAnnoSelect();
   document.getElementById("anno-select").value=y;
   renderAdmin();
+  loadUscitePub().catch(()=>{});
   toast("✅ Anno "+y+" aggiunto");
 }
 
@@ -1040,10 +1053,24 @@ async function deleteSocio(id){if(!confirm("Eliminare questo socio?"))return;try
 async function toggleSospeso(id){const s=SOCI.find(x=>x.id===id);if(!s)return;const ns=s.stato==="Sospeso"?"Attivo":"Sospeso";try{await api("PATCH","/soci/"+id+"/stato",{stato:ns});await loadSoci();adminRenderSoci();toast("Stato: "+ns);}catch(e){toast("❌ "+e.message);}}
 
 // ── USCITE PUBBLICHE ──────────────────────────────────
+function cambiaAnnoPub(anno){
+  ANNO_PUB=parseInt(anno);
+  loadUscitePub();
+}
 async function loadUscitePub(){
   const annoEl=document.getElementById("uscite-anno-title");
-  if(annoEl)annoEl.textContent=ANNO;
-  try{ USCITE_DB=await api("GET","/uscite/"+ANNO); }catch(e){ USCITE_DB=[]; }
+  if(annoEl)annoEl.textContent=ANNO_PUB;
+  // aggiorna dropdown pubblico
+  const sel=document.getElementById("pub-anno-sel");
+  if(sel&&sel.value!=ANNO_PUB){
+    // popola se vuoto
+    if(!sel.options.length||sel.dataset.populated!=="1"){
+      sel.innerHTML=ANNI.map(a=>`<option value="${a}">${a}</option>`).join("");
+      sel.dataset.populated="1";
+    }
+    sel.value=ANNO_PUB;
+  }
+  try{ USCITE_DB=await api("GET","/uscite/"+ANNO_PUB); }catch(e){ USCITE_DB=[]; }
   USCITE_F=[...USCITE_DB];
   const c=document.getElementById("cnt-uscite"); if(c)c.textContent=USCITE_DB.length;
   renderUscitePub();
@@ -1052,7 +1079,7 @@ function renderUscitePub(){
   const el=document.getElementById("uscite-list");if(!el)return;
   const list=filtroU==="tutti"?USCITE_F:USCITE_F.filter(u=>u.difficolta===filtroU);
   const dm={F:"Facile",M:"Media",D:"Difficile"};
-  if(!list.length){el.innerHTML=`<div class="empty">Nessuna uscita per ${ANNO}</div>`;return;}
+  if(!list.length){el.innerHTML=`<div class="empty">Nessuna uscita per ${ANNO_PUB}</div>`;return;}
   el.innerHTML=list.map(u=>`
     <div class="uc" onclick="showUscitaDetail(${u.id})">
       <div class="ud"><div class="ug-d">${u.giorno||"—"}</div><div class="um">${u.mese||"—"}</div></div>
