@@ -398,8 +398,14 @@ tbody td{padding:.85rem 1rem;font-size:.88rem}
 
     <!-- TAB: USCITE -->
     <div id="tab-content-uscite" style="display:none">
-      <div style="font-family:'DM Mono',monospace;font-size:.72rem;text-transform:uppercase;letter-spacing:.15em;color:var(--verde-chiaro);margin-bottom:1rem">
-        Iscriviti alle uscite — <span id="tp-anno"></span>
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.8rem;margin-bottom:1rem">
+        <div style="font-family:'DM Mono',monospace;font-size:.72rem;text-transform:uppercase;letter-spacing:.15em;color:var(--verde-chiaro)">
+          Uscite — <span id="tp-anno"></span>
+        </div>
+        <div style="display:flex;align-items:center;gap:.5rem">
+          <label style="font-family:'DM Mono',monospace;font-size:.65rem;color:var(--gc)">Anno:</label>
+          <select id="tp-anno-sel" onchange="cambiaAnnoTessera(this.value)" style="background:var(--g);border:1px solid var(--gm);color:var(--b);font-family:'DM Mono',monospace;font-size:.72rem;padding:.3rem .6rem;border-radius:4px;cursor:pointer;outline:none"></select>
+        </div>
       </div>
       <div id="tp-uscite-list"><div class="ld">Caricamento</div></div>
     </div>
@@ -870,7 +876,7 @@ const VIDEO_SEED=[{emoji:"📹",titolo:"Highlights Stelvio 2025",desc:"12 soci i
 // ── STATE ─────────────────────────────────────────────
 let SOCI=[],SOCI_F=[],adminLogged=false,editId=null,sortCol="cognome",sortDir=1;
 let filtroU="tutti",curr="€",gallType="foto",pendFile=null,pendType=null;
-let ANNO=new Date().getFullYear(),ANNI=[];
+let ANNO=new Date().getFullYear(),ANNI=[],ANNO_TESSERA=new Date().getFullYear();
 let USCITE_DB=[],USCITE_F=[],TRASFERTE_DB=[],SPESE_DB=[],QUOTE_DB=[];
 let editUscitaId=null,editSpesaId=null,editTrasfertaId=null;
 
@@ -905,6 +911,9 @@ function showPage(p){
   document.querySelectorAll(".nav-links button[id^='nav-']").forEach(x=>x.classList.remove("active"));
   document.getElementById("page-"+p).classList.add("active");
   const nb=document.getElementById("nav-"+p);if(nb)nb.classList.add("active");
+  // Sync menu mobile
+  document.querySelectorAll("#nav-mobile-menu button[id^='mob-']").forEach(b=>b.classList.remove("active"));
+  const mb=document.getElementById("mob-"+p);if(mb)mb.classList.add("active");
   if(p==="home"||p==="news"){renderNewsPub();}
   if(p==="soci"){
     if(SOCIO_CORRENTE){
@@ -1135,7 +1144,13 @@ async function socioLogin(){
     document.getElementById("tessera-panel").style.display="block";
     document.getElementById("tp-nome").textContent=SOCIO_CORRENTE.nome+" "+SOCIO_CORRENTE.cognome;
     document.getElementById("tp-tessera").textContent=SOCIO_CORRENTE.tessera+" · "+(SOCIO_CORRENTE.ruolo||"Socio");
-    document.getElementById("tp-anno").textContent=ANNO;
+    ANNO_TESSERA=ANNO;
+    document.getElementById("tp-anno").textContent=ANNO_TESSERA;
+    // Popola selettore anno tessera
+    const sel=document.getElementById("tp-anno-sel");
+    if(sel){
+      sel.innerHTML=ANNI.map(a=>`<option value="${a}"${a===ANNO_TESSERA?" selected":""}>${a}</option>`).join("");
+    }
     // Avatar
     const initials=(SOCIO_CORRENTE.nome[0]+SOCIO_CORRENTE.cognome[0]).toUpperCase();
     document.getElementById("tp-avatar-initials").textContent=initials;
@@ -1201,19 +1216,29 @@ function downloadTessera(){
   window.open("/api/tessera/"+SOCIO_CORRENTE.id,"_blank");
 }
 
+async function cambiaAnnoTessera(anno){
+  ANNO_TESSERA=parseInt(anno);
+  const sp=document.getElementById("tp-anno");
+  if(sp)sp.textContent=ANNO_TESSERA;
+  await renderTesseraUscite();
+}
+
 async function renderTesseraUscite(){
   const el=document.getElementById("tp-uscite-list");
   if(!el||!SOCIO_CORRENTE)return;
   el.innerHTML=`<div class="ld">Caricamento uscite</div>`;
+  // Carica uscite per l'anno tessera (può essere diverso dall'anno admin)
+  let usciteTessera=[];
+  try{ usciteTessera=await api("GET","/uscite/"+ANNO_TESSERA); }catch(e){}
   // Una sola chiamata per sapere a quali uscite è già iscritto
   let mieIscrizioni=[];
   try{ mieIscrizioni=await api("GET","/soci/"+SOCIO_CORRENTE.id+"/iscrizioni"); }catch(e){}
   const dm={F:"🔵",M:"🟡",D:"🔴"};
-  if(!USCITE_DB.length){
-    el.innerHTML=`<div class="empty">Nessuna uscita programmata per ${ANNO}</div>`;
+  if(!usciteTessera.length){
+    el.innerHTML=`<div class="empty">Nessuna uscita programmata per ${ANNO_TESSERA}</div>`;
     return;
   }
-  el.innerHTML=`<div style="display:flex;flex-direction:column;gap:.8rem">${USCITE_DB.map(u=>{
+  el.innerHTML=`<div style="display:flex;flex-direction:column;gap:.8rem">${usciteTessera.map(u=>{
     const iscritto=mieIscrizioni.includes(u.id);
     const pieno=(u.iscritti||0)>=(u.max_posti||30)&&!iscritto;
     return `<div style="background:var(--g);border:1px solid ${iscritto?"var(--verde)":"rgba(90,138,26,.2)"};border-radius:8px;padding:1rem 1.2rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
@@ -1837,15 +1862,6 @@ function closeMobileMenu(){
   spans.forEach(s=>s.style.cssText="");
 }
 
-// Aggiorna active state anche nei bottoni mobile
-const _origShowPage=showPage;
-function showPage(p){
-  _origShowPage(p);
-  // Sync active su menu mobile
-  document.querySelectorAll("#nav-mobile-menu button[id^='mob-']").forEach(b=>b.classList.remove("active"));
-  const mb=document.getElementById("mob-"+p);
-  if(mb)mb.classList.add("active");
-}
 
 async function downloadBackup(){
   toast("⏳ Preparazione backup in corso...");
