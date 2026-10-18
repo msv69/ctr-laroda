@@ -518,6 +518,31 @@ tbody td{padding:.85rem 1rem;font-size:.88rem}
         <div class="kc kb"><div class="kn" id="k-uscite">—</div><div class="kl">Uscite in programma</div></div>
       </div>
 
+      <!-- SOCI ADMIN -->
+      <div class="as">
+        <h3>👥 Gestione Soci</h3>
+        <div style="display:flex;gap:.8rem;align-items:center;margin-bottom:1rem;flex-wrap:wrap">
+          <input class="sb" type="text" id="admin-search-soci" placeholder="🔍 Cerca..." oninput="adminFilterSoci()" style="max-width:280px">
+          <button class="btn bv2" onclick="openModalSocio()">+ Nuovo Socio</button>
+        </div>
+        <div class="tw sc" style="padding:0">
+          <table><thead><tr><th>Socio</th><th>Tessera</th><th>Email</th><th>Tel</th><th>Città</th><th>Stato</th><th>Azioni</th></tr></thead>
+          <tbody id="admin-soci-tbody"><tr><td colspan="7"><div class="ld">Caricamento</div></td></tr></tbody></table>
+        </div>
+      </div>
+
+      <!-- USCITE ADMIN -->
+      <div class="as">
+        <h3>🚴 Uscite — Anno <span id="uscite-anno-label">—</span></h3>
+        <div style="display:flex;gap:.8rem;margin-bottom:1rem;flex-wrap:wrap">
+          <button class="btn bv2" onclick="openModalUscita()">+ Nuova Uscita</button>
+        </div>
+        <div class="tw sc" style="padding:0">
+          <table><thead><tr><th>Data</th><th>Titolo</th><th>Km</th><th>D+</th><th>Diff.</th><th>Ora</th><th>Iscritti</th><th></th></tr></thead>
+          <tbody id="uscite-admin-tbody"><tr><td colspan="8"><div class="ld">Caricamento</div></td></tr></tbody></table>
+        </div>
+      </div>
+
       <!-- QUOTE -->
       <div class="as">
         <h3>💰 Quote Sociali — Anno <span id="quote-anno-label">—</span></h3>
@@ -532,18 +557,6 @@ tbody td{padding:.85rem 1rem;font-size:.88rem}
         <div class="tw sc" style="padding:0">
           <table><thead><tr><th>Socio</th><th>Tessera</th><th>Importo</th><th>Data</th><th>Metodo</th><th>Note</th><th>Stato</th><th></th></tr></thead>
           <tbody id="quote-tbody"><tr><td colspan="8"><div class="ld">Caricamento</div></td></tr></tbody></table>
-        </div>
-      </div>
-
-      <!-- USCITE ADMIN -->
-      <div class="as">
-        <h3>🚴 Uscite — Anno <span id="uscite-anno-label">—</span></h3>
-        <div style="display:flex;gap:.8rem;margin-bottom:1rem;flex-wrap:wrap">
-          <button class="btn bv2" onclick="openModalUscita()">+ Nuova Uscita</button>
-        </div>
-        <div class="tw sc" style="padding:0">
-          <table><thead><tr><th>Data</th><th>Titolo</th><th>Km</th><th>D+</th><th>Diff.</th><th>Ora</th><th>Iscritti</th><th></th></tr></thead>
-          <tbody id="uscite-admin-tbody"><tr><td colspan="8"><div class="ld">Caricamento</div></td></tr></tbody></table>
         </div>
       </div>
 
@@ -576,19 +589,6 @@ tbody td{padding:.85rem 1rem;font-size:.88rem}
         <h3>📊 Grafico Quote Pagate</h3>
         <div class="bc" id="bar-chart"></div>
         <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.5rem" id="bar-labels"></div>
-      </div>
-
-      <!-- SOCI ADMIN -->
-      <div class="as">
-        <h3>👥 Gestione Soci</h3>
-        <div style="display:flex;gap:.8rem;align-items:center;margin-bottom:1rem;flex-wrap:wrap">
-          <input class="sb" type="text" id="admin-search-soci" placeholder="🔍 Cerca..." oninput="adminFilterSoci()" style="max-width:280px">
-          <button class="btn bv2" onclick="openModalSocio()">+ Nuovo Socio</button>
-        </div>
-        <div class="tw sc" style="padding:0">
-          <table><thead><tr><th>Socio</th><th>Tessera</th><th>Email</th><th>Tel</th><th>Città</th><th>Stato</th><th>Azioni</th></tr></thead>
-          <tbody id="admin-soci-tbody"><tr><td colspan="7"><div class="ld">Caricamento</div></td></tr></tbody></table>
-        </div>
       </div>
 
       <!-- NOTE -->
@@ -1182,7 +1182,6 @@ async function showPartecipanti(uscitaId){
               : `<span style="width:36px;height:36px;border-radius:50%;background:var(--verde);color:var(--b);display:inline-flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:500;flex-shrink:0">${(s.nome[0]+s.cognome[0]).toUpperCase()}</span>`}
             <div style="flex:1">
               <div style="font-weight:500">${s.nome} ${s.cognome}</div>
-              <div style="font-family:'DM Mono',monospace;font-size:.65rem;color:var(--giallo)">${s.tessera||"—"}</div>
               ${s.note?`<div style="font-size:.72rem;color:var(--gc);margin-top:.2rem">📝 ${s.note}</div>`:""}
             </div>
             ${s.tel?`<div style="font-size:.75rem;color:var(--gc)">${s.tel}</div>`:""}
