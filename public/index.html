@@ -981,7 +981,7 @@ function showPage(p){
   }
   if(p==="gallery"){CUR_ALBUM=null;document.getElementById("gallery-album-view").style.display="block";document.getElementById("gallery-album-open").style.display="none";renderGallery();}
   if(p==="documenti")renderDocumenti();
-  if(p==="tessera"){if(SOCIO_CORRENTE&&document.getElementById("tp-uscite-list")){loadUscitePub().then(()=>renderTesseraUscite());}}
+  if(p==="tessera"){if(SOCIO_CORRENTE&&document.getElementById("tp-uscite-list")){loadUscitePub().then(()=>{popolaAnnoTessera();return renderTesseraUscite();});}}
   if(p==="admin"&&adminLogged)renderAdmin();
 }
 
@@ -1125,17 +1125,29 @@ function cambiaAnnoPub(anno){
   ANNO_PUB=parseInt(anno);
   loadUscitePub();
 }
+// Rilegge dal server gli anni con dati, mantenendo quelli aggiunti dall'admin in questa sessione
+async function aggiornaAnni(){
+  try{
+    const a=await api("GET","/anni");
+    ANNI=[...new Set([...a,...ANNI])].sort((x,y)=>y-x);
+  }catch(e){}
+  return ANNI;
+}
+function popolaAnnoTessera(){
+  const sel=document.getElementById("tp-anno-sel");
+  if(!sel)return;
+  if(!ANNI.includes(ANNO_TESSERA))ANNO_TESSERA=ANNI[0]||new Date().getFullYear();
+  sel.innerHTML=ANNI.map(a=>`<option value="${a}"${a===ANNO_TESSERA?" selected":""}>${a}</option>`).join("");
+}
+
 async function loadUscitePub(){
   const annoEl=document.getElementById("uscite-anno-title");
   if(annoEl)annoEl.textContent=ANNO_PUB;
-  // aggiorna dropdown pubblico
+  await aggiornaAnni();
+  // aggiorna dropdown pubblico (sempre con l'elenco anni aggiornato)
   const sel=document.getElementById("pub-anno-sel");
-  if(sel&&sel.value!=ANNO_PUB){
-    // popola se vuoto
-    if(!sel.options.length||sel.dataset.populated!=="1"){
-      sel.innerHTML=ANNI.map(a=>`<option value="${a}">${a}</option>`).join("");
-      sel.dataset.populated="1";
-    }
+  if(sel){
+    sel.innerHTML=ANNI.map(a=>`<option value="${a}">${a}</option>`).join("");
     sel.value=ANNO_PUB;
   }
   try{ USCITE_DB=await api("GET","/uscite/"+ANNO_PUB); }catch(e){ USCITE_DB=[]; }
@@ -1263,13 +1275,12 @@ async function socioLogin(silenzioso){
     document.getElementById("tessera-panel").style.display="block";
     document.getElementById("tp-nome").textContent=SOCIO_CORRENTE.nome+" "+SOCIO_CORRENTE.cognome;
     document.getElementById("tp-tessera").textContent=SOCIO_CORRENTE.tessera+" · "+(SOCIO_CORRENTE.ruolo||"Socio");
-    ANNO_TESSERA=ANNO;
+    // Anno dell'area socio: quello del calendario, indipendente dall'anno di gestione admin
+    ANNO_TESSERA=new Date().getFullYear();
     document.getElementById("tp-anno").textContent=ANNO_TESSERA;
-    // Popola selettore anno tessera
-    const sel=document.getElementById("tp-anno-sel");
-    if(sel){
-      sel.innerHTML=ANNI.map(a=>`<option value="${a}"${a===ANNO_TESSERA?" selected":""}>${a}</option>`).join("");
-    }
+    // Rilegge gli anni dal server (es. uscite 2027 create dopo l'apertura della pagina)
+    await aggiornaAnni();
+    popolaAnnoTessera();
     // Avatar
     const initials=(SOCIO_CORRENTE.nome[0]+SOCIO_CORRENTE.cognome[0]).toUpperCase();
     document.getElementById("tp-avatar-initials").textContent=initials;
