@@ -4,8 +4,10 @@ const multer = require('multer');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
 
 const app = express();
+app.set('trust proxy', 1); // Railway sta dietro un proxy: serve per l'IP reale nel rate limit
 const PORT = process.env.PORT || 3000;
 
 // ── PATHS ────────────────────────────────────────────────────────────
@@ -345,10 +347,114 @@ app.use(express.json());
 app.use('/uploads', express.static(UPLOAD_DIR));
 app.use(express.static(path.join(__dirname, 'public')));
 
+// ── AUTENTICAZIONE ───────────────────────────────────────────────────
+// Credenziali admin SOLO da variabili d'ambiente (Railway → Variables).
+const ADMIN_USER = process.env.ADMIN_USER || 'ctr';
+const ADMIN_PWD  = process.env.ADMIN_PWD || '';
+// Chiave per firmare i token. Se manca, ne genera una casuale a ogni avvio
+// (i login restano validi solo fino al prossimo riavvio del server).
+const TOKEN_SECRET = process.env.TOKEN_SECRET || crypto.randomBytes(32).toString('hex');
+if (!ADMIN_PWD)            console.warn('⚠️  ADMIN_PWD non impostata: login admin disabilitato');
+if (!process.env.TOKEN_SECRET) console.warn('⚠️  TOKEN_SECRET non impostata: i token scadono a ogni riavvio');
+
+const TTL_ADMIN = 12 * 3600;        // 12 ore
+const TTL_SOCIO = 180 * 24 * 3600;  // 180 giorni (app mobile)
+const TTL_LINK  = 120;              // 2 minuti: link monouso per download/tessera
+
+function signToken(payload, ttlSec) {
+  const body = Buffer.from(JSON.stringify({ ...payload, exp: Date.now() + ttlSec * 1000 })).toString('base64url');
+  const sig  = crypto.createHmac('sha256', TOKEN_SECRET).update(body).digest('base64url');
+  return body + '.' + sig;
+}
+
+function verifyToken(tok) {
+  if (!tok || typeof tok !== 'string' || !tok.includes('.')) return null;
+  const [body, sig] = tok.split('.');
+  const expected = crypto.createHmac('sha256', TOKEN_SECRET).update(body).digest('base64url');
+  const a = Buffer.from(sig || ''), b = Buffer.from(expected);
+  if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return null;
+  try {
+    const p = JSON.parse(Buffer.from(body, 'base64url').toString());
+    return p.exp > Date.now() ? p : null;
+  } catch(e) { return null; }
+}
+
+function safeEqual(a, b) {
+  const ha = crypto.createHash('sha256').update(String(a)).digest();
+  const hb = crypto.createHash('sha256').update(String(b)).digest();
+  return crypto.timingSafeEqual(ha, hb);
+}
+
+// Legge il token: header "Authorization: Bearer …" oppure ?t=… (solo token "link" di breve durata)
+app.use('/api', (req, res, next) => {
+  req.auth = null;
+  const h = req.headers.authorization || '';
+  if (h.startsWith('Bearer ')) {
+    const p = verifyToken(h.slice(7));
+    if (p && !p.link) req.auth = p;
+  } else if (req.query.t) {
+    const p = verifyToken(String(req.query.t));
+    if (p && p.link) req.auth = p;
+  }
+  next();
+});
+
+const isAdmin = req => req.auth?.role === 'admin';
+
+function requireAdmin(req, res, next) {
+  if (isAdmin(req)) return next();
+  res.status(req.auth ? 403 : 401).json({ error: 'Accesso riservato agli admin' });
+}
+
+// Consente l'accesso all'admin o al socio proprietario dei dati
+const requireSelfOrAdmin = getId => (req, res, next) => {
+  if (isAdmin(req)) return next();
+  if (req.auth?.role === 'socio' && String(req.auth.id) === String(getId(req))) return next();
+  res.status(req.auth ? 403 : 401).json({ error: 'Non autorizzato' });
+};
+const selfParam = name => requireSelfOrAdmin(req => req.params[name]);
+
+// Rate limit semplice in memoria per i login (10 tentativi / 15 minuti per IP)
+const loginHits = new Map();
+function loginLimiter(req, res, next) {
+  const now = Date.now(), key = req.ip + req.path;
+  const e = loginHits.get(key);
+  if (!e || e.reset < now) { loginHits.set(key, { n: 1, reset: now + 15 * 60 * 1000 }); return next(); }
+  if (++e.n > 10) return res.status(429).json({ error: 'Troppi tentativi. Riprova tra qualche minuto.' });
+  next();
+}
+setInterval(() => { const now = Date.now(); for (const [k, e] of loginHits) if (e.reset < now) loginHits.delete(k); }, 10 * 60 * 1000).unref();
+
+// Escape per l'HTML generato lato server (tessera)
+const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+
+// Login admin → token
+app.post('/api/admin/login', loginLimiter, (req, res) => {
+  if (!ADMIN_PWD) return res.status(503).json({ error: 'Login admin non configurato (ADMIN_PWD)' });
+  const { user, pwd } = req.body || {};
+  if (!safeEqual(user || '', ADMIN_USER) || !safeEqual(pwd || '', ADMIN_PWD))
+    return res.status(401).json({ error: 'Credenziali errate' });
+  res.json({ token: signToken({ role: 'admin' }, TTL_ADMIN) });
+});
+
+// Token "link" di 2 minuti, per aprire tessera o scaricare il backup in una nuova scheda
+app.post('/api/link-token', (req, res) => {
+  if (!req.auth) return res.status(401).json({ error: 'Non autenticato' });
+  const { role, id } = req.auth;
+  res.json({ token: signToken({ role, id, link: true }, TTL_LINK) });
+});
+
+// Statistiche pubbliche (contatore soci in home, senza esporre i dati)
+app.get('/api/stats', (req, res) => {
+  try { res.json({ soci: db.prepare("SELECT COUNT(*) as n FROM soci WHERE stato!='Sospeso'").get().n }); }
+  catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 const upload = multer({
   storage: multer.diskStorage({
     destination: (req,file,cb) => {
-      const d = path.join(UPLOAD_DIR, req.params.type==='video'?'video':'foto');
+      // NB: le rotte sono /api/gallery/foto e /api/gallery/video (non esiste req.params.type)
+      const d = path.join(UPLOAD_DIR, req.path.includes('/video') ? 'video' : 'foto');
       fs.mkdirSync(d,{recursive:true}); cb(null,d);
     },
     filename: (req,file,cb) => cb(null, Date.now()+path.extname(file.originalname))
@@ -357,7 +463,7 @@ const upload = multer({
 });
 
 // ── HEALTH ───────────────────────────────────────────────────────────
-app.get('/api/health', (req,res) => res.json({ok:true, db:DB_PATH}));
+app.get('/api/health', (req,res) => res.json({ok:true}));
 
 // ── ANNI disponibili ─────────────────────────────────────────────────
 app.get('/api/anni', (req,res) => {
@@ -373,12 +479,23 @@ app.get('/api/anni', (req,res) => {
 });
 
 // ── SOCI ─────────────────────────────────────────────────────────────
-app.get('/api/soci', (req,res) => {
+app.get('/api/soci', requireAdmin, (req,res) => {
   try { res.json(db.prepare('SELECT * FROM soci ORDER BY cognome').all()); }
   catch(e) { res.status(500).json({error:e.message}); }
 });
 
-app.post('/api/soci', (req,res) => {
+// Elenco dei soci visibile ai soci autenticati: solo dati non sensibili.
+// Niente tessera (con il cognome è la credenziale di accesso), contatti, indirizzo, nascita, CF.
+app.get('/api/soci/elenco', (req,res) => {
+  if (!req.auth || req.auth.link) return res.status(401).json({error:'Accedi con la tua tessera'});
+  try {
+    res.json(db.prepare(
+      "SELECT id, nome, cognome, ruolo, foto_profilo FROM soci WHERE stato!='Sospeso' ORDER BY cognome, nome"
+    ).all());
+  } catch(e) { res.status(500).json({error:e.message}); }
+});
+
+app.post('/api/soci', requireAdmin, (req,res) => {
   const b = req.body;
   try {
     const maxRow = db.prepare("SELECT tessera FROM soci WHERE tessera LIKE 'CTR-%' ORDER BY tessera DESC").get();
@@ -393,7 +510,7 @@ app.post('/api/soci', (req,res) => {
   } catch(e) { res.status(400).json({error:e.message}); }
 });
 
-app.patch('/api/soci/:id', (req,res) => {
+app.patch('/api/soci/:id', requireAdmin, (req,res) => {
   const b = req.body;
   try {
     db.prepare(`UPDATE soci SET nome=?,cognome=?,email=?,tel=?,nascita=?,cf=?,indirizzo=?,citta=?,cap=?,ruolo=?,stato=?,note=? WHERE id=?`).run(
@@ -404,23 +521,23 @@ app.patch('/api/soci/:id', (req,res) => {
   } catch(e) { res.status(400).json({error:e.message}); }
 });
 
-app.patch('/api/soci/:id/stato', (req,res) => {
+app.patch('/api/soci/:id/stato', requireAdmin, (req,res) => {
   try { db.prepare('UPDATE soci SET stato=? WHERE id=?').run(req.body.stato,req.params.id); res.json({ok:true}); }
   catch(e) { res.status(400).json({error:e.message}); }
 });
 
-app.delete('/api/soci/:id', (req,res) => {
+app.delete('/api/soci/:id', requireAdmin, (req,res) => {
   try { db.prepare('DELETE FROM soci WHERE id=?').run(req.params.id); res.json({ok:true}); }
   catch(e) { res.status(400).json({error:e.message}); }
 });
 
 // ── QUOTE ────────────────────────────────────────────────────────────
-app.get('/api/quote/:anno', (req,res) => {
+app.get('/api/quote/:anno', requireAdmin, (req,res) => {
   try { res.json(db.prepare('SELECT * FROM quote WHERE anno=?').all(req.params.anno)); }
   catch(e) { res.status(500).json({error:e.message}); }
 });
 
-app.post('/api/quote', (req,res) => {
+app.post('/api/quote', requireAdmin, (req,res) => {
   const b = req.body;
   try {
     db.prepare(`INSERT INTO quote(socio_id,anno,importo,data_pag,metodo,note,pagato) VALUES(?,?,?,?,?,?,1)
@@ -430,7 +547,7 @@ app.post('/api/quote', (req,res) => {
   } catch(e) { res.status(400).json({error:e.message}); }
 });
 
-app.delete('/api/quote/:anno/:socio_id', (req,res) => {
+app.delete('/api/quote/:anno/:socio_id', requireAdmin, (req,res) => {
   try { db.prepare('DELETE FROM quote WHERE anno=? AND socio_id=?').run(req.params.anno,req.params.socio_id); res.json({ok:true}); }
   catch(e) { res.status(400).json({error:e.message}); }
 });
@@ -446,7 +563,7 @@ app.get('/api/uscite/:anno', (req,res) => {
   } catch(e) { res.status(500).json({error:e.message}); }
 });
 
-app.post('/api/uscite', (req,res) => {
+app.post('/api/uscite', requireAdmin, (req,res) => {
   const b = req.body;
   try {
     const r = db.prepare(`INSERT INTO uscite(anno,giorno,mese,data_uscita,titolo,km,dislivello,difficolta,ora,max_posti,note)
@@ -456,7 +573,7 @@ app.post('/api/uscite', (req,res) => {
   } catch(e) { res.status(400).json({error:e.message}); }
 });
 
-app.patch('/api/uscite/:id', (req,res) => {
+app.patch('/api/uscite/:id', requireAdmin, (req,res) => {
   const b = req.body;
   try {
     db.prepare(`UPDATE uscite SET titolo=?,data_uscita=?,giorno=?,mese=?,km=?,dislivello=?,difficolta=?,ora=?,max_posti=?,note=? WHERE id=?`).run(
@@ -467,13 +584,13 @@ app.patch('/api/uscite/:id', (req,res) => {
   } catch(e) { res.status(400).json({error:e.message}); }
 });
 
-app.delete('/api/uscite/:id', (req,res) => {
+app.delete('/api/uscite/:id', requireAdmin, (req,res) => {
   try { db.prepare('DELETE FROM uscite WHERE id=?').run(req.params.id); res.json({ok:true}); }
   catch(e) { res.status(400).json({error:e.message}); }
 });
 
 // Iscrizioni di un singolo socio (per area tessera)
-app.get('/api/soci/:id/iscrizioni', (req,res) => {
+app.get('/api/soci/:id/iscrizioni', selfParam('id'), (req,res) => {
   try {
     const rows = db.prepare('SELECT uscita_id FROM iscrizioni_uscita WHERE socio_id=?').all(req.params.id);
     res.json(rows.map(r=>r.uscita_id));
@@ -490,11 +607,14 @@ app.get('/api/uscite/:id/iscrizioni', (req,res) => {
       JOIN soci s ON s.id = i.socio_id
       WHERE i.uscita_id = ?
       ORDER BY s.cognome`).all(req.params.id);
+    // Pubblico: solo nome, foto e nota. Tessera e contatti solo per l'admin
+    // (tessera + cognome sono le credenziali di accesso del socio).
+    if (!isAdmin(req)) rows.forEach(r => { delete r.tessera; delete r.tel; delete r.email; });
     res.json(rows);
   } catch(e) { res.status(500).json({error:e.message}); }
 });
 
-app.post('/api/uscite/:id/iscrizioni', (req,res) => {
+app.post('/api/uscite/:id/iscrizioni', requireSelfOrAdmin(req => req.body?.socio_id), (req,res) => {
   const { socio_id, note } = req.body;
   if (!socio_id) return res.status(400).json({error:'socio_id mancante'});
   try {
@@ -513,7 +633,7 @@ app.post('/api/uscite/:id/iscrizioni', (req,res) => {
   } catch(e) { res.status(400).json({error:e.message}); }
 });
 
-app.delete('/api/uscite/:id/iscrizioni/:socio_id', (req,res) => {
+app.delete('/api/uscite/:id/iscrizioni/:socio_id', selfParam('socio_id'), (req,res) => {
   try {
     db.prepare('DELETE FROM iscrizioni_uscita WHERE uscita_id=? AND socio_id=?').run(req.params.id, req.params.socio_id);
     res.json({ok:true});
@@ -521,7 +641,7 @@ app.delete('/api/uscite/:id/iscrizioni/:socio_id', (req,res) => {
 });
 
 // Socio aggiorna i propri dati di contatto (via tessera auth)
-app.patch('/api/tessera/:socio_id/profilo', (req,res) => {
+app.patch('/api/tessera/:socio_id/profilo', selfParam('socio_id'), (req,res) => {
   const b = req.body;
   try {
     db.prepare(`UPDATE soci SET
@@ -547,7 +667,7 @@ const uploadProfilo = multer({
   }
 });
 
-app.post('/api/soci/:socio_id/foto-profilo', uploadProfilo.single('foto'), (req,res) => {
+app.post('/api/soci/:socio_id/foto-profilo', selfParam('socio_id'), uploadProfilo.single('foto'), (req,res) => {
   try {
     const file_path = '/uploads/profili/' + req.file.filename;
     db.prepare('UPDATE soci SET foto_profilo=? WHERE id=?').run(file_path, req.params.socio_id);
@@ -555,7 +675,7 @@ app.post('/api/soci/:socio_id/foto-profilo', uploadProfilo.single('foto'), (req,
   } catch(e) { res.status(400).json({error:e.message}); }
 });
 
-app.delete('/api/soci/:socio_id/foto-profilo', (req,res) => {
+app.delete('/api/soci/:socio_id/foto-profilo', selfParam('socio_id'), (req,res) => {
   try {
     const s = db.prepare('SELECT foto_profilo FROM soci WHERE id=?').get(req.params.socio_id);
     if (s?.foto_profilo) {
@@ -569,20 +689,30 @@ app.delete('/api/soci/:socio_id/foto-profilo', (req,res) => {
 
 // ── TESSERA SOCIO ────────────────────────────────────────────────────
 // Autenticazione socio: tessera + cognome → restituisce dati socio
-app.post('/api/tessera/auth', (req,res) => {
-  const { tessera, cognome } = req.body;
+app.post('/api/tessera/auth', loginLimiter, (req,res) => {
+  const { tessera, cognome } = req.body || {};
   if (!tessera || !cognome) return res.status(400).json({error:'Tessera e cognome richiesti'});
   try {
     const s = db.prepare(
       "SELECT * FROM soci WHERE UPPER(tessera)=UPPER(?) AND UPPER(cognome)=UPPER(?)"
-    ).get(tessera.trim(), cognome.trim());
+    ).get(String(tessera).trim(), String(cognome).trim());
     if (!s) return res.status(404).json({error:'Socio non trovato. Verifica numero tessera e cognome.'});
-    res.json(s);
+    if (s.stato === 'Sospeso') return res.status(403).json({error:'Tessera sospesa. Contatta la segreteria.'});
+    // Il token autorizza solo le operazioni sui dati di questo socio
+    res.json({ ...s, token: signToken({ role: 'socio', id: s.id }, TTL_SOCIO) });
+  } catch(e) { res.status(500).json({error:e.message}); }
+});
+
+// Quota del socio autenticato (l'elenco completo resta riservato all'admin)
+app.get('/api/tessera/me/quota/:anno', (req,res) => {
+  if (req.auth?.role !== 'socio') return res.status(401).json({error:'Non autenticato'});
+  try {
+    res.json(db.prepare('SELECT * FROM quote WHERE socio_id=? AND anno=?').get(req.auth.id, req.params.anno) || null);
   } catch(e) { res.status(500).json({error:e.message}); }
 });
 
 // Tessera HTML (renderizzata server-side, aperta in nuova tab)
-app.get('/api/tessera/:socio_id', (req,res) => {
+app.get('/api/tessera/:socio_id', selfParam('socio_id'), (req,res) => {
   try {
     const s = db.prepare('SELECT * FROM soci WHERE id=?').get(req.params.socio_id);
     if (!s) return res.status(404).json({error:'Socio non trovato'});
@@ -590,6 +720,8 @@ app.get('/api/tessera/:socio_id', (req,res) => {
     // Dati QR: JSON compatto con dati essenziali
     const qrData = JSON.stringify({id:s.id, tessera:s.tessera, nome:s.nome, cognome:s.cognome, anno});
     const qrUrl  = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrData)}&bgcolor=1a1a1a&color=8dc63f&qzone=2`;
+    // Escape dei campi testuali prima di inserirli nell'HTML (dopo aver generato il QR)
+    Object.keys(s).forEach(k => { if (typeof s[k] === 'string') s[k] = esc(s[k]); });
     const html = `<!DOCTYPE html>
 <html lang="it">
 <head>
@@ -678,12 +810,12 @@ app.get('/api/tessera/:socio_id', (req,res) => {
 });
 
 // ── SPESE ────────────────────────────────────────────────────────────
-app.get('/api/spese/:anno', (req,res) => {
+app.get('/api/spese/:anno', requireAdmin, (req,res) => {
   try { res.json(db.prepare('SELECT * FROM spese WHERE anno=? ORDER BY data_spesa').all(req.params.anno)); }
   catch(e) { res.status(500).json({error:e.message}); }
 });
 
-app.post('/api/spese', (req,res) => {
+app.post('/api/spese', requireAdmin, (req,res) => {
   const b = req.body;
   try {
     const r = db.prepare(`INSERT INTO spese(anno,data_spesa,descrizione,categoria,importo,incassato,note)
@@ -692,7 +824,7 @@ app.post('/api/spese', (req,res) => {
   } catch(e) { res.status(400).json({error:e.message}); }
 });
 
-app.patch('/api/spese/:id', (req,res) => {
+app.patch('/api/spese/:id', requireAdmin, (req,res) => {
   const b = req.body;
   try {
     db.prepare(`UPDATE spese SET data_spesa=?,descrizione=?,categoria=?,importo=?,incassato=?,note=? WHERE id=?`).run(
@@ -702,7 +834,7 @@ app.patch('/api/spese/:id', (req,res) => {
   } catch(e) { res.status(400).json({error:e.message}); }
 });
 
-app.delete('/api/spese/:id', (req,res) => {
+app.delete('/api/spese/:id', requireAdmin, (req,res) => {
   try { db.prepare('DELETE FROM spese WHERE id=?').run(req.params.id); res.json({ok:true}); }
   catch(e) { res.status(400).json({error:e.message}); }
 });
@@ -711,14 +843,19 @@ app.delete('/api/spese/:id', (req,res) => {
 app.get('/api/trasferte/:anno', (req,res) => {
   try {
     const list = db.prepare('SELECT * FROM trasferte WHERE anno=? ORDER BY data_inizio').all(req.params.anno);
+    const admin = isAdmin(req);
+    const mioId = req.auth?.role === 'socio' ? req.auth.id : null;
     list.forEach(t => {
-      t.iscrizioni = db.prepare('SELECT * FROM iscrizioni_trasferta WHERE trasferta_id=?').all(t.id);
+      const all = db.prepare('SELECT * FROM iscrizioni_trasferta WHERE trasferta_id=?').all(t.id);
+      t.n_iscritti = all.length;
+      // Pagamenti visibili solo all'admin; il socio vede solo la propria iscrizione
+      t.iscrizioni = admin ? all : all.filter(i => i.socio_id === mioId);
     });
     res.json(list);
   } catch(e) { res.status(500).json({error:e.message}); }
 });
 
-app.post('/api/trasferte', (req,res) => {
+app.post('/api/trasferte', requireAdmin, (req,res) => {
   const b = req.body;
   try {
     const r = db.prepare(`INSERT INTO trasferte(anno,nome,data_inizio,data_fine,luogo,km,dislivello,quota,max_posti,note)
@@ -728,7 +865,7 @@ app.post('/api/trasferte', (req,res) => {
   } catch(e) { res.status(400).json({error:e.message}); }
 });
 
-app.patch('/api/trasferte/:id', (req,res) => {
+app.patch('/api/trasferte/:id', requireAdmin, (req,res) => {
   const b = req.body;
   try {
     db.prepare(`UPDATE trasferte SET nome=?,data_inizio=?,data_fine=?,luogo=?,km=?,dislivello=?,quota=?,max_posti=?,note=? WHERE id=?`).run(
@@ -738,13 +875,13 @@ app.patch('/api/trasferte/:id', (req,res) => {
   } catch(e) { res.status(400).json({error:e.message}); }
 });
 
-app.delete('/api/trasferte/:id', (req,res) => {
+app.delete('/api/trasferte/:id', requireAdmin, (req,res) => {
   try { db.prepare('DELETE FROM trasferte WHERE id=?').run(req.params.id); res.json({ok:true}); }
   catch(e) { res.status(400).json({error:e.message}); }
 });
 
 // Iscrizioni trasferta
-app.post('/api/trasferte/:id/iscrizioni', (req,res) => {
+app.post('/api/trasferte/:id/iscrizioni', requireAdmin, (req,res) => {
   const b = req.body;
   try {
     db.prepare(`INSERT INTO iscrizioni_trasferta(trasferta_id,socio_id,acconto,saldo,data_iscr,metodo,camera,note)
@@ -757,7 +894,7 @@ app.post('/api/trasferte/:id/iscrizioni', (req,res) => {
   } catch(e) { res.status(400).json({error:e.message}); }
 });
 
-app.delete('/api/trasferte/:id/iscrizioni/:socio_id', (req,res) => {
+app.delete('/api/trasferte/:id/iscrizioni/:socio_id', requireAdmin, (req,res) => {
   try {
     db.prepare('DELETE FROM iscrizioni_trasferta WHERE trasferta_id=? AND socio_id=?').run(req.params.id,req.params.socio_id);
     res.json({ok:true});
@@ -779,7 +916,7 @@ app.get('/api/album', (req,res) => {
   } catch(e) { res.status(500).json({error:e.message}); }
 });
 
-app.post('/api/album', (req,res) => {
+app.post('/api/album', requireAdmin, (req,res) => {
   const b = req.body;
   try {
     const r = db.prepare('INSERT INTO album(anno,nome,descrizione) VALUES(?,?,?)').run(
@@ -789,7 +926,7 @@ app.post('/api/album', (req,res) => {
   } catch(e) { res.status(400).json({error:e.message}); }
 });
 
-app.patch('/api/album/:id', (req,res) => {
+app.patch('/api/album/:id', requireAdmin, (req,res) => {
   const b = req.body;
   try {
     db.prepare('UPDATE album SET nome=?,descrizione=? WHERE id=?').run(b.nome, b.descrizione||'', req.params.id);
@@ -797,7 +934,7 @@ app.patch('/api/album/:id', (req,res) => {
   } catch(e) { res.status(400).json({error:e.message}); }
 });
 
-app.delete('/api/album/:id', (req,res) => {
+app.delete('/api/album/:id', requireAdmin, (req,res) => {
   try {
     // Elimina file fisici delle foto/video nell'album
     const foto  = db.prepare('SELECT file_path FROM gallery_foto  WHERE album_id=?').all(req.params.id);
@@ -826,7 +963,7 @@ app.get('/api/gallery/foto', (req,res) => {
   } catch(e) { res.status(500).json({error:e.message}); }
 });
 
-app.post('/api/gallery/foto', upload.single('file'), (req,res) => {
+app.post('/api/gallery/foto', requireAdmin, upload.single('file'), (req,res) => {
   const file_path = '/uploads/foto/' + req.file.filename;
   const anno = parseInt(req.body.anno) || new Date().getFullYear();
   const album_id = req.body.album_id ? parseInt(req.body.album_id) : null;
@@ -843,14 +980,14 @@ app.post('/api/gallery/foto', upload.single('file'), (req,res) => {
   } catch(e) { res.status(400).json({error:e.message}); }
 });
 
-app.patch('/api/gallery/foto/:id', (req,res) => {
+app.patch('/api/gallery/foto/:id', requireAdmin, (req,res) => {
   try {
     db.prepare('UPDATE gallery_foto SET titolo=? WHERE id=?').run(req.body.titolo, req.params.id);
     res.json({ok:true});
   } catch(e) { res.status(400).json({error:e.message}); }
 });
 
-app.delete('/api/gallery/foto/:id', (req,res) => {
+app.delete('/api/gallery/foto/:id', requireAdmin, (req,res) => {
   try {
     const row = db.prepare('SELECT file_path FROM gallery_foto WHERE id=?').get(req.params.id);
     if (row?.file_path) { const f=path.join(UPLOAD_DIR,row.file_path.replace('/uploads/','')); if(fs.existsSync(f))fs.unlinkSync(f); }
@@ -872,7 +1009,7 @@ app.get('/api/gallery/video', (req,res) => {
   } catch(e) { res.status(500).json({error:e.message}); }
 });
 
-app.post('/api/gallery/video', upload.single('file'), (req,res) => {
+app.post('/api/gallery/video', requireAdmin, upload.single('file'), (req,res) => {
   const file_path = '/uploads/video/' + req.file.filename;
   const anno = parseInt(req.body.anno) || new Date().getFullYear();
   const album_id = req.body.album_id ? parseInt(req.body.album_id) : null;
@@ -884,7 +1021,7 @@ app.post('/api/gallery/video', upload.single('file'), (req,res) => {
   } catch(e) { res.status(400).json({error:e.message}); }
 });
 
-app.patch('/api/gallery/video/:id', (req,res) => {
+app.patch('/api/gallery/video/:id', requireAdmin, (req,res) => {
   try {
     const b = req.body;
     db.prepare('UPDATE gallery_video SET titolo=?,durata=? WHERE id=?').run(b.titolo, b.durata||'—', req.params.id);
@@ -892,7 +1029,7 @@ app.patch('/api/gallery/video/:id', (req,res) => {
   } catch(e) { res.status(400).json({error:e.message}); }
 });
 
-app.delete('/api/gallery/video/:id', (req,res) => {
+app.delete('/api/gallery/video/:id', requireAdmin, (req,res) => {
   try {
     const row = db.prepare('SELECT file_path FROM gallery_video WHERE id=?').get(req.params.id);
     if (row?.file_path) { const f=path.join(UPLOAD_DIR,row.file_path.replace('/uploads/','')); if(fs.existsSync(f))fs.unlinkSync(f); }
@@ -907,7 +1044,7 @@ app.get('/api/news', (req,res) => {
   catch(e) { res.status(500).json({error:e.message}); }
 });
 
-app.post('/api/news', (req,res) => {
+app.post('/api/news', requireAdmin, (req,res) => {
   const b = req.body;
   try {
     const r = db.prepare('INSERT INTO news(titolo,testo,tag,emoji,data_pub) VALUES(?,?,?,?,?)').run(
@@ -917,7 +1054,7 @@ app.post('/api/news', (req,res) => {
   } catch(e) { res.status(400).json({error:e.message}); }
 });
 
-app.patch('/api/news/:id', (req,res) => {
+app.patch('/api/news/:id', requireAdmin, (req,res) => {
   const b = req.body;
   try {
     db.prepare('UPDATE news SET titolo=?,testo=?,tag=?,emoji=?,data_pub=? WHERE id=?').run(
@@ -927,7 +1064,7 @@ app.patch('/api/news/:id', (req,res) => {
   } catch(e) { res.status(400).json({error:e.message}); }
 });
 
-app.delete('/api/news/:id', (req,res) => {
+app.delete('/api/news/:id', requireAdmin, (req,res) => {
   try { db.prepare('DELETE FROM news WHERE id=?').run(req.params.id); res.json({ok:true}); }
   catch(e) { res.status(400).json({error:e.message}); }
 });
@@ -958,7 +1095,7 @@ app.get('/api/documenti', (req,res) => {
   catch(e) { res.status(500).json({error:e.message}); }
 });
 
-app.post('/api/documenti', uploadDocs.single('file'), (req,res) => {
+app.post('/api/documenti', requireAdmin, uploadDocs.single('file'), (req,res) => {
   if (!req.file) return res.status(400).json({error:'File mancante'});
   const file_path = '/uploads/documenti/' + req.file.filename;
   const size_kb = Math.round(req.file.size / 1024);
@@ -971,7 +1108,7 @@ app.post('/api/documenti', uploadDocs.single('file'), (req,res) => {
   } catch(e) { res.status(400).json({error:e.message}); }
 });
 
-app.patch('/api/documenti/:id', (req,res) => {
+app.patch('/api/documenti/:id', requireAdmin, (req,res) => {
   const b = req.body;
   try {
     db.prepare('UPDATE documenti SET titolo=?,descrizione=?,categoria=? WHERE id=?').run(
@@ -981,7 +1118,7 @@ app.patch('/api/documenti/:id', (req,res) => {
   } catch(e) { res.status(400).json({error:e.message}); }
 });
 
-app.delete('/api/documenti/:id', (req,res) => {
+app.delete('/api/documenti/:id', requireAdmin, (req,res) => {
   try {
     const row = db.prepare('SELECT file_path FROM documenti WHERE id=?').get(req.params.id);
     if (row?.file_path) { const f=path.join(UPLOAD_DIR,row.file_path.replace('/uploads/','')); if(fs.existsSync(f))fs.unlinkSync(f); }
@@ -991,14 +1128,14 @@ app.delete('/api/documenti/:id', (req,res) => {
 });
 
 // ── NOTE ADMIN ───────────────────────────────────────────────────────
-app.get('/api/admin/note/:anno', (req,res) => {
+app.get('/api/admin/note/:anno', requireAdmin, (req,res) => {
   try {
     const row = db.prepare('SELECT testo FROM admin_note WHERE anno=?').get(req.params.anno);
     res.json({testo: row?.testo||''});
   } catch(e) { res.status(500).json({error:e.message}); }
 });
 
-app.post('/api/admin/note', (req,res) => {
+app.post('/api/admin/note', requireAdmin, (req,res) => {
   try {
     db.prepare('INSERT INTO admin_note(anno,testo) VALUES(?,?) ON CONFLICT(anno) DO UPDATE SET testo=excluded.testo').run(req.body.anno,req.body.testo||'');
     res.json({ok:true});
@@ -1007,10 +1144,7 @@ app.post('/api/admin/note', (req,res) => {
 
 // ── FALLBACK ─────────────────────────────────────────────────────────
 // ── BACKUP ───────────────────────────────────────────────────────────
-app.get('/api/admin/backup', async (req, res) => {
-  // Protezione base: richiede header o query param con password admin
-  const pwd = req.query.pwd || req.headers['x-admin-pwd'];
-  if (pwd !== 'laroda2025') return res.status(401).json({error:'Non autorizzato'});
+app.get('/api/admin/backup', requireAdmin, async (req, res) => {
 
   try {
     const archiver = require('archiver');
@@ -1083,9 +1217,7 @@ const uploadDB = multer({
   }
 });
 
-app.post('/api/admin/restore-db', uploadDB.single('db'), (req, res) => {
-  const pwd = req.query.pwd || req.headers['x-admin-pwd'];
-  if (pwd !== 'laroda2025') return res.status(401).json({error:'Non autorizzato'});
+app.post('/api/admin/restore-db', requireAdmin, uploadDB.single('db'), (req, res) => {
   if (!req.file) return res.status(400).json({error:'File mancante'});
   try {
     // Checkpoint WAL e chiudi DB corrente

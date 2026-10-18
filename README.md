@@ -31,11 +31,14 @@ Poi aggiungi le variabili d'ambiente:
 DB_PATH=/app/data/ctr.db
 UPLOAD_DIR=/app/public/uploads
 PORT=3000
+ADMIN_USER=ctr                 # opzionale, default "ctr"
+ADMIN_PWD=<password robusta>   # obbligatoria per l'area admin
+TOKEN_SECRET=<stringa casuale lunga>   # es. output di: openssl rand -hex 32
 ```
 
 ### 4. Accesso
 - **Sito pubblico**: URL generato da Railway
-- **Admin**: username `ctr` / password `laroda2025`
+- **Admin**: username `ADMIN_USER` e password `ADMIN_PWD` impostati nelle Variables di Railway (mai nel codice)
 
 ## Sviluppo locale
 ```bash
@@ -60,10 +63,10 @@ ctr/
 ## Funzionalità
 - **Home** — hero, statistiche, ultime news
 - **News** — 6 articoli del club
-- **Soci** — lista pubblica con ricerca e ordinamento
+- **Soci** — il socio vede solo i propri dati; l'elenco completo è riservato all'admin
 - **Uscite** — 10 uscite 2025, filtrabili per difficoltà
 - **Gallery** — foto e video con upload reale
-- **Admin** (ctr/laroda2025):
+- **Admin** (credenziali da variabili d'ambiente):
   - KPI quote e soci
   - Gestione soci completa (aggiungi/modifica/elimina)
   - Quote sociali 2025 e 2026
@@ -71,3 +74,9 @@ ctr/
   - Note interne
   - Grafico entrate mensili
   - Switcher valuta CHF/EUR
+
+## Sicurezza
+- Login admin verificato dal server; il browser riceve un token firmato (HMAC) valido 12 ore.
+- Login socio (tessera + cognome) → token valido 180 giorni che autorizza solo i dati di quel socio.
+- Lettura pubblica: news, uscite, gallery, documenti, numero soci. Tutto il resto richiede un token.
+- I login sono limitati a 10 tentativi ogni 15 minuti per IP.
