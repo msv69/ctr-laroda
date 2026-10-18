@@ -414,15 +414,23 @@ const requireSelfOrAdmin = getId => (req, res, next) => {
 };
 const selfParam = name => requireSelfOrAdmin(req => req.params[name]);
 
-// Rate limit semplice in memoria per i login (10 tentativi / 15 minuti per IP)
+// Rate limit in memoria per i login: blocca dopo 10 tentativi SBAGLIATI in 15 minuti per IP.
+// Gli accessi riusciti non contano e azzerano il contatore (login automatico, più soci sulla stessa rete).
+const LOGIN_MAX_ERRORI = 10, LOGIN_FINESTRA = 15 * 60 * 1000;
 const loginHits = new Map();
+const loginKey = req => req.ip + req.path;
 function loginLimiter(req, res, next) {
-  const now = Date.now(), key = req.ip + req.path;
-  const e = loginHits.get(key);
-  if (!e || e.reset < now) { loginHits.set(key, { n: 1, reset: now + 15 * 60 * 1000 }); return next(); }
-  if (++e.n > 10) return res.status(429).json({ error: 'Troppi tentativi. Riprova tra qualche minuto.' });
+  const e = loginHits.get(loginKey(req));
+  if (e && e.reset > Date.now() && e.n >= LOGIN_MAX_ERRORI)
+    return res.status(429).json({ error: 'Troppi tentativi errati. Riprova tra qualche minuto.' });
   next();
 }
+function loginFallito(req) {
+  const now = Date.now(), k = loginKey(req), e = loginHits.get(k);
+  if (!e || e.reset < now) loginHits.set(k, { n: 1, reset: now + LOGIN_FINESTRA });
+  else e.n++;
+}
+const loginRiuscito = req => loginHits.delete(loginKey(req));
 setInterval(() => { const now = Date.now(); for (const [k, e] of loginHits) if (e.reset < now) loginHits.delete(k); }, 10 * 60 * 1000).unref();
 
 // Escape per l'HTML generato lato server (tessera)
@@ -432,8 +440,11 @@ const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&
 app.post('/api/admin/login', loginLimiter, (req, res) => {
   if (!ADMIN_PWD) return res.status(503).json({ error: 'Login admin non configurato (ADMIN_PWD)' });
   const { user, pwd } = req.body || {};
-  if (!safeEqual(user || '', ADMIN_USER) || !safeEqual(pwd || '', ADMIN_PWD))
+  if (!safeEqual(user || '', ADMIN_USER) || !safeEqual(pwd || '', ADMIN_PWD)) {
+    loginFallito(req);
     return res.status(401).json({ error: 'Credenziali errate' });
+  }
+  loginRiuscito(req);
   res.json({ token: signToken({ role: 'admin' }, TTL_ADMIN) });
 });
 
@@ -696,8 +707,12 @@ app.post('/api/tessera/auth', loginLimiter, (req,res) => {
     const s = db.prepare(
       "SELECT * FROM soci WHERE UPPER(tessera)=UPPER(?) AND UPPER(cognome)=UPPER(?)"
     ).get(String(tessera).trim(), String(cognome).trim());
-    if (!s) return res.status(404).json({error:'Socio non trovato. Verifica numero tessera e cognome.'});
+    if (!s) {
+      loginFallito(req);
+      return res.status(404).json({error:'Socio non trovato. Verifica numero tessera e cognome.'});
+    }
     if (s.stato === 'Sospeso') return res.status(403).json({error:'Tessera sospesa. Contatta la segreteria.'});
+    loginRiuscito(req);
     // Il token autorizza solo le operazioni sui dati di questo socio
     res.json({ ...s, token: signToken({ role: 'socio', id: s.id }, TTL_SOCIO) });
   } catch(e) { res.status(500).json({error:e.message}); }
