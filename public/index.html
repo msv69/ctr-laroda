@@ -186,6 +186,32 @@ tbody td{padding:.85rem 1rem;font-size:.88rem}
 .doc-meta{font-family:"DM Mono",monospace;font-size:.62rem;color:var(--gm);margin-top:.5rem}
 /* NEWS CARD CLICK */
 .nc{cursor:pointer}
+/* ── Contabilità ── */
+.cont-tabs{display:flex;flex-wrap:wrap;align-items:center;gap:.3rem;border-bottom:1px solid var(--gm);margin:1.2rem 0 1rem}
+.cont-tabs .azioni{margin-left:auto;display:flex;gap:.4rem;flex-wrap:wrap;padding-bottom:.4rem}
+.cont-bar{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;margin-bottom:1rem}
+.cont-sel{background:var(--gs);border:1px solid var(--gm);border-radius:4px;padding:.55rem .7rem;color:var(--b);font-size:.82rem;max-width:280px}
+.cont-t{width:100%;border-collapse:collapse;font-size:.85rem}
+.cont-t th{text-align:left;font-family:"DM Mono",monospace;font-size:.62rem;text-transform:uppercase;letter-spacing:.1em;color:var(--verde-chiaro);padding:.55rem .6rem;border-bottom:1px solid var(--verde);background:var(--gs);position:sticky;top:0}
+.cont-t td{padding:.5rem .6rem;border-bottom:1px solid rgba(255,255,255,.06);vertical-align:middle}
+.cont-t td small{color:var(--gc);font-size:.72rem}
+.cont-t tfoot td{font-weight:600;border-top:1px solid var(--verde);border-bottom:none;background:var(--gs)}
+.cont-t .r{text-align:right;white-space:nowrap}.cont-t .m,.m{font-family:"DM Mono",monospace}
+.cont-gr td{font-family:"Bebas Neue",sans-serif;font-size:1.1rem;letter-spacing:.06em;color:var(--giallo);background:transparent;padding-top:1rem}
+.cont-tot td{font-weight:600;border-top:1px solid var(--gm)}
+.cont-click{cursor:pointer}.cont-click:hover td{background:rgba(141,198,63,.07)}
+.cont-auto{font-family:"DM Mono",monospace;font-size:.55rem;letter-spacing:.08em;color:#5dade2;border:1px solid rgba(93,173,226,.4);border-radius:3px;padding:.05rem .35rem;margin-left:.3rem;white-space:nowrap}
+.cont-in{width:110px;background:var(--gs);border:1px solid var(--gm);border-radius:4px;padding:.35rem .5rem;color:var(--b);font-family:"DM Mono",monospace;font-size:.8rem;text-align:right}
+.cont-2col{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem}
+@media(max-width:800px){.cont-2col{grid-template-columns:1fr}}
+.cont-sub{font-family:"DM Mono",monospace;font-size:.7rem;text-transform:uppercase;letter-spacing:.14em;color:var(--giallo);margin:1.4rem 0 .6rem}
+.cont-ris{display:flex;justify-content:space-between;font-family:"Bebas Neue",sans-serif;font-size:1.5rem;letter-spacing:.04em;background:var(--g);border-left:4px solid var(--verde);border-radius:4px;padding:.8rem 1.2rem;margin-top:1.2rem}
+.cont-avviso{background:rgba(230,126,34,.12);border-left:3px solid #e67e22;padding:.55rem .9rem;font-size:.8rem;margin-bottom:.5rem;border-radius:3px}
+.cont-avviso a{color:var(--giallo)}
+.cont-scheda{font-size:.82rem;color:var(--gc);background:var(--gs);padding:.6rem .9rem;border-radius:4px;margin-bottom:.8rem}
+.cont-box{background:var(--gs);border-radius:6px;padding:1.1rem 1.2rem}
+.cont-bar-pct{display:inline-block;width:70px;height:6px;background:var(--gs);border-radius:3px;overflow:hidden;vertical-align:middle;margin-right:.4rem}
+.cont-bar-pct div{height:100%}
 </style>
 </head>
 <body>
@@ -584,6 +610,33 @@ tbody td{padding:.85rem 1rem;font-size:.88rem}
         <div id="trasferte-list"><div class="ld">Caricamento</div></div>
       </div>
 
+      <!-- CONTABILITÀ -->
+      <div class="as" id="cont-sezione">
+        <h3>📒 Contabilità — Anno <span id="cont-anno-label">—</span></h3>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem">
+          <div class="kc"><div class="kn" id="cont-k-liq" style="font-size:1.7rem">—</div><div class="kl">Liquidità al 31.12</div></div>
+          <div class="kc kg"><div class="kn" id="cont-k-ric" style="font-size:1.7rem">—</div><div class="kl">Ricavi</div></div>
+          <div class="kc kr"><div class="kn" id="cont-k-cos" style="font-size:1.7rem">—</div><div class="kl">Costi</div></div>
+          <div class="kc kb"><div class="kn" id="cont-k-ris" style="font-size:1.7rem">—</div><div class="kl">Risultato d'esercizio</div></div>
+        </div>
+        <div class="cont-tabs" id="cont-tabs">
+          <button class="gtab active" data-tab="registrazioni" onclick="contTab('registrazioni')">Registrazioni</button>
+          <button class="gtab" data-tab="bilancio" onclick="contTab('bilancio')">Bilancio</button>
+          <button class="gtab" data-tab="preventivo" onclick="contTab('preventivo')">Preventivo</button>
+          <button class="gtab" data-tab="conti" onclick="contTab('conti')">Piano dei conti</button>
+          <button class="gtab" data-tab="impostazioni" onclick="contTab('impostazioni')">Impostazioni</button>
+          <div class="azioni">
+            <button class="btn bo bs2" onclick="contExport('csv')" title="Registrazioni per Excel">⬇ CSV</button>
+            <button class="btn bo bs2" onclick="contExport('bilancio')" title="Bilancio per Excel">⬇ Bilancio CSV</button>
+            <button class="btn bo bs2" onclick="contExport('banana')" title="File da importare in Banana">⬇ Banana</button>
+            <button class="btn bo bs2" onclick="contApriImport()" title="Importa piano dei conti e registrazioni da Banana" style="border-color:#5dade2;color:#5dade2">⬆ Importa da Banana</button>
+            <button class="btn by bs2" onclick="contRendiconto()">🖨 Rendiconto PDF</button>
+          </div>
+        </div>
+        <div id="cont-avvisi"></div>
+        <div id="cont-pane"><div class="ld">Caricamento</div></div>
+      </div>
+
       <!-- GRAFICO QUOTE -->
       <div class="as">
         <h3>📊 Grafico Quote Pagate</h3>
@@ -740,6 +793,75 @@ tbody td{padding:.85rem 1rem;font-size:.88rem}
     <div style="display:flex;gap:.8rem;justify-content:flex-end;margin-top:1.5rem">
       <button class="btn bo" onclick="closeModal('modal-spesa')">Annulla</button>
       <button class="btn bv2" onclick="saveSpesa()">Salva</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL REGISTRAZIONE CONTABILE -->
+<div class="mo" id="modal-cont-reg">
+  <div class="md" style="max-width:600px">
+    <div class="mh"><h3 id="mcr-title">Nuova registrazione</h3><button class="mc2" onclick="closeModal('modal-cont-reg')">✕</button></div>
+    <input type="hidden" id="mcr-id">
+    <div id="mcr-auto-note" class="cont-avviso" style="display:none;border-left-color:#5dade2;background:rgba(93,173,226,.1)"></div>
+    <div class="mr">
+      <div class="fg"><label>Data *</label><input id="mcr-data" type="date"></div>
+      <div class="fg"><label>N. documento</label><input id="mcr-doc" type="text" placeholder="es. R-012"></div>
+    </div>
+    <div class="fg"><label>Descrizione *</label><input id="mcr-desc" type="text" placeholder="es. Fattura assicurazione RC 2026"></div>
+    <div class="mr">
+      <div class="fg"><label>Conto dare *</label><select id="mcr-dare"></select></div>
+      <div class="fg"><label>Conto avere *</label><select id="mcr-avere"></select></div>
+    </div>
+    <div style="font-size:.72rem;color:var(--gc);margin:-.4rem 0 .9rem">Esempi: pagamento di un costo in contanti → dare <em>4xxx costo</em>, avere <em>1000 Cassa</em>. Incasso sponsor sul conto postale → dare <em>1010</em>, avere <em>3200</em>.</div>
+    <div class="mr">
+      <div class="fg"><label>Importo CHF *</label><input id="mcr-importo" type="number" step="0.05" min="0" placeholder="0.00"></div>
+      <div class="fg"><label>Ricevuta (PDF o foto)</label><input id="mcr-file" type="file" accept="application/pdf,image/*"></div>
+    </div>
+    <div id="mcr-allegato-att" style="font-size:.8rem;margin-top:-.3rem"></div>
+    <div style="display:flex;gap:.8rem;justify-content:flex-end;margin-top:1.5rem">
+      <button class="btn bo" onclick="closeModal('modal-cont-reg')">Annulla</button>
+      <button class="btn bv2" id="mcr-salva" onclick="contSalvaReg()">Salva</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL IMPORT BANANA -->
+<div class="mo" id="modal-cont-import">
+  <div class="md" style="max-width:660px">
+    <div class="mh"><h3>Importa da Banana</h3><button class="mc2" onclick="closeModal('modal-cont-import')">✕</button></div>
+    <div style="font-size:.82rem;color:var(--gc);line-height:1.55">
+      In Banana apri la contabilità e scegli <strong>File → Esporta file → Esporta in Excel</strong>, poi carica qui il file <span class="m">.xls</span>.
+      Vengono importati piano dei conti, saldi di apertura, preventivo e registrazioni. Prima vedi un'anteprima: nulla cambia finché non confermi.
+    </div>
+    <div class="fg" style="margin-top:1rem"><label>File esportato da Banana</label><input id="mci-file" type="file" accept=".xls,.xml,application/vnd.ms-excel,text/xml"></div>
+    <button class="btn bv2" onclick="contAnalizzaImport()">🔍 Analizza file</button>
+    <div id="mci-esito"></div>
+    <div style="display:flex;gap:.8rem;justify-content:flex-end;margin-top:1.5rem">
+      <button class="btn bo" onclick="closeModal('modal-cont-import')">Annulla</button>
+      <button class="btn br2" id="mci-conferma" style="display:none" onclick="contConfermaImport()">Conferma import</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CONTO -->
+<div class="mo" id="modal-cont-conto">
+  <div class="md" style="max-width:480px">
+    <div class="mh"><h3 id="mcc-title">Nuovo conto</h3><button class="mc2" onclick="closeModal('modal-cont-conto')">✕</button></div>
+    <input type="hidden" id="mcc-id">
+    <div class="mr">
+      <div class="fg"><label>Numero *</label><input id="mcc-numero" type="text" inputmode="numeric" placeholder="es. 4250"></div>
+      <div class="fg"><label>Tipo *</label><select id="mcc-tipo"><option value="A">Attivo</option><option value="P">Passivo</option><option value="R">Ricavo</option><option value="C">Costo</option></select></div>
+    </div>
+    <div class="fg"><label>Descrizione *</label><input id="mcc-desc" type="text"></div>
+    <div class="mr">
+      <div class="fg"><label>Gruppo</label><input id="mcc-gruppo" type="text" placeholder="es. Liquidità"></div>
+      <div class="fg"><label>Saldo di apertura</label><input id="mcc-apertura" type="number" step="0.05"></div>
+    </div>
+    <label style="display:flex;align-items:center;gap:.5rem;font-size:.82rem;color:var(--gc)"><input id="mcc-attivo" type="checkbox" checked style="accent-color:var(--verde)"> Conto attivo (disattivalo invece di eliminarlo se ha movimenti)</label>
+    <div style="font-size:.72rem;color:var(--gc);margin-top:.6rem">Per la liquidità usa il gruppo «Liquidità»: entra nel riquadro Liquidità.</div>
+    <div style="display:flex;gap:.8rem;justify-content:flex-end;margin-top:1.5rem">
+      <button class="btn bo" onclick="closeModal('modal-cont-conto')">Annulla</button>
+      <button class="btn bv2" onclick="contSalvaConto()">Salva</button>
     </div>
   </div>
 </div>
@@ -2107,7 +2229,7 @@ async function renderAdmin(){
   populateAnnoSelect();
   ["quote","uscite","spese","trasferte","note","album"].forEach(s=>{const el=document.getElementById(s+"-anno-label");if(el)el.textContent=ANNO;});
   document.getElementById("k-soci").textContent=SOCI.length;
-  await Promise.all([loadQuote(),loadUsciteAdmin(),loadSpese(),loadTrasferte(),loadAlbumAdmin(),loadNews().then(()=>{renderNewsAdmin();renderNewsPub();}),loadDocumenti().then(()=>renderDocAdminTable())]);
+  await Promise.all([loadQuote(),loadUsciteAdmin(),loadSpese(),loadTrasferte(),loadAlbumAdmin(),loadNews().then(()=>{renderNewsAdmin();renderNewsPub();}),loadDocumenti().then(()=>renderDocAdminTable()),(typeof loadContabilita==='function'?loadContabilita():null)]);
   try{const r=await api("GET","/admin/note/"+ANNO);document.getElementById("admin-note").value=r.testo||"";}catch(e){}
   adminRenderSoci();
 }
@@ -2378,5 +2500,6 @@ function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t
 
 init().then(autoLoginSocio);
 </script>
+<script src="/contabilita.js"></script>
 </body>
 </html>
