@@ -1182,9 +1182,12 @@ app.get('/api/admin/backup', requireAdmin, async (req, res) => {
     if (fs.existsSync(UPLOAD_DIR)) {
       archive.directory(UPLOAD_DIR, 'uploads');
     }
+    // 2b. Ricevute della contabilità (cartella privata)
+    const ALLEGATI = path.join(DATA_DIR, 'allegati');
+    if (fs.existsSync(ALLEGATI)) archive.directory(ALLEGATI, 'allegati');
 
     // 3. File di configurazione utili
-    const configFiles = ['package.json','fly.toml','railway.toml','server.js'];
+    const configFiles = ['package.json','fly.toml','railway.toml','server.js','contabilita.js'];
     configFiles.forEach(f => {
       const full = path.join(__dirname, f);
       if (fs.existsSync(full)) archive.file(full, { name: f });
@@ -1203,7 +1206,7 @@ Contenuto:
 
 Per ripristinare:
 1. Copia ctr.db nel volume /data/
-2. Copia uploads/ in /data/uploads/
+2. Copia uploads/ in /data/uploads/ e allegati/ in /data/allegati/
 3. Rideploya l'applicazione
 `;
     archive.append(readme, { name: 'README.txt' });
@@ -1264,6 +1267,9 @@ app.post('/api/admin/restore-db', requireAdmin, uploadDB.single('db'), (req, res
     res.status(500).json({error: e.message});
   }
 });
+
+// ── CONTABILITÀ (partita doppia, solo admin) ─────────────────────────
+require('./contabilita')(app, db, { requireAdmin, DATA_DIR, esc });
 
 // ── SPA FALLBACK ──────────────────────────────────────────────────────
 app.get('*', (req,res) => res.sendFile(path.join(__dirname,'public','index.html')));

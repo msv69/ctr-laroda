@@ -80,3 +80,22 @@ ctr/
 - Login socio (tessera + cognome) → token valido 180 giorni che autorizza solo i dati di quel socio.
 - Lettura pubblica: news, uscite, gallery, documenti, numero soci. Tutto il resto richiede un token.
 - I login sono limitati a 10 tentativi ogni 15 minuti per IP.
+
+## Contabilità (pannello admin)
+Contabilità a partita doppia in stile Banana.ch, nel pannello admin → **📒 Contabilità**.
+- **Piano dei conti** modificabile (attivi, passivi, ricavi, costi) con saldi di apertura.
+- **Registrazioni** con data, documento, conto dare, conto avere, importo e ricevuta allegata (PDF/foto, privata).
+- **Automatiche**: quote pagate, spese e iscrizioni alle trasferte generano da sole le registrazioni
+  (conti configurabili in *Impostazioni*). Si aggiornano quando cambi i dati di origine.
+- **Bilancio e conto economico** per esercizio; i saldi patrimoniali si riportano da soli all'anno successivo.
+- **Preventivo vs consuntivo** per conto.
+- **Export**: CSV per Excel (registrazioni e bilancio) e file `.txt` importabile in Banana
+  (colonne Date, Doc, Description, AccountDebit, AccountCredit, Amount).
+- **Rendiconto stampabile** (Stampa → Salva come PDF) con bilancio, conto economico e firme.
+
+- **Import da Banana**: in Banana *File → Esporta file → Esporta in Excel*, poi nel pannello *⬆ Importa da Banana*.
+  Importa piano dei conti, aperture (anche su ricavi/costi), preventivo e registrazioni, con anteprima prima di confermare.
+  Le registrazioni automatiche partono dal giorno dopo l'ultima registrazione importata, per non duplicare.
+
+Codice: `contabilita.js` (API) e `public/contabilita.js` (interfaccia). Le ricevute stanno in `DATA_DIR/allegati`
+(non pubbliche) e sono incluse nel backup.
