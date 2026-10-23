@@ -349,12 +349,16 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // ── AUTENTICAZIONE ───────────────────────────────────────────────────
 // Credenziali admin SOLO da variabili d'ambiente (Railway → Variables).
-const ADMIN_USER = process.env.ADMIN_USER || 'ctr';
-const ADMIN_PWD  = process.env.ADMIN_PWD || '';
+// Pulisce il valore delle variabili: spazi/a capo ai lati e virgolette messe per errore
+// (es. ADMIN_PWD="segreta" incollato nel Raw Editor di Railway)
+const pulisciEnv = v => String(v || '').trim().replace(/^(["'])([\s\S]*)\1$/, '$2');
+const ADMIN_USER = (pulisciEnv(process.env.ADMIN_USER) || 'ctr').toLowerCase();
+const ADMIN_PWD  = pulisciEnv(process.env.ADMIN_PWD);
 // Chiave per firmare i token. Se manca, ne genera una casuale a ogni avvio
 // (i login restano validi solo fino al prossimo riavvio del server).
 const TOKEN_SECRET = process.env.TOKEN_SECRET || crypto.randomBytes(32).toString('hex');
-if (!ADMIN_PWD)            console.warn('⚠️  ADMIN_PWD non impostata: login admin disabilitato');
+if (!ADMIN_PWD) console.warn('⚠️  ADMIN_PWD non impostata: login admin disabilitato');
+else console.log(`Login admin attivo: utente "${ADMIN_USER}", password di ${ADMIN_PWD.length} caratteri`);
 if (!process.env.TOKEN_SECRET) console.warn('⚠️  TOKEN_SECRET non impostata: i token scadono a ogni riavvio');
 
 const TTL_ADMIN = 12 * 3600;        // 12 ore
@@ -440,9 +444,13 @@ const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&
 app.post('/api/admin/login', loginLimiter, (req, res) => {
   if (!ADMIN_PWD) return res.status(503).json({ error: 'Login admin non configurato (ADMIN_PWD)' });
   const { user, pwd } = req.body || {};
-  if (!safeEqual(user || '', ADMIN_USER) || !safeEqual(pwd || '', ADMIN_PWD)) {
+  // Nome utente senza distinzione di maiuscole; password esatta (spazi ai lati ignorati)
+  const okUser = safeEqual(String(user || '').trim().toLowerCase(), ADMIN_USER);
+  const okPwd = safeEqual(String(pwd || '').trim(), ADMIN_PWD);
+  if (!okUser || !okPwd) {
     loginFallito(req);
-    return res.status(401).json({ error: 'Credenziali errate' });
+    console.warn(`Login admin fallito da ${req.ip}: ${!okUser ? 'utente errato' : 'password errata'}`);
+    return res.status(401).json({ error: !okUser ? `Utente errato (l'utente admin è "${ADMIN_USER}")` : 'Password errata' });
   }
   loginRiuscito(req);
   res.json({ token: signToken({ role: 'admin' }, TTL_ADMIN) });
