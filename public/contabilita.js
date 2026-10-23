@@ -426,6 +426,25 @@
   }
   const contRendiconto = () => apriConToken(`/api/contabilita/rendiconto?anno=${ANNO}`);
 
+  // Quote, spese e trasferte generano registrazioni automatiche: dopo ogni loro
+  // salvataggio/eliminazione il pannello le ricarica, e qui aggiorniamo anche la contabilità.
+  let timerAgg;
+  const aggiornaContabilitaPresto = () => {
+    clearTimeout(timerAgg);
+    timerAgg = setTimeout(() => {
+      if (typeof ADMIN_TOKEN !== 'undefined' && ADMIN_TOKEN && $('cont-anno-label')) loadContabilita();
+    }, 400);
+  };
+  ['loadQuote', 'loadSpese', 'loadTrasferte'].forEach(nome => {
+    const originale = window[nome];
+    if (typeof originale !== 'function') return;
+    window[nome] = async function (...args) {
+      const r = await originale.apply(this, args);
+      aggiornaContabilitaPresto();
+      return r;
+    };
+  });
+
   Object.assign(window, {
     loadContabilita, contTab, contCerca, contFiltroConto, contApriReg, contSalvaReg, contEliminaReg, contVediAllegato,
     contRimuoviAllegato, contSalvaPreventivo, contCopiaPreventivo, contSalvaAperture, contApriConto, contSalvaConto,
