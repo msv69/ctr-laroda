@@ -517,28 +517,16 @@ app.get('/api/soci/elenco', (req,res) => {
 app.post('/api/soci', requireAdmin, (req,res) => {
   const b = req.body;
   try {
-    // Numero tessera successivo: il massimo NUMERICO tra tutte le tessere esistenti,
-    // qualunque sia la forma (CTR-058, ctr-58, "CTR 058 "...). L'ordine alfabetico
-    // non basta: una sola tessera scritta diversamente faceva ripartire da CTR-001.
-    const esistenti = new Set();
-    let maxNum = 0;
-    db.prepare("SELECT tessera FROM soci WHERE tessera IS NOT NULL").all().forEach(r => {
-      const t = String(r.tessera).trim().toUpperCase();
-      esistenti.add(t);
-      const m = t.match(/^CTR\s*-?\s*(\d+)/);
-      if (m) maxNum = Math.max(maxNum, parseInt(m[1], 10));
-    });
-    let n = maxNum + 1, tessera;
-    do { tessera = 'CTR-' + String(n++).padStart(3, '0'); } while (esistenti.has(tessera));
+    const maxRow = db.prepare("SELECT tessera FROM soci WHERE tessera LIKE 'CTR-%' ORDER BY tessera DESC").get();
+    const maxNum = maxRow ? parseInt(maxRow.tessera.replace('CTR-',''))||0 : 0;
+    const tessera = 'CTR-'+String(maxNum+1).padStart(3,'0');
     const r = db.prepare(`INSERT INTO soci (nome,cognome,tessera,email,tel,nascita,cf,indirizzo,citta,cap,ruolo,stato,note)
       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`).run(
       b.nome,b.cognome,tessera,b.email||'',b.tel||'',b.nascita||null,b.cf||'',
       b.indirizzo||'',b.citta||'',b.cap||'',b.ruolo||'Socio',b.stato||'Attivo',b.note||''
     );
     res.json(db.prepare('SELECT * FROM soci WHERE id=?').get(r.lastInsertRowid));
-  } catch(e) {
-    res.status(400).json({error: /UNIQUE.*tessera/.test(e.message) ? 'Numero tessera già in uso, riprova' : e.message});
-  }
+  } catch(e) { res.status(400).json({error:e.message}); }
 });
 
 app.patch('/api/soci/:id', requireAdmin, (req,res) => {
