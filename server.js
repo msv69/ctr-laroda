@@ -349,12 +349,16 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // ── AUTENTICAZIONE ───────────────────────────────────────────────────
 // Credenziali admin SOLO da variabili d'ambiente (Railway → Variables).
-const ADMIN_USER = process.env.ADMIN_USER || 'ctr';
-const ADMIN_PWD  = process.env.ADMIN_PWD || '';
+// Pulisce il valore delle variabili: spazi/a capo ai lati e virgolette messe per errore
+// (es. ADMIN_PWD="segreta" incollato nel Raw Editor di Railway)
+const pulisciEnv = v => String(v || '').trim().replace(/^(["'])([\s\S]*)\1$/, '$2');
+const ADMIN_USER = (pulisciEnv(process.env.ADMIN_USER) || 'ctr').toLowerCase();
+const ADMIN_PWD  = pulisciEnv(process.env.ADMIN_PWD);
 // Chiave per firmare i token. Se manca, ne genera una casuale a ogni avvio
 // (i login restano validi solo fino al prossimo riavvio del server).
 const TOKEN_SECRET = process.env.TOKEN_SECRET || crypto.randomBytes(32).toString('hex');
-if (!ADMIN_PWD)            console.warn('⚠️  ADMIN_PWD non impostata: login admin disabilitato');
+if (!ADMIN_PWD) console.warn('⚠️  ADMIN_PWD non impostata: login admin disabilitato');
+else console.log(`Login admin attivo: utente "${ADMIN_USER}", password di ${ADMIN_PWD.length} caratteri`);
 if (!process.env.TOKEN_SECRET) console.warn('⚠️  TOKEN_SECRET non impostata: i token scadono a ogni riavvio');
 
 const TTL_ADMIN = 12 * 3600;        // 12 ore
@@ -440,9 +444,13 @@ const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&
 app.post('/api/admin/login', loginLimiter, (req, res) => {
   if (!ADMIN_PWD) return res.status(503).json({ error: 'Login admin non configurato (ADMIN_PWD)' });
   const { user, pwd } = req.body || {};
-  if (!safeEqual(user || '', ADMIN_USER) || !safeEqual(pwd || '', ADMIN_PWD)) {
+  // Nome utente senza distinzione di maiuscole; password esatta (spazi ai lati ignorati)
+  const okUser = safeEqual(String(user || '').trim().toLowerCase(), ADMIN_USER);
+  const okPwd = safeEqual(String(pwd || '').trim(), ADMIN_PWD);
+  if (!okUser || !okPwd) {
     loginFallito(req);
-    return res.status(401).json({ error: 'Credenziali errate' });
+    console.warn(`Login admin fallito da ${req.ip}: ${!okUser ? 'utente errato' : 'password errata'}`);
+    return res.status(401).json({ error: !okUser ? `Utente errato (l'utente admin è "${ADMIN_USER}")` : 'Password errata' });
   }
   loginRiuscito(req);
   res.json({ token: signToken({ role: 'admin' }, TTL_ADMIN) });
@@ -509,16 +517,28 @@ app.get('/api/soci/elenco', (req,res) => {
 app.post('/api/soci', requireAdmin, (req,res) => {
   const b = req.body;
   try {
-    const maxRow = db.prepare("SELECT tessera FROM soci WHERE tessera LIKE 'CTR-%' ORDER BY tessera DESC").get();
-    const maxNum = maxRow ? parseInt(maxRow.tessera.replace('CTR-',''))||0 : 0;
-    const tessera = 'CTR-'+String(maxNum+1).padStart(3,'0');
+    // Numero tessera successivo: il massimo NUMERICO tra tutte le tessere esistenti,
+    // qualunque sia la forma (CTR-058, ctr-58, "CTR 058 "...). L'ordine alfabetico
+    // non basta: una sola tessera scritta diversamente faceva ripartire da CTR-001.
+    const esistenti = new Set();
+    let maxNum = 0;
+    db.prepare("SELECT tessera FROM soci WHERE tessera IS NOT NULL").all().forEach(r => {
+      const t = String(r.tessera).trim().toUpperCase();
+      esistenti.add(t);
+      const m = t.match(/^CTR\s*-?\s*(\d+)/);
+      if (m) maxNum = Math.max(maxNum, parseInt(m[1], 10));
+    });
+    let n = maxNum + 1, tessera;
+    do { tessera = 'CTR-' + String(n++).padStart(3, '0'); } while (esistenti.has(tessera));
     const r = db.prepare(`INSERT INTO soci (nome,cognome,tessera,email,tel,nascita,cf,indirizzo,citta,cap,ruolo,stato,note)
       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`).run(
       b.nome,b.cognome,tessera,b.email||'',b.tel||'',b.nascita||null,b.cf||'',
       b.indirizzo||'',b.citta||'',b.cap||'',b.ruolo||'Socio',b.stato||'Attivo',b.note||''
     );
     res.json(db.prepare('SELECT * FROM soci WHERE id=?').get(r.lastInsertRowid));
-  } catch(e) { res.status(400).json({error:e.message}); }
+  } catch(e) {
+    res.status(400).json({error: /UNIQUE.*tessera/.test(e.message) ? 'Numero tessera già in uso, riprova' : e.message});
+  }
 });
 
 app.patch('/api/soci/:id', requireAdmin, (req,res) => {
