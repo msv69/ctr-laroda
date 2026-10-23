@@ -517,16 +517,28 @@ app.get('/api/soci/elenco', (req,res) => {
 app.post('/api/soci', requireAdmin, (req,res) => {
   const b = req.body;
   try {
-    const maxRow = db.prepare("SELECT tessera FROM soci WHERE tessera LIKE 'CTR-%' ORDER BY tessera DESC").get();
-    const maxNum = maxRow ? parseInt(maxRow.tessera.replace('CTR-',''))||0 : 0;
-    const tessera = 'CTR-'+String(maxNum+1).padStart(3,'0');
+    // Numero tessera successivo: il massimo NUMERICO tra tutte le tessere esistenti,
+    // qualunque sia la forma (CTR-058, ctr-58, "CTR 058 "...). L'ordine alfabetico
+    // non basta: una sola tessera scritta diversamente faceva ripartire da CTR-001.
+    const esistenti = new Set();
+    let maxNum = 0;
+    db.prepare("SELECT tessera FROM soci WHERE tessera IS NOT NULL").all().forEach(r => {
+      const t = String(r.tessera).trim().toUpperCase();
+      esistenti.add(t);
+      const m = t.match(/^CTR\s*-?\s*(\d+)/);
+      if (m) maxNum = Math.max(maxNum, parseInt(m[1], 10));
+    });
+    let n = maxNum + 1, tessera;
+    do { tessera = 'CTR-' + String(n++).padStart(3, '0'); } while (esistenti.has(tessera));
     const r = db.prepare(`INSERT INTO soci (nome,cognome,tessera,email,tel,nascita,cf,indirizzo,citta,cap,ruolo,stato,note)
       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`).run(
       b.nome,b.cognome,tessera,b.email||'',b.tel||'',b.nascita||null,b.cf||'',
       b.indirizzo||'',b.citta||'',b.cap||'',b.ruolo||'Socio',b.stato||'Attivo',b.note||''
     );
     res.json(db.prepare('SELECT * FROM soci WHERE id=?').get(r.lastInsertRowid));
-  } catch(e) { res.status(400).json({error:e.message}); }
+  } catch(e) {
+    res.status(400).json({error: /UNIQUE.*tessera/.test(e.message) ? 'Numero tessera già in uso, riprova' : e.message});
+  }
 });
 
 app.patch('/api/soci/:id', requireAdmin, (req,res) => {
@@ -1195,7 +1207,7 @@ app.get('/api/admin/backup', requireAdmin, async (req, res) => {
     if (fs.existsSync(ALLEGATI)) archive.directory(ALLEGATI, 'allegati');
 
     // 3. File di configurazione utili
-    const configFiles = ['package.json','fly.toml','railway.toml','server.js','contabilita.js'];
+    const configFiles = ['package.json','fly.toml','railway.toml','server.js','contabilita-server.js'];
     configFiles.forEach(f => {
       const full = path.join(__dirname, f);
       if (fs.existsSync(full)) archive.file(full, { name: f });
@@ -1277,7 +1289,7 @@ app.post('/api/admin/restore-db', requireAdmin, uploadDB.single('db'), (req, res
 });
 
 // ── CONTABILITÀ (partita doppia, solo admin) ─────────────────────────
-require('./contabilita')(app, db, { requireAdmin, DATA_DIR, esc });
+require('./contabilita-server')(app, db, { requireAdmin, DATA_DIR, esc });
 
 // ── SPA FALLBACK ──────────────────────────────────────────────────────
 app.get('*', (req,res) => res.sendFile(path.join(__dirname,'public','index.html')));

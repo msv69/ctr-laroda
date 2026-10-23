@@ -2,8 +2,6 @@
   
 Sito web del club ciclistico amatoriale. Backend Node.js + SQLite, frontend SPA.
 
-
-
 ## Deploy su Railway
 
 ### 1. Carica su GitHub
@@ -99,5 +97,5 @@ Contabilità a partita doppia in stile Banana.ch, nel pannello admin → **📒 
   Importa piano dei conti, aperture (anche su ricavi/costi), preventivo e registrazioni, con anteprima prima di confermare.
   Le registrazioni automatiche partono dal giorno dopo l'ultima registrazione importata, per non duplicare.
 
-Codice: `contabilita.js` (API) e `public/contabilita.js` (interfaccia). Le ricevute stanno in `DATA_DIR/allegati`
+Codice: `contabilita-server.js` (API) e `public/contabilita.js` (interfaccia). Le ricevute stanno in `DATA_DIR/allegati`
 (non pubbliche) e sono incluse nel backup.
